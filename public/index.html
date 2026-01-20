@@ -8,12 +8,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="JyP Ventas">
   <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
-  
-  <link rel="manifest" href="/manifest.webmanifest" />
 
+  <link rel="manifest" href="/manifest.webmanifest" />
   <title>JyP Ventas</title>
 
-  <!-- Tailwind: por ahora CDN para arrancar rápido (luego lo pasamos a build) -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -21,7 +19,6 @@
   <header class="p-4 border-b border-slate-800 flex items-center justify-between">
     <h1 class="text-lg font-semibold">Catálogo</h1>
 
-    <!-- Banner update (oculto por defecto) -->
     <button id="btnUpdate"
       class="hidden px-3 py-2 rounded-lg bg-slate-100 text-slate-900 text-sm font-semibold">
       Actualizar
@@ -34,13 +31,18 @@
 
   <script type="module">
     import { requireAuth } from "/js/auth.js";
-
-    const session = await requireAuth();
-    if (!session) return; // ya redirigió al login
-    
     import { registerServiceWorker, applyUpdate } from "/js/sw-register.js";
     import { renderCatalog } from "/js/app.js";
-    
+
+    // 1) Proteger la página
+    const session = await requireAuth();
+    if (!session) {
+      // requireAuth ya redirigió al login
+      // y cortamos para que no ejecute nada más
+      throw new Error("Redirecting to login...");
+    }
+
+    // 2) SW update banner
     let pendingReg = null;
 
     registerServiceWorker({
@@ -52,6 +54,7 @@
       }
     });
 
+    // 3) Render catálogo
     renderCatalog();
   </script>
 </body>
