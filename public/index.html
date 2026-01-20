@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+
+  <title>JyP Ventas</title>
+
+  <!-- Tailwind: por ahora CDN para arrancar rápido (luego lo pasamos a build) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <header class="p-4 border-b border-slate-800 flex items-center justify-between">
+    <h1 class="text-lg font-semibold">Catálogo</h1>
+
+    <!-- Banner update (oculto por defecto) -->
+    <button id="btnUpdate"
+      class="hidden px-3 py-2 rounded-lg bg-slate-100 text-slate-900 text-sm font-semibold">
+      Actualizar
+    </button>
+  </header>
+
+  <main class="p-4">
+    <div id="grid" class="grid grid-cols-2 gap-3"></div>
+  </main>
+
+  <script type="module">
+    import { registerServiceWorker, applyUpdate } from "/js/sw-register.js";
+    import { renderCatalog } from "/js/app.js";
+
+    let pendingReg = null;
+
+    registerServiceWorker({
+      onUpdate: (reg) => {
+        pendingReg = reg;
+        const btn = document.getElementById("btnUpdate");
+        btn.classList.remove("hidden");
+        btn.addEventListener("click", () => applyUpdate(pendingReg), { once: true });
+      }
+    });
+
+    renderCatalog();
+  </script>
+</body>
+</html>

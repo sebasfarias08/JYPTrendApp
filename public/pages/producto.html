@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <title>Producto</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <header class="p-4 border-b border-slate-800 flex items-center justify-between">
+    <a href="/index.html" class="text-sm text-slate-300">← Volver</a>
+
+    <button id="btnUpdate"
+      class="hidden px-3 py-2 rounded-lg bg-slate-100 text-slate-900 text-sm font-semibold">
+      Actualizar
+    </button>
+  </header>
+
+  <main class="p-4 space-y-4">
+    <img id="img" class="w-full h-56 object-contain rounded-xl border border-slate-800 bg-slate-900" />
+    <div>
+      <h1 id="name" class="text-xl font-semibold"></h1>
+      <div id="price" class="text-slate-300 mt-1"></div>
+    </div>
+
+    <div class="flex gap-2">
+      <button id="btnShare"
+        class="flex-1 px-4 py-3 rounded-xl bg-slate-100 text-slate-900 font-semibold">
+        Compartir
+      </button>
+
+      <button id="btnCopy"
+        class="px-4 py-3 rounded-xl border border-slate-700 text-slate-100">
+        Copiar link
+      </button>
+    </div>
+
+    <button id="btnDownload"
+      class="w-full px-4 py-3 rounded-xl border border-slate-700 text-slate-100">
+      Descargar imagen
+    </button>
+
+    <p id="msg" class="text-sm text-slate-400"></p>
+  </main>
+
+  <script type="module">
+    import { registerServiceWorker, applyUpdate } from "/js/sw-register.js";
+    import { shareProduct, copyToClipboard, downloadImage } from "/js/share.js";
+
+    let pendingReg = null;
+
+    registerServiceWorker({
+      onUpdate: (reg) => {
+        pendingReg = reg;
+        const btn = document.getElementById("btnUpdate");
+        btn.classList.remove("hidden");
+        btn.addEventListener("click", () => applyUpdate(pendingReg), { once: true });
+      }
+    });
+
+    // Mock producto por querystring
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id") || "1";
+
+    const product = {
+      id,
+      name: id === "2" ? "Perfume" : "Botella 1L",
+      price: id === "2" ? 22000 : 12000,
+      imageUrl: "/assets/icons/icon-512.png"
+    };
+
+    const nameEl = document.getElementById("name");
+    const priceEl = document.getElementById("price");
+    const imgEl = document.getElementById("img");
+    const msgEl = document.getElementById("msg");
+
+    nameEl.textContent = product.name;
+    priceEl.textContent = "$ " + new Intl.NumberFormat("es-AR").format(product.price);
+    imgEl.src = product.imageUrl;
+
+    const shareUrl = `${location.origin}/pages/producto.html?id=${encodeURIComponent(product.id)}`;
+    const shareText = `Mirá este producto: ${product.name}`;
+
+    document.getElementById("btnShare").addEventListener("click", async () => {
+      const res = await shareProduct({
+        title: product.name,
+        text: shareText,
+        url: shareUrl,
+        imageUrl: product.imageUrl
+      });
+      msgEl.textContent = res.ok
+        ? `Listo (${res.mode}).`
+        : "No se pudo compartir en este dispositivo.";
+    });
+
+    document.getElementById("btnCopy").addEventListener("click", async () => {
+      const ok = await copyToClipboard(shareUrl);
+      msgEl.textContent = ok ? "Link copiado." : "No se pudo copiar el link.";
+    });
+
+    document.getElementById("btnDownload").addEventListener("click", () => {
+      downloadImage(product.imageUrl, `producto-${product.id}.png`);
+      msgEl.textContent = "Descarga iniciada.";
+    });
+  </script>
+</body>
+</html>
