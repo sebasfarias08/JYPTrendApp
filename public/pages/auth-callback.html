@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <title>Ingresando...</title>
+</head>
+<body style="background:#020617;color:#e2e8f0;font-family:system-ui;padding:16px;">
+  <div>Ingresando…</div>
+
+  <script type="module">
+    import { supabase } from "/js/supabase-client.js";
+
+    // Supabase-js completa la sesión automáticamente al volver del OAuth.
+    // Esperamos a que exista sesión y redirigimos.
+    const params = new URLSearchParams(location.search);
+    const next = params.get("next");
+
+    const { data } = await supabase.auth.getSession();
+    const session = data?.session;
+
+    // Si no vino sesión todavía, igual intentamos volver al home (lo normal es que ya venga)
+    const target = next ? decodeURIComponent(next) : "/index.html";
+    location.replace(target);
+  </script>
+</body>
+</html>
