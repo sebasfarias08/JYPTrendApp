@@ -38,12 +38,9 @@
     <div>
       <h1 id="name" class="text-xl font-semibold"></h1>
       <div id="price" class="text-slate-300 mt-1"></div>
-
-      <!-- opcional: si lo usás en product-page.js -->
       <div id="category" class="text-slate-400 mt-1 text-sm"></div>
     </div>
 
-    <!-- opcional: descripción -->
     <p id="desc" class="text-slate-300 text-sm leading-relaxed"></p>
 
     <div class="flex gap-2">
@@ -67,13 +64,18 @@
   </main>
 
   <script type="module">
+    import { requireAuth } from "/js/auth.js";
     import { registerServiceWorker, applyUpdate } from "/js/sw-register.js";
     import { initProductPage } from "/js/product-page.js";
-    import { requireAuth } from "/js/auth.js";
 
+    // 1) Proteger la página (incluye querystring en next)
     const session = await requireAuth();
-    if (!session) return; // ya redirigió al login
+    if (!session) {
+      // requireAuth ya redirigió a login
+      throw new Error("Redirecting to login...");
+    }
 
+    // 2) SW update banner
     let pendingReg = null;
 
     registerServiceWorker({
@@ -85,6 +87,7 @@
       }
     });
 
+    // 3) Cargar producto real por ?id=
     initProductPage();
   </script>
 </body>
