@@ -4,13 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1220" />
+
+  <!-- iOS PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="JyP Ventas">
-
   <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
-  
+
+  <!-- PWA -->
   <link rel="manifest" href="/manifest.webmanifest" />
+
   <title>Producto</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -26,11 +29,22 @@
   </header>
 
   <main class="p-4 space-y-4">
-    <img id="img" class="w-full h-56 object-contain rounded-xl border border-slate-800 bg-slate-900" />
+    <img
+      id="img"
+      class="w-full h-56 object-contain rounded-xl border border-slate-800 bg-slate-900"
+      alt=""
+    />
+
     <div>
       <h1 id="name" class="text-xl font-semibold"></h1>
       <div id="price" class="text-slate-300 mt-1"></div>
+
+      <!-- opcional: si lo usás en product-page.js -->
+      <div id="category" class="text-slate-400 mt-1 text-sm"></div>
     </div>
+
+    <!-- opcional: descripción -->
+    <p id="desc" class="text-slate-300 text-sm leading-relaxed"></p>
 
     <div class="flex gap-2">
       <button id="btnShare"
@@ -54,7 +68,7 @@
 
   <script type="module">
     import { registerServiceWorker, applyUpdate } from "/js/sw-register.js";
-    import { shareProduct, copyToClipboard, downloadImage } from "/js/share.js";
+    import { initProductPage } from "/js/product-page.js";
 
     let pendingReg = null;
 
@@ -67,50 +81,7 @@
       }
     });
 
-    // Mock producto por querystring
-    const params = new URLSearchParams(location.search);
-    const id = params.get("id") || "1";
-
-    const product = {
-      id,
-      name: id === "2" ? "Perfume" : "Botella 1L",
-      price: id === "2" ? 22000 : 12000,
-      imageUrl: "/assets/icons/icon-512.png"
-    };
-
-    const nameEl = document.getElementById("name");
-    const priceEl = document.getElementById("price");
-    const imgEl = document.getElementById("img");
-    const msgEl = document.getElementById("msg");
-
-    nameEl.textContent = product.name;
-    priceEl.textContent = "$ " + new Intl.NumberFormat("es-AR").format(product.price);
-    imgEl.src = product.imageUrl;
-
-    const shareUrl = `${location.origin}/pages/producto.html?id=${encodeURIComponent(product.id)}`;
-    const shareText = `Mirá este producto: ${product.name}`;
-
-    document.getElementById("btnShare").addEventListener("click", async () => {
-      const res = await shareProduct({
-        title: product.name,
-        text: shareText,
-        url: shareUrl,
-        imageUrl: product.imageUrl
-      });
-      msgEl.textContent = res.ok
-        ? `Listo (${res.mode}).`
-        : "No se pudo compartir en este dispositivo.";
-    });
-
-    document.getElementById("btnCopy").addEventListener("click", async () => {
-      const ok = await copyToClipboard(shareUrl);
-      msgEl.textContent = ok ? "Link copiado." : "No se pudo copiar el link.";
-    });
-
-    document.getElementById("btnDownload").addEventListener("click", () => {
-      downloadImage(product.imageUrl, `producto-${product.id}.png`);
-      msgEl.textContent = "Descarga iniciada.";
-    });
+    initProductPage();
   </script>
 </body>
 </html>
