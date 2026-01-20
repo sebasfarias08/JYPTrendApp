@@ -13,17 +13,26 @@
   <script type="module">
     import { supabase } from "/js/supabase-client.js";
 
-    // Supabase-js completa la sesión automáticamente al volver del OAuth.
-    // Esperamos a que exista sesión y redirigimos.
-    const params = new URLSearchParams(location.search);
-    const next = params.get("next");
+    const next = new URLSearchParams(location.search).get("next");
+    const fallbackTarget = "/index.html";
+    const target = next ? decodeURIComponent(next) : fallbackTarget;
 
+    // 1) intento inmediato
     const { data } = await supabase.auth.getSession();
-    const session = data?.session;
+    if (data?.session) {
+      location.replace(target);
+    } else {
+      // 2) esperamos a que supabase termine de procesar el retorno OAuth
+      const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+          sub.subscription.unsubscribe();
+          location.replace(target);
+        }
+      });
 
-    // Si no vino sesión todavía, igual intentamos volver al home (lo normal es que ya venga)
-    const target = next ? decodeURIComponent(next) : "/index.html";
-    location.replace(target);
+      // 3) fallback por si algo raro pasa
+      setTimeout(() => location.replace(target), 2000);
+    }
   </script>
 </body>
 </html>
