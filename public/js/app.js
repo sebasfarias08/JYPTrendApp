@@ -1,21 +1,21 @@
 /* public/js/app.js */
+import { getProducts } from "./catalog-service.js";
+import { getImageUrl } from "./image.js";
 
-export function renderCatalog() {
+export async function renderCatalog() {
   const grid = document.getElementById("grid");
-  if (!grid) return;
-
-  // Mock: luego lo reemplazamos por Supabase
-  const products = [
-    { id: 1, name: "Botella 1L", price: 12000, img: "/assets/icons/icon-192.png" },
-    { id: 2, name: "Perfume", price: 22000, img: "/assets/icons/icon-192.png" }
-  ];
+  const products = await getProducts();
 
   grid.innerHTML = products.map(p => `
-    <a href="/pages/producto.html?id=${encodeURIComponent(p.id)}"
-       class="block rounded-xl border border-slate-800 bg-slate-900 p-3 active:scale-[0.99]">
-      <img src="${p.img}" alt="${escapeHtml(p.name)}" class="w-full h-32 object-contain mb-2" />
-      <div class="text-sm font-semibold">${escapeHtml(p.name)}</div>
-      <div class="text-sm text-slate-300">$ ${formatArs(p.price)}</div>
+    <a href="/pages/producto.html?id=${p.id}"
+      class="block rounded-xl border border-slate-800 bg-slate-900 p-3">
+
+      <img
+          src="${getImageUrl(p.image_path)}"
+          class="w-full h-32 object-contain mb-2"
+      />
+      <div class="font-semibold">${p.name}</div>
+      <div class="text-slate-300">$ ${format(p.price)}</div>
     </a>
   `).join("");
 }
