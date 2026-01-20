@@ -43,7 +43,13 @@ export async function initProductPage() {
     return;
   }
 
+  console.log("Producto:", p);
+  console.log("image_path raw:", JSON.stringify(p?.image_path));
+
   const imageUrl = p.image_path ? getImageUrl(p.image_path) : "";
+
+  console.log("imageUrl final:", imageUrl);
+
   const shareUrl = `${location.origin}/pages/producto.html?id=${encodeURIComponent(p.id)}`;
   const shareText = `Mirá este producto: ${p.name} - $ ${formatArs(p.price)}`;
 
