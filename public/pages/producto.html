@@ -69,6 +69,10 @@
   <script type="module">
     import { registerServiceWorker, applyUpdate } from "/js/sw-register.js";
     import { initProductPage } from "/js/product-page.js";
+    import { requireAuth } from "/js/auth.js";
+
+    const session = await requireAuth();
+    if (!session) return; // ya redirigió al login
 
     let pendingReg = null;
 
