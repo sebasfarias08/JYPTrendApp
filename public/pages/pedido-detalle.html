@@ -25,18 +25,9 @@
   <script type="module">
     import { requireAuth } from "/js/auth.js";
     import { getImageUrl } from "/js/image.js";
-
-    import {
-      getOrderDetail,
-      updateOrderStatus,
-      updatePaymentStatus
-    } from "/js/orders-service.js";
-
-    import {
-      ORDER_STATUS,
-      PAYMENT_STATUS,
-      statusLabel
-    } from "/js/order-status.js";
+    import { orderStatusBadgeClass, paymentStatusBadgeClass, statusLabel } from "/js/status-ui.js";
+    import { getOrderDetail, updateOrderStatus, updatePaymentStatus } from "/js/orders-service.js";
+    import { ORDER_STATUS, PAYMENT_STATUS, statusLabel } from "/js/order-status.js";
 
     const session = await requireAuth();
     if (!session) throw new Error("Redirecting to login...");
@@ -73,6 +64,23 @@
     cardEl.innerHTML = `
       <div><span class="text-slate-400">Pedido:</span> <span class="font-semibold">${o.id}</span></div>
       <div><span class="text-slate-400">Fecha:</span> ${fecha}</div>
+      const os = o.order_status ?? "NUEVO";
+      const ps = o.payment_status ?? "PENDIENTE";
+
+      const orderBadge = 
+        <span class="px-2 py-1 rounded-lg text-xs ${orderStatusBadgeClass(os)}">
+          ${statusLabel(os)}
+        </span>;
+
+      const paymentBadge = 
+        <span class="px-2 py-1 rounded-lg text-xs ${paymentStatusBadgeClass(ps)}">
+          ${statusLabel(ps)}
+        </span>;
+      
+      <div class="mt-2 flex flex-wrap gap-2">
+        ${orderBadge}
+        ${paymentBadge}
+      </div>
 
       <div class="grid grid-cols-2 gap-3 pt-2">
         <div>

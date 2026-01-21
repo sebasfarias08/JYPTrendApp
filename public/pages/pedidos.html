@@ -86,22 +86,32 @@
     function renderChips() {
       // Pedido
       orderChipsEl.innerHTML = "";
-      orderChipsEl.appendChild(chipButton("Todos", selectedOrder === "", () => { selectedOrder = ""; render(); }));
+      orderChipsEl.appendChild(chipButton("Todos", selectedOrder === "", () => {
+        selectedOrder = "";
+        renderChips();
+        render();
+      }));
 
       ORDER_STATUS.forEach(s => {
         orderChipsEl.appendChild(chipButton(statusLabel(s), selectedOrder === s, () => {
           selectedOrder = (selectedOrder === s) ? "" : s;
+          renderChips();
           render();
         }));
       });
 
       // Pago
       payChipsEl.innerHTML = "";
-      payChipsEl.appendChild(chipButton("Todos", selectedPay === "", () => { selectedPay = ""; render(); }));
+      payChipsEl.appendChild(chipButton("Todos", selectedPay === "", () => {
+        selectedPay = "";
+        renderChips();
+        render();
+      }));
 
       PAYMENT_STATUS.forEach(s => {
         payChipsEl.appendChild(chipButton(statusLabel(s), selectedPay === s, () => {
           selectedPay = (selectedPay === s) ? "" : s;
+          renderChips();
           render();
         }));
       });

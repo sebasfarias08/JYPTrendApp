@@ -45,7 +45,8 @@ export function paymentStatusBadgeClass(s) {
 }
 
 export function chipClass(active) {
+  const base = "outline-none focus:outline-none active:scale-[0.98]";
   return active
-    ? "px-3 py-2 rounded-xl bg-slate-100 text-slate-900 text-sm font-semibold"
-    : "px-3 py-2 rounded-xl border border-slate-700 text-slate-100 text-sm";
+    ? `${base} px-3 py-2 rounded-xl bg-slate-100 text-slate-900 text-sm font-semibold`
+    : `${base} px-3 py-2 rounded-xl border border-slate-700 text-slate-100 text-sm`;
 }
