@@ -35,11 +35,10 @@ pedidos offline
 cola de sincronización
 reintento automático
 indicador “pendiente de envío”
-👉 Esto te transforma la app en nivel campo / calle.
 
 🟢 Sprint 5 — Historial de pedidos
-listado por vendedor
-estados (enviado / cobrado / entregado)
+*listado por vendedor
+*estados (enviado / cobrado / entregado)
 filtros por fecha
 export a Excel
 “Reenviar por WhatsApp” el resumen del pedido
