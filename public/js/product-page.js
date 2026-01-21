@@ -2,6 +2,7 @@
 import { getProductById } from "./product-service.js";
 import { getImageUrl } from "./image.js";
 import { shareProduct, copyToClipboard, downloadImage } from "./share.js";
+import { addToCart } from "./cart.js";
 
 function formatArs(value) {
   const n = Number(value ?? 0);
@@ -61,6 +62,18 @@ export async function initProductPage() {
   setSrc("img", imageUrl, p.name);
 
   setText("msg", "");
+
+  // Agregar al carrito
+  document.getElementById("btnAddCart")?.addEventListener("click", () => {
+    addToCart({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      image_path: p.image_path
+    }, 1);
+    
+    msgEl.textContent = "Agregado al pedido.";
+  });
 
   // Botones
   const msgEl = document.getElementById("msg");
