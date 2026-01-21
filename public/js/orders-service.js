@@ -4,7 +4,7 @@ import { supabase } from "./supabase-client.js";
 export async function getMyOrders({ limit = 50 } = {}) {
   const { data, error } = await supabase
     .from("orders")
-    .select("id, created_at, status, total, customer_name")
+    .select("id, created_at, order_status, payment_status,total, customer_name")
     .order("created_at", { ascending: false })
     .limit(limit);
 
