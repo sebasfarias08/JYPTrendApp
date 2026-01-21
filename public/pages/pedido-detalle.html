@@ -89,38 +89,94 @@
       <div><span class="text-slate-400">Cliente:</span> ${o.customer_name ?? "-"}</div>
       <div><span class="text-slate-400">Teléfono:</span> ${o.customer_phone ?? "-"}</div>
       <div><span class="text-slate-400">Notas:</span> ${o.notes ?? "-"}</div>
+
       <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
         <span class="text-slate-400">Total</span>
         <span class="text-xl font-semibold">$ ${total}</span>
       </div>
     `;
 
-    // const orderStatusEl = document.getElementById("orderStatus");
-    // const paymentStatusEl = document.getElementById("paymentStatus");
+    // ✅ AHORA sí: existen en el DOM
+    const orderSel = document.getElementById("orderStatus");
+    const paySel = document.getElementById("paymentStatus");
 
-    // ✅ Populate order status options (usa o.order_status)
+    // ✅ Poblar opciones
     ORDER_STATUS.forEach(s => {
-      orderStatus.innerHTML += `
+      orderSel.innerHTML += `
         <option value="${s}" ${o.order_status === s ? "selected" : ""}>
           ${statusLabel(s)}
         </option>`;
     });
 
-    // ✅ Populate payment status options (usa o.payment_status)
     PAYMENT_STATUS.forEach(s => {
-      paymentStatus.innerHTML += `
+      paySel.innerHTML += `
         <option value="${s}" ${o.payment_status === s ? "selected" : ""}>
           ${statusLabel(s)}
-      </option>`;
+        </option>`;
     });
 
-    // Guardar cambios con feedback
-    await updateOrderStatus(o.id, o.order_status.value);
-    await updatePaymentStatus(o.id, o.payment_status.value);
+    // ✅ Guardar automático al cambiar (pro UX)
+    let lastOrder = o.order_status;
+    let lastPay = o.payment_status;
+
+    orderSel.addEventListener("change", async () => {
+      const next = orderSel.value;
+      if (next === lastOrder) return;
+
+      msgEl.textContent = "Guardando...";
+      orderSel.disabled = true;
+
+      try {
+        const r = await updateOrderStatus(o.id, next);
+        const ok = (r && typeof r === "object" && "error" in r) ? !r.error : true;
+
+        if (ok) {
+          lastOrder = next;
+          msgEl.textContent = "Guardado ✅";
+        } else {
+          orderSel.value = lastOrder;
+          msgEl.textContent = "Error ❌";
+        }
+      } catch (e) {
+        console.error(e);
+        orderSel.value = lastOrder;
+        msgEl.textContent = "Error ❌";
+      } finally {
+        orderSel.disabled = false;
+        setTimeout(() => { if (msgEl.textContent === "Guardado ✅") msgEl.textContent = ""; }, 1200);
+      }
+    });
+
+    paySel.addEventListener("change", async () => {
+      const next = paySel.value;
+      if (next === lastPay) return;
+
+      msgEl.textContent = "Guardando...";
+      paySel.disabled = true;
+
+      try {
+        const r = await updatePaymentStatus(o.id, next);
+        const ok = (r && typeof r === "object" && "error" in r) ? !r.error : true;
+
+        if (ok) {
+          lastPay = next;
+          msgEl.textContent = "Guardado ✅";
+        } else {
+          paySel.value = lastPay;
+          msgEl.textContent = "Error ❌";
+        }
+      } catch (e) {
+        console.error(e);
+        paySel.value = lastPay;
+        msgEl.textContent = "Error ❌";
+      } finally {
+        paySel.disabled = false;
+        setTimeout(() => { if (msgEl.textContent === "Guardado ✅") msgEl.textContent = ""; }, 1200);
+      }
+    });
 
     // Items
     msgEl.textContent = "";
-
     const items = o.order_items ?? [];
 
     if (!items.length) {
