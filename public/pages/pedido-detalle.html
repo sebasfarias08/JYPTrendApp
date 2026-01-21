@@ -24,8 +24,19 @@
 
   <script type="module">
     import { requireAuth } from "/js/auth.js";
-    import { getOrderDetail } from "/js/orders-service.js";
     import { getImageUrl } from "/js/image.js";
+
+    import {
+      getOrderDetail,
+      updateOrderStatus,
+      updatePaymentStatus
+    } from "/js/orders-service.js";
+
+    import {
+      ORDER_STATUS,
+      PAYMENT_STATUS,
+      statusLabel
+    } from "/js/order-status.js";
 
     const session = await requireAuth();
     if (!session) throw new Error("Redirecting to login...");
@@ -62,7 +73,25 @@
     cardEl.innerHTML = `
       <div><span class="text-slate-400">Pedido:</span> <span class="font-semibold">${o.id}</span></div>
       <div><span class="text-slate-400">Fecha:</span> ${fecha}</div>
-      <div><span class="text-slate-400">Estado:</span> <span class="text-emerald-400">${o.status}</span></div>
+
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <div>
+          <label class="text-sm text-slate-400">Estado pedido</label>
+          <select
+            id="orderStatus"
+            class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800">
+          </select>
+        </div>
+
+        <div>
+          <label class="text-sm text-slate-400">Estado pago</label>
+          <select
+            id="paymentStatus"
+            class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800">
+          </select>
+        </div>
+      </div>
+
       <div><span class="text-slate-400">Cliente:</span> ${o.customer_name ?? "-"}</div>
       <div><span class="text-slate-400">Teléfono:</span> ${o.customer_phone ?? "-"}</div>
       <div><span class="text-slate-400">Notas:</span> ${o.notes ?? "-"}</div>
@@ -72,6 +101,93 @@
       </div>
     `;
 
+    const orderStatusEl = document.getElementById("orderStatus");
+    const paymentStatusEl = document.getElementById("paymentStatus");
+
+    // ✅ Populate order status options (usa o.order_status)
+    ORDER_STATUS.forEach(s => {
+      const option = document.createElement("option");
+      option.value = s;
+      option.textContent = statusLabel(s);
+      if (o.order_status === s) option.selected = true;
+      orderStatusEl.appendChild(option);
+    });
+
+    // ✅ Populate payment status options (usa o.payment_status)
+    PAYMENT_STATUS.forEach(s => {
+      const option = document.createElement("option");
+      option.value = s;
+      option.textContent = statusLabel(s);
+      if (o.payment_status === s) option.selected = true;
+      paymentStatusEl.appendChild(option);
+    });
+
+    // Guardar cambios con feedback
+    let lastOrderStatus = o.order_status;
+    let lastPaymentStatus = o.payment_status;
+
+    orderStatusEl.addEventListener("change", async (e) => {
+      const newStatus = e.target.value;
+
+      // Evita llamadas inútiles
+      if (newStatus === lastOrderStatus) return;
+
+      msgEl.textContent = "Actualizando estado del pedido...";
+      orderStatusEl.disabled = true;
+
+      try {
+        const res = await updateOrderStatus(o.id, newStatus);
+
+        // Si tu función no devuelve booleano, igual consideramos OK si no tira error
+        const ok = (typeof res === "boolean") ? res : true;
+
+        if (ok) {
+          lastOrderStatus = newStatus;
+          msgEl.textContent = "Estado del pedido actualizado.";
+        } else {
+          msgEl.textContent = "Error al actualizar el estado del pedido.";
+          orderStatusEl.value = lastOrderStatus;
+        }
+      } catch (err) {
+        console.error(err);
+        msgEl.textContent = "Error al actualizar el estado del pedido.";
+        orderStatusEl.value = lastOrderStatus;
+      } finally {
+        orderStatusEl.disabled = false;
+        setTimeout(() => { if (msgEl.textContent.includes("actualizado")) msgEl.textContent = ""; }, 1200);
+      }
+    });
+
+    paymentStatusEl.addEventListener("change", async (e) => {
+      const newStatus = e.target.value;
+
+      if (newStatus === lastPaymentStatus) return;
+
+      msgEl.textContent = "Actualizando estado del pago...";
+      paymentStatusEl.disabled = true;
+
+      try {
+        const res = await updatePaymentStatus(o.id, newStatus);
+        const ok = (typeof res === "boolean") ? res : true;
+
+        if (ok) {
+          lastPaymentStatus = newStatus;
+          msgEl.textContent = "Estado del pago actualizado.";
+        } else {
+          msgEl.textContent = "Error al actualizar el estado del pago.";
+          paymentStatusEl.value = lastPaymentStatus;
+        }
+      } catch (err) {
+        console.error(err);
+        msgEl.textContent = "Error al actualizar el estado del pago.";
+        paymentStatusEl.value = lastPaymentStatus;
+      } finally {
+        paymentStatusEl.disabled = false;
+        setTimeout(() => { if (msgEl.textContent.includes("actualizado")) msgEl.textContent = ""; }, 1200);
+      }
+    });
+
+    // Items
     msgEl.textContent = "";
 
     const items = o.order_items ?? [];

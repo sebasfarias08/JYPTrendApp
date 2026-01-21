@@ -21,7 +21,8 @@ export async function getOrderDetail(orderId) {
     .select(`
       id,
       created_at,
-      status,
+      order_status,
+      payment_status,
       total,
       customer_name,
       customer_phone,

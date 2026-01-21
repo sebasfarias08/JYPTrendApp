@@ -42,6 +42,7 @@ listado por vendedor
 estados (enviado / cobrado / entregado)
 filtros por fecha
 export a Excel
+“Reenviar por WhatsApp” el resumen del pedido
 
 🟢 Sprint 6 — Backoffice
 vista admin
