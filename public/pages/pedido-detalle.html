@@ -10,30 +10,50 @@
 </head>
 
 <body class="bg-slate-950 text-slate-100 min-h-screen">
+
+  <!-- HEADER -->
   <header class="p-4 border-b border-slate-800 flex items-center justify-between">
     <a href="/pages/pedidos.html" class="text-sm text-slate-300">← Mis pedidos</a>
     <h1 class="text-lg font-semibold">Detalle</h1>
     <a href="/pages/pedido.html" class="text-sm text-slate-300">Pedido</a>
   </header>
 
+  <!-- CONTENT -->
   <main class="p-4 space-y-4">
     <div id="msg" class="text-sm text-slate-400"></div>
-    <div id="card" class="hidden rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-2"></div>
+    <div id="card" class="hidden rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3"></div>
     <div id="items" class="space-y-3"></div>
   </main>
 
   <script type="module">
     import { requireAuth } from "/js/auth.js";
     import { getImageUrl } from "/js/image.js";
-    import { orderStatusBadgeClass, paymentStatusBadgeClass, statusLabel } from "/js/status-ui.js";
-    import { getOrderDetail, updateOrderStatus, updatePaymentStatus } from "/js/orders-service.js";
-    import { ORDER_STATUS, PAYMENT_STATUS, statusLabel } from "/js/order-status.js";
 
+    import {
+      getOrderDetail,
+      updateOrderStatus,
+      updatePaymentStatus
+    } from "/js/orders-service.js";
+
+    import {
+      ORDER_STATUS,
+      PAYMENT_STATUS,
+      statusLabel
+    } from "/js/order-status.js";
+
+    import {
+      orderStatusBadgeClass,
+      paymentStatusBadgeClass
+    } from "/js/status-ui.js";
+
+    /* ================================
+       AUTH
+    ================================= */
     const session = await requireAuth();
-    if (!session) throw new Error("Redirecting to login...");
+    if (!session) throw new Error("Redirect login");
 
-    const msgEl = document.getElementById("msg");
-    const cardEl = document.getElementById("card");
+    const msgEl   = document.getElementById("msg");
+    const cardEl  = document.getElementById("card");
     const itemsEl = document.getElementById("items");
 
     const params = new URLSearchParams(location.search);
@@ -49,35 +69,43 @@
     const o = await getOrderDetail(id);
 
     if (!o) {
-      msgEl.textContent = "No se encontró el pedido (o no tenés permisos).";
-      itemsEl.innerHTML = "";
+      msgEl.textContent = "No se encontró el pedido.";
       throw new Error("Order not found");
     }
 
-    const dt = new Date(o.created_at);
-    const fecha = dt.toLocaleString("es-AR");
+    /* ================================
+       PREP DATA
+    ================================= */
+    const fecha = new Date(o.created_at).toLocaleString("es-AR");
 
-    const total = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 })
-      .format(Number(o.total ?? 0));
+    const total = new Intl.NumberFormat("es-AR", {
+      maximumFractionDigits: 0
+    }).format(Number(o.total ?? 0));
 
+    const orderStatus   = o.order_status   ?? "NEW";
+    const paymentStatus = o.payment_status ?? "PENDING";
+
+    const orderBadge = `
+      <span class="px-2 py-1 rounded-lg text-xs ${orderStatusBadgeClass(orderStatus)}">
+        ${statusLabel(orderStatus)}
+      </span>
+    `;
+
+    const paymentBadge = `
+      <span class="px-2 py-1 rounded-lg text-xs ${paymentStatusBadgeClass(paymentStatus)}">
+        ${statusLabel(paymentStatus)}
+      </span>
+    `;
+
+    /* ================================
+       CARD HTML
+    ================================= */
     cardEl.classList.remove("hidden");
     cardEl.innerHTML = `
       <div><span class="text-slate-400">Pedido:</span> <span class="font-semibold">${o.id}</span></div>
       <div><span class="text-slate-400">Fecha:</span> ${fecha}</div>
-      const os = o.order_status ?? "NUEVO";
-      const ps = o.payment_status ?? "PENDIENTE";
 
-      const orderBadge = 
-        <span class="px-2 py-1 rounded-lg text-xs ${orderStatusBadgeClass(os)}">
-          ${statusLabel(os)}
-        </span>;
-
-      const paymentBadge = 
-        <span class="px-2 py-1 rounded-lg text-xs ${paymentStatusBadgeClass(ps)}">
-          ${statusLabel(ps)}
-        </span>;
-      
-      <div class="mt-2 flex flex-wrap gap-2">
+      <div class="flex gap-2 flex-wrap">
         ${orderBadge}
         ${paymentBadge}
       </div>
@@ -85,12 +113,16 @@
       <div class="grid grid-cols-2 gap-3 pt-2">
         <div>
           <label class="text-sm text-slate-400">Estado pedido</label>
-          <select id="orderStatus" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800"></select>
+          <select id="orderStatus"
+            class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800">
+          </select>
         </div>
 
         <div>
           <label class="text-sm text-slate-400">Estado pago</label>
-          <select id="paymentStatus" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800"></select>
+          <select id="paymentStatus"
+            class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800">
+          </select>
         </div>
       </div>
 
@@ -98,121 +130,110 @@
       <div><span class="text-slate-400">Teléfono:</span> ${o.customer_phone ?? "-"}</div>
       <div><span class="text-slate-400">Notas:</span> ${o.notes ?? "-"}</div>
 
-      <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+      <div class="pt-2 border-t border-slate-800 flex justify-between">
         <span class="text-slate-400">Total</span>
         <span class="text-xl font-semibold">$ ${total}</span>
       </div>
     `;
 
-    // ✅ AHORA sí: existen en el DOM
+    /* ================================
+       SELECTS
+    ================================= */
     const orderSel = document.getElementById("orderStatus");
-    const paySel = document.getElementById("paymentStatus");
+    const paySel   = document.getElementById("paymentStatus");
 
-    // ✅ Poblar opciones
     ORDER_STATUS.forEach(s => {
       orderSel.innerHTML += `
-        <option value="${s}" ${o.order_status === s ? "selected" : ""}>
+        <option value="${s}" ${s === orderStatus ? "selected" : ""}>
           ${statusLabel(s)}
         </option>`;
     });
 
     PAYMENT_STATUS.forEach(s => {
       paySel.innerHTML += `
-        <option value="${s}" ${o.payment_status === s ? "selected" : ""}>
+        <option value="${s}" ${s === paymentStatus ? "selected" : ""}>
           ${statusLabel(s)}
         </option>`;
     });
 
-    // ✅ Guardar automático al cambiar (pro UX)
-    let lastOrder = o.order_status;
-    let lastPay = o.payment_status;
+    /* ================================
+       AUTO SAVE
+    ================================= */
+    let lastOrder = orderStatus;
+    let lastPay   = paymentStatus;
 
     orderSel.addEventListener("change", async () => {
-      const next = orderSel.value;
-      if (next === lastOrder) return;
+      if (orderSel.value === lastOrder) return;
 
       msgEl.textContent = "Guardando...";
       orderSel.disabled = true;
 
       try {
-        const r = await updateOrderStatus(o.id, next);
-        const ok = (r && typeof r === "object" && "error" in r) ? !r.error : true;
-
-        if (ok) {
-          lastOrder = next;
-          msgEl.textContent = "Guardado ✅";
-        } else {
-          orderSel.value = lastOrder;
-          msgEl.textContent = "Error ❌";
-        }
+        await updateOrderStatus(o.id, orderSel.value);
+        lastOrder = orderSel.value;
+        msgEl.textContent = "Guardado ✅";
       } catch (e) {
         console.error(e);
         orderSel.value = lastOrder;
         msgEl.textContent = "Error ❌";
       } finally {
         orderSel.disabled = false;
-        setTimeout(() => { if (msgEl.textContent === "Guardado ✅") msgEl.textContent = ""; }, 1200);
+        setTimeout(() => msgEl.textContent = "", 1200);
       }
     });
 
     paySel.addEventListener("change", async () => {
-      const next = paySel.value;
-      if (next === lastPay) return;
+      if (paySel.value === lastPay) return;
 
       msgEl.textContent = "Guardando...";
       paySel.disabled = true;
 
       try {
-        const r = await updatePaymentStatus(o.id, next);
-        const ok = (r && typeof r === "object" && "error" in r) ? !r.error : true;
-
-        if (ok) {
-          lastPay = next;
-          msgEl.textContent = "Guardado ✅";
-        } else {
-          paySel.value = lastPay;
-          msgEl.textContent = "Error ❌";
-        }
+        await updatePaymentStatus(o.id, paySel.value);
+        lastPay = paySel.value;
+        msgEl.textContent = "Guardado ✅";
       } catch (e) {
         console.error(e);
         paySel.value = lastPay;
         msgEl.textContent = "Error ❌";
       } finally {
         paySel.disabled = false;
-        setTimeout(() => { if (msgEl.textContent === "Guardado ✅") msgEl.textContent = ""; }, 1200);
+        setTimeout(() => msgEl.textContent = "", 1200);
       }
     });
 
-    // Items
-    msgEl.textContent = "";
+    /* ================================
+       ITEMS
+    ================================= */
     const items = o.order_items ?? [];
 
-    if (!items.length) {
-      itemsEl.innerHTML = `<div class="text-slate-300">Sin items.</div>`;
-    } else {
-      itemsEl.innerHTML = items.map(it => {
-        const p = it.products || {};
-        const rawPath = (p.image_path ?? "").trim().replace(/^\/+/, "");
-        const img = rawPath ? getImageUrl(rawPath) : "";
+    itemsEl.innerHTML = items.length
+      ? items.map(it => {
+          const p = it.products || {};
+          const img = p.image_path
+            ? getImageUrl(p.image_path.replace(/^\/+/, ""))
+            : "";
 
-        const unit = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 })
-          .format(Number(it.unit_price ?? 0));
+          const unit = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 })
+            .format(it.unit_price ?? 0);
 
-        const sub = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 })
-          .format(Number(it.subtotal ?? 0));
+          const sub = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 })
+            .format(it.subtotal ?? 0);
 
-        return `
-          <div class="rounded-2xl border border-slate-800 bg-slate-900 p-3 flex gap-3">
-            <img src="${img}" class="w-16 h-16 object-contain rounded-xl bg-slate-950 border border-slate-800" />
-            <div class="flex-1">
-              <div class="font-semibold">${p.name ?? "Producto"}</div>
-              <div class="text-slate-400 text-sm">${it.qty} × $ ${unit}</div>
+          return `
+            <div class="rounded-2xl border border-slate-800 bg-slate-900 p-3 flex gap-3">
+              <img src="${img}"
+                   class="w-16 h-16 object-contain rounded-xl bg-slate-950 border border-slate-800" />
+              <div class="flex-1">
+                <div class="font-semibold">${p.name ?? "Producto"}</div>
+                <div class="text-slate-400 text-sm">${it.qty} × $ ${unit}</div>
+              </div>
+              <div class="font-semibold">$ ${sub}</div>
             </div>
-            <div class="font-semibold">$ ${sub}</div>
-          </div>
-        `;
-      }).join("");
-    }
+          `;
+        }).join("")
+      : `<div class="text-slate-300">Sin items.</div>`;
   </script>
+
 </body>
 </html>
