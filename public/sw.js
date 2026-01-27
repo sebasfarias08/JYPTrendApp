@@ -1,5 +1,5 @@
 /* public/sw.js */
-const APP_VERSION = "v1.0.17"; // subilo cuando publiques cambios importantes
+const APP_VERSION = "v1.0.18"; // subilo cuando publiques cambios importantes
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 

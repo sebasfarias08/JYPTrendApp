@@ -19,3 +19,10 @@ export function paymentStatusBadgeClass(status) {
     PAID: "bg-emerald-600 text-white"
   }[status] ?? "bg-slate-600 text-white";
 }
+
+/* Chips de filtros */
+export function chipClass(active = false) {
+  return active
+    ? "px-3 py-1.5 rounded-full text-sm bg-slate-100 text-slate-900 font-semibold"
+    : "px-3 py-1.5 rounded-full text-sm bg-slate-800 text-slate-300 border border-slate-700";
+}
