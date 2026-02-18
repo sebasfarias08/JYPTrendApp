@@ -80,6 +80,11 @@
     </section>
   </main>
 
+  <a href="/pages/pedido.html"
+     class="fixed right-4 bottom-20 z-30 px-4 py-3 rounded-full bg-emerald-400 text-slate-950 text-sm font-semibold shadow-lg shadow-emerald-900/30">
+    Nuevo pedido
+  </a>
+
   <nav class="fixed bottom-0 left-0 right-0 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
     <div class="mx-auto max-w-3xl grid grid-cols-2">
       <a href="/index.html" class="py-3 text-center text-sm font-semibold text-slate-100">Inicio</a>
@@ -93,6 +98,7 @@
     import { getProducts } from "/js/catalog-service.js";
     import { getMyOrders } from "/js/orders-service.js";
     import { getImageUrl } from "/js/image.js";
+    import { addToCart } from "/js/cart.js";
 
     const gridEl = document.getElementById("grid");
     const emptyStateEl = document.getElementById("emptyState");
@@ -136,16 +142,56 @@
         const imageUrl = p.image_path ? getImageUrl(String(p.image_path).trim().replace(/^\/+/, "")) : "";
 
         return `
-          <a href="/pages/producto.html?id=${encodeURIComponent(p.id)}"
-             class="block rounded-2xl border border-slate-800 bg-slate-900 p-3 transition hover:border-slate-600">
-            <img src="${imageUrl}"
-                 class="w-full h-32 object-contain mb-2 rounded-lg bg-slate-950 border border-slate-800" />
-            <div class="text-xs text-slate-400 mb-1">${escapeHtml(categoryName)}</div>
-            <div class="font-semibold leading-tight">${escapeHtml(p.name)}</div>
-            <div class="text-emerald-300 mt-1 font-semibold">$ ${fmtMoney(p.price)}</div>
-          </a>
+          <article class="rounded-2xl border border-slate-800 bg-slate-900 p-3 transition hover:border-slate-600">
+            <a href="/pages/producto.html?id=${encodeURIComponent(p.id)}" class="block">
+              <img src="${imageUrl}"
+                   class="w-full h-32 object-contain mb-2 rounded-lg bg-slate-950 border border-slate-800" />
+              <div class="text-xs text-slate-400 mb-1">${escapeHtml(categoryName)}</div>
+              <div class="font-semibold leading-tight">${escapeHtml(p.name)}</div>
+            </a>
+
+            <div class="mt-2 flex items-center justify-between gap-2">
+              <div class="text-emerald-300 font-semibold">$ ${fmtMoney(p.price)}</div>
+              <button
+                type="button"
+                data-add-id="${escapeHtml(p.id)}"
+                data-add-name="${escapeHtml(p.name)}"
+                data-add-price="${Number(p.price ?? 0)}"
+                data-add-image="${escapeHtml(p.image_path ?? "")}"
+                class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-400 text-slate-950 hover:bg-emerald-300"
+                aria-label="Agregar ${escapeHtml(p.name)} al carrito"
+                title="Agregar al carrito">
+                <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="9" cy="20" r="1"></circle>
+                  <circle cx="17" cy="20" r="1"></circle>
+                  <path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h8.8a1 1 0 0 0 1-.8L20 7H7"></path>
+                  <path d="M12 9v4"></path>
+                  <path d="M10 11h4"></path>
+                </svg>
+              </button>
+            </div>
+          </article>
         `;
       }).join("");
+
+      gridEl.querySelectorAll("[data-add-id]").forEach((btn) => {
+        btn.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          addToCart({
+            id: btn.getAttribute("data-add-id"),
+            name: btn.getAttribute("data-add-name"),
+            price: Number(btn.getAttribute("data-add-price") || 0),
+            image_path: btn.getAttribute("data-add-image") || ""
+          }, 1);
+
+          metaEl.textContent = "Producto agregado al pedido.";
+          window.setTimeout(() => {
+            applyFilters();
+          }, 800);
+        });
+      });
     }
 
     function applyFilters() {
