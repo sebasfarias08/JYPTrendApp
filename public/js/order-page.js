@@ -24,7 +24,7 @@ function render() {
   const items = getCart();
 
   if (!items.length) {
-    listEl.innerHTML = `<div class="text-slate-300">Tu pedido está vacío.</div>`;
+    listEl.innerHTML = `<div class="text-slate-300">Tu pedido esta vacio.</div>`;
     totalEl.textContent = "$ 0";
     return;
   }
@@ -39,7 +39,7 @@ function render() {
           <div class="text-slate-300 text-sm">$ ${formatArs(it.price)} c/u</div>
 
           <div class="mt-2 flex items-center gap-2">
-            <button data-dec="${it.product_id}" class="px-3 py-2 rounded-lg border border-slate-700">−</button>
+            <button data-dec="${it.product_id}" class="px-3 py-2 rounded-lg border border-slate-700">-</button>
             <input data-qty="${it.product_id}" value="${it.qty}"
               class="w-16 text-center px-2 py-2 rounded-lg bg-slate-950 border border-slate-800" />
             <button data-inc="${it.product_id}" class="px-3 py-2 rounded-lg border border-slate-700">+</button>
@@ -53,7 +53,6 @@ function render() {
 
   totalEl.textContent = `$ ${formatArs(cartTotal())}`;
 
-  // handlers
   listEl.querySelectorAll("[data-inc]").forEach(btn => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-inc");
@@ -86,47 +85,82 @@ export function initOrderPage(session) {
   render();
 
   const msgEl = document.getElementById("msg");
+  const btnClear = document.getElementById("btnClear");
+  const btnSubmit = document.getElementById("btnSubmit");
+  const customerNameEl = document.getElementById("customerName");
+  const customerPhoneEl = document.getElementById("customerPhone");
+  const notesEl = document.getElementById("notes");
 
-  document.getElementById("btnClear").addEventListener("click", () => {
+  let submitting = false;
+
+  btnClear.addEventListener("click", () => {
     clearCart();
     msgEl.textContent = "Pedido vaciado.";
     render();
   });
 
-  document.getElementById("btnSubmit").addEventListener("click", async () => {
+  btnSubmit.addEventListener("click", async () => {
+    if (submitting) return;
+
     const items = getCart();
     if (!items.length) {
-      msgEl.textContent = "Tu pedido está vacío.";
+      msgEl.textContent = "Tu pedido esta vacio.";
       return;
     }
 
-    const customer_name = document.getElementById("customerName").value?.trim() || null;
-    const customer_phone = document.getElementById("customerPhone").value?.trim() || null;
-    const notes = document.getElementById("notes").value?.trim() || null;
+    const customer_name = customerNameEl.value?.trim() || null;
+    const customer_phone = customerPhoneEl.value?.trim() || null;
+    const notes = notesEl.value?.trim() || null;
 
-    msgEl.textContent = "Enviando pedido...";
+    if (!customer_name) {
+      msgEl.textContent = "Ingresa el nombre del cliente para continuar.";
+      customerNameEl.focus();
+      return;
+    }
+
+    submitting = true;
+    btnSubmit.disabled = true;
+    btnSubmit.classList.add("opacity-60", "cursor-not-allowed");
+    btnSubmit.textContent = "Enviando...";
+    msgEl.textContent = "Enviando pedido. Espera un momento...";
 
     const total = cartTotal();
 
     const order = {
       user_id: session.user.id,
-      status: "submitted",
+      order_status: "NEW",
+      payment_status: "PENDING",
       customer_name,
       customer_phone,
       notes,
       total
     };
 
-    const res = await createOrderWithItems(order, items);
+    let res = { ok: false };
+
+    try {
+      res = await createOrderWithItems(order, items);
+    } catch (e) {
+      console.error("createOrderWithItems error:", e);
+    }
 
     if (!res.ok) {
-      msgEl.textContent = "Error enviando pedido. Revisá consola.";
+      msgEl.textContent = "No pudimos enviar el pedido. Verifica conexion e intenta de nuevo.";
+      submitting = false;
+      btnSubmit.disabled = false;
+      btnSubmit.classList.remove("opacity-60", "cursor-not-allowed");
+      btnSubmit.textContent = "Confirmar pedido";
       return;
     }
 
     clearCart();
     render();
-    msgEl.textContent = `Pedido enviado ✅ (ID: ${res.order_id})`;
+    msgEl.textContent = `Pedido enviado (ID: ${res.order_id})`;
+
+    submitting = false;
+    btnSubmit.disabled = false;
+    btnSubmit.classList.remove("opacity-60", "cursor-not-allowed");
+    btnSubmit.textContent = "Confirmar pedido";
   });
 
   window.addEventListener("cart:changed", () => render());
