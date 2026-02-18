@@ -1,5 +1,6 @@
 // public/js/app-shell.js
 const TAB_LINKS = {
+  home: "/index.html",
   botellas: "/index.html?tab=botellas",
   perfumes: "/index.html?tab=perfumes",
   importados: "/index.html?tab=importados",
@@ -13,7 +14,8 @@ const MENU_ITEMS = [
   { label: "Clientes", href: null, icon: "users" },
   { label: "Parametros", href: null, icon: "settings" },
   { label: "Inventario", href: null, icon: "inventory" },
-  { label: "About", href: null, icon: "info" }
+  { label: "About", href: null, icon: "info" },
+  { label: "Salir", href: null, icon: "logout", action: "logout" }
 ];
 
 function iconSvg(name) {
@@ -23,7 +25,8 @@ function iconSvg(name) {
     users: '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M20 8v6"></path><path d="M23 11h-6"></path>',
     settings: '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path>',
     inventory: '<path d="M3 7h18"></path><path d="M6 7l1.5-3h9L18 7"></path><rect x="4" y="7" width="16" height="13" rx="2"></rect><path d="M9 11h6"></path>',
-    info: '<circle cx="12" cy="12" r="9"></circle><path d="M12 10v6"></path><circle cx="12" cy="7" r="1"></circle>'
+    info: '<circle cx="12" cy="12" r="9"></circle><path d="M12 10v6"></path><circle cx="12" cy="7" r="1"></circle>',
+    logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path>'
   };
   return icons[name] ?? icons.list;
 }
@@ -110,7 +113,18 @@ function createMenuDrawer() {
       btn.setAttribute("href", item.href);
     } else {
       btn.setAttribute("type", "button");
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
+        if (item.action === "logout") {
+          try {
+            const { signOut } = await import("/js/auth.js");
+            await signOut();
+          } catch (e) {
+            console.error("Logout error:", e);
+          } finally {
+            location.href = "/pages/login.html";
+          }
+          return;
+        }
         alert(`"${item.label}" estara disponible pronto.`);
       });
     }

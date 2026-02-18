@@ -98,8 +98,8 @@
       <button data-tab="outlet" class="tab-btn py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1">
         <span>🏷️</span><span>Outlet</span>
       </button>
-      <button data-tab="reservas-pendiente" class="tab-btn py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1">
-        <span>⏳</span><span>Reservas</span>
+      <button data-tab="home" class="tab-btn py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1">
+        <span>🏠</span><span>Home</span>
       </button>
     </div>
   </nav>
@@ -126,7 +126,7 @@
       "perfumes": "Perfumes",
       "importados": "Importados",
       "outlet": "Outlet",
-      "reservas-pendiente": "Reservas Pendiente"
+      "home": "Home"
     };
 
     let products = [];
@@ -290,6 +290,10 @@
     document.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         selectedTab = btn.getAttribute("data-tab") || "";
+        if (selectedTab === "home") {
+          location.href = "/index.html";
+          return;
+        }
         updateTabUi();
         applyFilters();
       });

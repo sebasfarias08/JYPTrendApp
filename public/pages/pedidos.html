@@ -54,7 +54,6 @@
 
       <div class="flex items-center justify-between text-sm text-slate-400">
         <div id="count"></div>
-        <div id="msg"></div>
       </div>
     </div>
 
@@ -77,6 +76,7 @@
     import { ORDER_STATUS, PAYMENT_STATUS, statusLabel } from "/js/order-status.js";
     import { orderStatusBadgeClass, paymentStatusBadgeClass, chipClass } from "/js/status-ui.js";
     import { initAppShell } from "/js/app-shell.js";
+    import { showToast } from "/js/toast.js";
 
     const session = await requireAuth();
     if (!session) throw new Error("Redirect login");
@@ -86,7 +86,6 @@
       onRefresh: async () => location.reload()
     });
 
-    const msgEl = document.getElementById("msg");
     const countEl = document.getElementById("count");
     const listEl = document.getElementById("list");
 
@@ -193,9 +192,8 @@
       }).join("");
     }
 
-    msgEl.textContent = "Cargando pedidos...";
+    showToast("Cargando pedidos...", { type: "info", duration: 1100 });
     all = await getMyOrders({ limit: 200 });
-    msgEl.textContent = "";
 
     renderChips();
     render();

@@ -3,6 +3,7 @@ import { getProductById } from "./product-service.js";
 import { getImageUrl } from "./image.js";
 import { shareProduct, copyToClipboard, downloadImage } from "./share.js";
 import { addToCart } from "./cart.js";
+import { showToast } from "./toast.js";
 
 function formatArs(value) {
   const n = Number(value ?? 0);
@@ -71,13 +72,10 @@ export async function initProductPage() {
       price: p.price,
       image_path: p.image_path
     }, 1);
-    
-    msgEl.textContent = "Agregado al pedido.";
+    showToast("Agregado al pedido.", { type: "success" });
   });
 
   // Botones
-  const msgEl = document.getElementById("msg");
-
   document.getElementById("btnShare")?.addEventListener("click", async () => {
     const res = await shareProduct({
       title: p.name,
@@ -85,20 +83,22 @@ export async function initProductPage() {
       url: shareUrl,
       imageUrl
     });
-    msgEl.textContent = res.ok ? `Listo (${res.mode}).` : "No se pudo compartir en este dispositivo.";
+    showToast(res.ok ? `Listo (${res.mode}).` : "No se pudo compartir en este dispositivo.", {
+      type: res.ok ? "success" : "error"
+    });
   });
 
   document.getElementById("btnCopy")?.addEventListener("click", async () => {
     const ok = await copyToClipboard(shareUrl);
-    msgEl.textContent = ok ? "Link copiado." : "No se pudo copiar el link.";
+    showToast(ok ? "Link copiado." : "No se pudo copiar el link.", { type: ok ? "success" : "error" });
   });
 
   document.getElementById("btnDownload")?.addEventListener("click", () => {
     if (!imageUrl) {
-      msgEl.textContent = "Este producto no tiene imagen.";
+      showToast("Este producto no tiene imagen.", { type: "warning" });
       return;
     }
     downloadImage(imageUrl, `producto-${p.id}.jpg`);
-    msgEl.textContent = "Descarga iniciada.";
+    showToast("Descarga iniciada.", { type: "info" });
   });
 }

@@ -2,6 +2,7 @@
 import { getCart, updateQty, clearCart, cartTotal } from "./cart.js";
 import { getImageUrl } from "./image.js";
 import { createOrderWithItems } from "./order-service.js";
+import { showToast } from "./toast.js";
 
 function formatArs(value) {
   const n = Number(value ?? 0);
@@ -94,7 +95,6 @@ function render() {
 export function initOrderPage(session) {
   render();
 
-  const msgEl = document.getElementById("msg");
   const btnClear = document.getElementById("btnClear");
   const btnSubmit = document.getElementById("btnSubmit");
   const btnSubmitSticky = document.getElementById("btnSubmitSticky");
@@ -130,7 +130,7 @@ export function initOrderPage(session) {
 
   btnClear?.addEventListener("click", () => {
     if (!getCart().length) {
-      msgEl.textContent = "No hay productos para vaciar.";
+      showToast("No hay productos para vaciar.", { type: "warning" });
       return;
     }
     openClearModal();
@@ -145,7 +145,7 @@ export function initOrderPage(session) {
   btnConfirmClear?.addEventListener("click", () => {
     clearCart();
     closeClearModal();
-    msgEl.textContent = "Pedido vaciado.";
+    showToast("Pedido vaciado.", { type: "info" });
     render();
   });
 
@@ -154,7 +154,7 @@ export function initOrderPage(session) {
 
     const items = getCart();
     if (!items.length) {
-      msgEl.textContent = "Tu pedido esta vacio.";
+      showToast("Tu pedido esta vacio.", { type: "warning" });
       return;
     }
 
@@ -163,13 +163,13 @@ export function initOrderPage(session) {
     const notes = notesEl.value?.trim() || null;
 
     if (!customer_name) {
-      msgEl.textContent = "Ingresa el nombre del cliente para continuar.";
+      showToast("Ingresa el nombre del cliente para continuar.", { type: "warning" });
       customerNameEl.focus();
       return;
     }
 
     setSubmitState(true);
-    msgEl.textContent = "Enviando pedido. Espera un momento...";
+    showToast("Enviando pedido. Espera un momento...", { type: "info", duration: 1400 });
 
     const order = {
       user_id: session.user.id,
@@ -190,14 +190,14 @@ export function initOrderPage(session) {
     }
 
     if (!res.ok) {
-      msgEl.textContent = "No pudimos enviar el pedido. Verifica conexion e intenta de nuevo.";
+      showToast("No pudimos enviar el pedido. Verifica conexion e intenta de nuevo.", { type: "error", duration: 3200 });
       setSubmitState(false);
       return;
     }
 
     clearCart();
     render();
-    msgEl.textContent = `Pedido enviado (ID: ${res.order_id})`;
+    showToast(`Pedido enviado (ID: ${res.order_id})`, { type: "success", duration: 3200 });
     setSubmitState(false);
   }
 
