@@ -110,6 +110,7 @@
     import { getProducts } from "/js/catalog-service.js";
     import { getImageUrl } from "/js/image.js";
     import { addToCart, getCart } from "/js/cart.js";
+    import { initAppShell } from "/js/app-shell.js";
 
     const headerTitleEl = document.getElementById("headerTitle");
     const searchWrapEl = document.getElementById("searchWrap");
@@ -130,7 +131,6 @@
 
     let products = [];
     let selectedTab = "perfumes";
-    let selectMode = false;
     let pendingReg = null;
 
     function fmtMoney(value) {
@@ -273,6 +273,11 @@
     const session = await requireAuth();
     if (!session) throw new Error("Redirecting to login...");
 
+    initAppShell({
+      title: "Perfumes",
+      onRefresh: reloadProducts
+    });
+
     registerServiceWorker({
       onUpdate: (reg) => {
         pendingReg = reg;
@@ -281,34 +286,6 @@
     });
 
     btnUpdateEl.addEventListener("click", () => applyUpdate(pendingReg), { once: true });
-
-    document.getElementById("btnMenu").addEventListener("click", () => {
-      location.href = "/pages/pedidos.html";
-    });
-
-    document.getElementById("btnSearch").addEventListener("click", () => {
-      searchWrapEl.classList.toggle("hidden");
-      if (!searchWrapEl.classList.contains("hidden")) searchInputEl.focus();
-      else searchInputEl.value = "";
-      applyFilters();
-    });
-
-    document.getElementById("btnSelectMode").addEventListener("click", (e) => {
-      selectMode = !selectMode;
-      e.currentTarget.classList.toggle("bg-emerald-400", selectMode);
-      e.currentTarget.classList.toggle("text-slate-950", selectMode);
-      statusLineEl.textContent = selectMode
-        ? "Modo seleccion activado (visual)."
-        : "Modo seleccion desactivado.";
-    });
-
-    document.getElementById("btnAdd").addEventListener("click", () => {
-      location.href = "/pages/pedido.html";
-    });
-
-    document.getElementById("btnRefresh").addEventListener("click", async () => {
-      await reloadProducts();
-    });
 
     document.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {

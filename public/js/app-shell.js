@@ -135,7 +135,9 @@ function createMenuDrawer() {
 
 export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
   const titleEl = document.getElementById("appShellTitle");
+  const legacyTitleEl = document.getElementById("headerTitle");
   if (titleEl) titleEl.textContent = title;
+  if (legacyTitleEl) legacyTitleEl.textContent = title;
 
   const activeTab = resolveActiveTab();
   document.querySelectorAll("[data-shell-tab]").forEach((el) => {
@@ -147,12 +149,13 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
     if (el.tagName === "A") el.href = TAB_LINKS[key] || "/index.html";
   });
 
-  const btnMenu = document.getElementById("btnShellMenu");
-  const btnSearch = document.getElementById("btnShellSearch");
-  const btnAdd = document.getElementById("btnShellAdd");
-  const btnRefresh = document.getElementById("btnShellRefresh");
-  const searchWrap = document.getElementById("appShellSearchWrap");
-  const searchInput = document.getElementById("appShellSearchInput");
+  const btnMenu = document.getElementById("btnShellMenu") || document.getElementById("btnMenu");
+  const btnSearch = document.getElementById("btnShellSearch") || document.getElementById("btnSearch");
+  const btnAdd = document.getElementById("btnShellAdd") || document.getElementById("btnAdd");
+  const btnRefresh = document.getElementById("btnShellRefresh") || document.getElementById("btnRefresh");
+  const btnSelectLegacy = document.getElementById("btnSelectMode");
+  const searchWrap = document.getElementById("appShellSearchWrap") || document.getElementById("searchWrap");
+  const searchInput = document.getElementById("appShellSearchInput") || document.getElementById("searchInput");
 
   const menuOverlay = createMenuDrawer();
 
@@ -169,6 +172,7 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
       <span id="appShellCartCount" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-emerald-400 text-[10px] leading-[18px] text-slate-950 font-bold text-center">0</span>
     `;
   }
+  btnSelectLegacy?.remove();
 
   btnMenu?.addEventListener("click", () => {
     menuOverlay.classList.remove("hidden");
