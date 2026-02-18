@@ -8,13 +8,39 @@ const TAB_LINKS = {
 };
 
 const MENU_ITEMS = [
-  { label: "Catalogo", href: "/index.html" },
-  { label: "Historial Pedidos", href: "/pages/pedidos.html" },
-  { label: "Clientes", href: null },
-  { label: "Parametros", href: null },
-  { label: "Inventario", href: null },
-  { label: "About", href: null }
+  { label: "Catalogo", href: "/index.html", icon: "list" },
+  { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history" },
+  { label: "Clientes", href: null, icon: "users" },
+  { label: "Parametros", href: null, icon: "settings" },
+  { label: "Inventario", href: null, icon: "inventory" },
+  { label: "About", href: null, icon: "info" }
 ];
+
+function iconSvg(name) {
+  const icons = {
+    list: '<path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><circle cx="3" cy="6" r="1"></circle><circle cx="3" cy="12" r="1"></circle><circle cx="3" cy="18" r="1"></circle>',
+    history: '<path d="M3 3v5h5"></path><path d="M3.5 8a9 9 0 1 0 2.4-3.4"></path><path d="M12 7v5l3 2"></path>',
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M20 8v6"></path><path d="M23 11h-6"></path>',
+    settings: '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path>',
+    inventory: '<path d="M3 7h18"></path><path d="M6 7l1.5-3h9L18 7"></path><rect x="4" y="7" width="16" height="13" rx="2"></rect><path d="M9 11h6"></path>',
+    info: '<circle cx="12" cy="12" r="9"></circle><path d="M12 10v6"></path><circle cx="12" cy="7" r="1"></circle>'
+  };
+  return icons[name] ?? icons.list;
+}
+
+function getUserEmail() {
+  try {
+    const keys = Object.keys(localStorage).filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
+    for (const key of keys) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      const email = parsed?.currentSession?.user?.email || parsed?.user?.email;
+      if (email) return email;
+    }
+  } catch {}
+  return "usuario@jypventas";
+}
 
 function resolveActiveTab() {
   const path = location.pathname;
@@ -38,23 +64,47 @@ function createMenuDrawer() {
   overlay.className = "hidden fixed inset-0 z-50 bg-slate-950/60";
 
   const panel = document.createElement("aside");
-  panel.className = "absolute left-0 top-0 h-full w-72 max-w-[84vw] bg-slate-950 border-r border-slate-800 p-4";
+  panel.className = "absolute left-0 top-0 h-full w-72 max-w-[84vw] bg-slate-950 border-r border-slate-800 flex flex-col";
   panel.innerHTML = `
-    <div class="flex items-center justify-between mb-4">
-      <div class="font-semibold">Menu</div>
-      <button id="appShellMenuClose" class="w-8 h-8 rounded-lg border border-slate-700">X</button>
+    <div class="px-4 py-3 border-b border-slate-800">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-md bg-emerald-400 text-slate-950 text-xs font-bold inline-flex items-center justify-center">JYP</div>
+          <div class="font-semibold text-slate-100">JyP Trend New</div>
+        </div>
+        <button id="appShellMenuClose" class="w-8 h-8 rounded-lg border border-slate-700 text-slate-300">X</button>
+      </div>
     </div>
-    <nav id="appShellMenuList" class="space-y-1"></nav>
+    <nav id="appShellMenuList" class="flex-1 overflow-y-auto px-3 py-3 space-y-1"></nav>
+    <div class="border-t border-slate-800 px-4 py-3">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-blue-500 text-white text-sm font-semibold inline-flex items-center justify-center">S</div>
+        <div class="text-sm text-slate-400 truncate">${getUserEmail()}</div>
+      </div>
+    </div>
   `;
 
   overlay.appendChild(panel);
   document.body.appendChild(overlay);
 
   const list = panel.querySelector("#appShellMenuList");
-  MENU_ITEMS.forEach((item) => {
+  MENU_ITEMS.forEach((item, index) => {
+    if (index === 2 || index === 5) {
+      const divider = document.createElement("div");
+      divider.className = "my-2 border-t border-slate-800";
+      list.appendChild(divider);
+    }
+
     const btn = document.createElement(item.href ? "a" : "button");
-    btn.className = "w-full text-left px-3 py-2 rounded-lg border border-slate-800 bg-slate-900 hover:border-slate-700";
-    btn.textContent = item.label;
+    btn.className = "w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-900/70 flex items-center gap-3 text-slate-200";
+    btn.innerHTML = `
+      <span class="w-5 h-5 inline-flex items-center justify-center text-slate-400">
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          ${iconSvg(item.icon)}
+        </svg>
+      </span>
+      <span class="text-[15px]">${item.label}</span>
+    `;
 
     if (item.href) {
       btn.setAttribute("href", item.href);
