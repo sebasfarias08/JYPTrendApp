@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -15,48 +15,220 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-slate-950 text-slate-100 min-h-screen">
-  <header class="p-4 border-b border-slate-800 flex items-center justify-between">
-    <h1 class="text-lg font-semibold">JyP Trend</h1>
+<body class="min-h-screen text-slate-100 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+  <header class="sticky top-0 z-20 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur">
+    <div class="p-4 space-y-3">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="text-xs uppercase tracking-wider text-slate-400">Panel de vendedor</div>
+          <h1 class="text-xl font-semibold">JyP Ventas</h1>
+          <p id="sellerInfo" class="text-xs text-slate-400 mt-1"></p>
+        </div>
 
-    <button id="btnUpdate"
-      class="hidden px-3 py-2 rounded-lg bg-slate-100 text-slate-900 text-sm font-semibold">
-      Actualizar
-    </button>
+        <div class="flex items-center gap-2">
+          <a href="/pages/pedidos.html"
+             class="px-3 py-2 rounded-lg bg-slate-100 text-slate-900 text-sm font-semibold">Pedidos</a>
+          <button id="btnLogout"
+            class="px-3 py-2 rounded-lg border border-slate-700 text-sm text-slate-200">Salir</button>
+        </div>
+      </div>
+
+      <div id="updateBanner"
+        class="hidden items-center justify-between gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
+        <div class="text-sm text-amber-100">Hay una nueva version disponible.</div>
+        <button id="btnUpdate"
+          class="px-3 py-2 rounded-lg bg-amber-300 text-slate-900 text-sm font-semibold">Actualizar</button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <div class="rounded-xl border border-slate-800 bg-slate-900 p-3">
+          <div class="text-[11px] uppercase tracking-wide text-slate-400">Productos</div>
+          <div id="kpiProducts" class="text-lg font-semibold mt-1">-</div>
+        </div>
+        <div class="rounded-xl border border-slate-800 bg-slate-900 p-3">
+          <div class="text-[11px] uppercase tracking-wide text-slate-400">Pedidos hoy</div>
+          <div id="kpiToday" class="text-lg font-semibold mt-1">-</div>
+        </div>
+        <div class="rounded-xl border border-slate-800 bg-slate-900 p-3">
+          <div class="text-[11px] uppercase tracking-wide text-slate-400">Pendientes</div>
+          <div id="kpiPending" class="text-lg font-semibold mt-1">-</div>
+        </div>
+      </div>
+    </div>
   </header>
 
-  <main class="p-4">
-    <div id="grid" class="grid grid-cols-2 gap-3"></div>
-    <a href="/pages/pedidos.html" class="text-sm text-slate-300">Mis pedidos</a>
+  <main class="p-4 space-y-4 pb-24">
+    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-3 space-y-3">
+      <div class="grid grid-cols-1 sm:grid-cols-[1fr_180px] gap-2">
+        <input id="searchInput"
+          class="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-800 placeholder:text-slate-500"
+          placeholder="Buscar producto por nombre..." />
+        <select id="categoryFilter"
+          class="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-200">
+          <option value="">Todas las categorias</option>
+        </select>
+      </div>
+      <div id="catalogMeta" class="text-xs text-slate-400"></div>
+    </section>
+
+    <section>
+      <div id="grid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+      <div id="emptyState"
+        class="hidden mt-3 rounded-xl border border-slate-800 bg-slate-900 p-4 text-sm text-slate-300">
+        No se encontraron productos con esos filtros.
+      </div>
+    </section>
   </main>
 
-  <script type="module">
-    import { requireAuth } from "/js/auth.js";
-    import { registerServiceWorker, applyUpdate } from "/js/sw-register.js";
-    import { renderCatalog } from "/js/app.js";
+  <nav class="fixed bottom-0 left-0 right-0 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
+    <div class="mx-auto max-w-3xl grid grid-cols-2">
+      <a href="/index.html" class="py-3 text-center text-sm font-semibold text-slate-100">Inicio</a>
+      <a href="/pages/pedidos.html" class="py-3 text-center text-sm text-slate-300">Mis pedidos</a>
+    </div>
+  </nav>
 
-    // 1) Proteger la página
-    const session = await requireAuth();
-    if (!session) {
-      // requireAuth ya redirigió al login
-      // y cortamos para que no ejecute nada más
-      throw new Error("Redirecting to login...");
+  <script type="module">
+    import { requireAuth, signOut } from "/js/auth.js";
+    import { registerServiceWorker, applyUpdate } from "/js/sw-register.js";
+    import { getProducts } from "/js/catalog-service.js";
+    import { getMyOrders } from "/js/orders-service.js";
+    import { getImageUrl } from "/js/image.js";
+
+    const gridEl = document.getElementById("grid");
+    const emptyStateEl = document.getElementById("emptyState");
+    const searchEl = document.getElementById("searchInput");
+    const categoryEl = document.getElementById("categoryFilter");
+    const metaEl = document.getElementById("catalogMeta");
+    const sellerInfoEl = document.getElementById("sellerInfo");
+    const kpiProductsEl = document.getElementById("kpiProducts");
+    const kpiTodayEl = document.getElementById("kpiToday");
+    const kpiPendingEl = document.getElementById("kpiPending");
+    const updateBannerEl = document.getElementById("updateBanner");
+    const btnUpdate = document.getElementById("btnUpdate");
+
+    let products = [];
+    let pendingReg = null;
+
+    function fmtMoney(value) {
+      const n = Number(value ?? 0);
+      return new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(n);
     }
 
-    // 2) SW update banner
-    let pendingReg = null;
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderGrid(items) {
+      if (!items.length) {
+        gridEl.innerHTML = "";
+        emptyStateEl.classList.remove("hidden");
+        return;
+      }
+
+      emptyStateEl.classList.add("hidden");
+      gridEl.innerHTML = items.map((p) => {
+        const categoryName = p.categories?.name ?? "Sin categoria";
+        const imageUrl = p.image_path ? getImageUrl(String(p.image_path).trim().replace(/^\/+/, "")) : "";
+
+        return `
+          <a href="/pages/producto.html?id=${encodeURIComponent(p.id)}"
+             class="block rounded-2xl border border-slate-800 bg-slate-900 p-3 transition hover:border-slate-600">
+            <img src="${imageUrl}"
+                 class="w-full h-32 object-contain mb-2 rounded-lg bg-slate-950 border border-slate-800" />
+            <div class="text-xs text-slate-400 mb-1">${escapeHtml(categoryName)}</div>
+            <div class="font-semibold leading-tight">${escapeHtml(p.name)}</div>
+            <div class="text-emerald-300 mt-1 font-semibold">$ ${fmtMoney(p.price)}</div>
+          </a>
+        `;
+      }).join("");
+    }
+
+    function applyFilters() {
+      const q = (searchEl.value || "").toLowerCase().trim();
+      const c = categoryEl.value;
+
+      const filtered = products.filter((p) => {
+        const matchesText = !q || String(p.name ?? "").toLowerCase().includes(q);
+        const matchesCategory = !c || String(p.categories?.slug ?? "") === c;
+        return matchesText && matchesCategory;
+      });
+
+      metaEl.textContent = `${filtered.length} producto(s) visible(s)`;
+      renderGrid(filtered);
+    }
+
+    function buildCategoryOptions(items) {
+      const map = new Map();
+      for (const p of items) {
+        const slug = p.categories?.slug;
+        const name = p.categories?.name;
+        if (slug && name && !map.has(slug)) map.set(slug, name);
+      }
+
+      const options = [...map.entries()]
+        .sort((a, b) => a[1].localeCompare(b[1], "es"))
+        .map(([slug, name]) => `<option value="${slug}">${escapeHtml(name)}</option>`)
+        .join("");
+
+      categoryEl.innerHTML = `<option value="">Todas las categorias</option>${options}`;
+    }
+
+    function updateKpis(allOrders) {
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = today.getMonth();
+      const d = today.getDate();
+
+      const ordersToday = allOrders.filter((o) => {
+        const dt = new Date(o.created_at);
+        return dt.getFullYear() === y && dt.getMonth() === m && dt.getDate() === d;
+      });
+
+      const pendingStatuses = new Set(["NEW", "PREPARING", "READY", "submitted"]);
+      const pending = allOrders.filter((o) => pendingStatuses.has(String(o.order_status ?? o.status ?? "")));
+
+      kpiProductsEl.textContent = String(products.length);
+      kpiTodayEl.textContent = String(ordersToday.length);
+      kpiPendingEl.textContent = String(pending.length);
+    }
+
+    const session = await requireAuth();
+    if (!session) throw new Error("Redirecting to login...");
+
+    sellerInfoEl.textContent = session.user?.email ?? "";
+
+    document.getElementById("btnLogout").addEventListener("click", async () => {
+      await signOut();
+      location.href = "/pages/login.html";
+    });
 
     registerServiceWorker({
       onUpdate: (reg) => {
         pendingReg = reg;
-        const btn = document.getElementById("btnUpdate");
-        btn.classList.remove("hidden");
-        btn.addEventListener("click", () => applyUpdate(pendingReg), { once: true });
+        updateBannerEl.classList.remove("hidden");
+        updateBannerEl.classList.add("flex");
       }
     });
 
-    // 3) Render catálogo
-    renderCatalog();
+    btnUpdate.addEventListener("click", () => applyUpdate(pendingReg), { once: true });
+
+    const [catalogData, ordersData] = await Promise.all([
+      getProducts(),
+      getMyOrders({ limit: 200 })
+    ]);
+
+    products = catalogData ?? [];
+    buildCategoryOptions(products);
+    updateKpis(ordersData ?? []);
+    applyFilters();
+
+    searchEl.addEventListener("input", applyFilters);
+    categoryEl.addEventListener("change", applyFilters);
   </script>
 </body>
 </html>
