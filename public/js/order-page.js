@@ -28,9 +28,9 @@ function render() {
   const count = items.reduce((acc, it) => acc + (Number(it.qty) || 0), 0);
   const total = cartTotal();
 
-  itemCountEl.textContent = `${count} item(s)`;
-  totalEl.textContent = `$ ${formatArs(total)}`;
-  totalStickyEl.textContent = `$ ${formatArs(total)}`;
+  if (itemCountEl) itemCountEl.textContent = `${count} item(s)`;
+  if (totalEl) totalEl.textContent = `$ ${formatArs(total)}`;
+  if (totalStickyEl) totalStickyEl.textContent = `$ ${formatArs(total)}`;
 
   if (!items.length) {
     listEl.innerHTML = `
@@ -95,16 +95,11 @@ function render() {
 export function initOrderPage(session) {
   render();
 
-  const btnClear = document.getElementById("btnClear");
   const btnSubmit = document.getElementById("btnSubmit");
   const btnSubmitSticky = document.getElementById("btnSubmitSticky");
   const customerNameEl = document.getElementById("customerName");
   const customerPhoneEl = document.getElementById("customerPhone");
   const notesEl = document.getElementById("notes");
-
-  const clearModalEl = document.getElementById("clearModal");
-  const btnConfirmClear = document.getElementById("btnConfirmClear");
-  const btnCancelClear = document.getElementById("btnCancelClear");
 
   let submitting = false;
 
@@ -119,35 +114,6 @@ export function initOrderPage(session) {
       btn.textContent = isBusy ? "Enviando..." : "Confirmar pedido";
     }
   }
-
-  function openClearModal() {
-    clearModalEl?.classList.remove("hidden");
-  }
-
-  function closeClearModal() {
-    clearModalEl?.classList.add("hidden");
-  }
-
-  btnClear?.addEventListener("click", () => {
-    if (!getCart().length) {
-      showToast("No hay productos para vaciar.", { type: "warning" });
-      return;
-    }
-    openClearModal();
-  });
-
-  btnCancelClear?.addEventListener("click", closeClearModal);
-
-  clearModalEl?.addEventListener("click", (event) => {
-    if (event.target === clearModalEl) closeClearModal();
-  });
-
-  btnConfirmClear?.addEventListener("click", () => {
-    clearCart();
-    closeClearModal();
-    showToast("Pedido vaciado.", { type: "info" });
-    render();
-  });
 
   async function submitOrder() {
     if (submitting) return;

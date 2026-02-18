@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1220" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <title>Pedido</title>
+  <title>Carrito</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -16,7 +16,7 @@
         <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path></svg>
       </button>
       <div class="w-8 h-8 rounded-md bg-emerald-400 text-slate-950 text-xs font-bold inline-flex items-center justify-center">JYP</div>
-      <h1 id="appShellTitle" class="text-base font-semibold truncate">Pedido</h1>
+      <h1 id="appShellTitle" class="text-base font-semibold truncate">Carrito</h1>
       <div class="ml-auto flex items-center gap-1">
         <button id="btnShellSearch" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Buscar">
           <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
@@ -38,7 +38,7 @@
   <main class="flex-1 overflow-y-auto p-4 space-y-4 pb-40">
     <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
       <div class="flex items-center justify-between">
-        <h2 class="text-sm font-semibold text-slate-200">Items del pedido</h2>
+        <h2 class="text-sm font-semibold text-slate-200">Items del carrito</h2>
         <span id="itemCount" class="text-xs px-2 py-1 rounded-full bg-slate-800 text-slate-300">0 item(s)</span>
       </div>
       <div id="list" class="space-y-3"></div>
@@ -58,15 +58,6 @@
       </div>
     </section>
 
-    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
-      <div class="flex items-center justify-between">
-        <div class="text-slate-300">Total</div>
-        <div id="total" class="text-2xl font-semibold">$ 0</div>
-      </div>
-
-      <button id="btnSubmit" class="hidden md:inline-flex w-full px-4 py-3 rounded-xl bg-slate-100 text-slate-900 font-semibold items-center justify-center">Confirmar pedido</button>
-      <button id="btnClear" class="w-full px-4 py-3 rounded-xl border border-slate-700 text-slate-100">Vaciar pedido</button>
-    </section>
   </main>
 
   <div class="fixed bottom-14 left-0 right-0 z-20 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
@@ -89,17 +80,6 @@
     </div>
   </nav>
 
-  <div id="clearModal" class="hidden fixed inset-0 z-40 bg-slate-950/70 p-4">
-    <div class="max-w-sm mx-auto mt-24 rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
-      <h3 class="font-semibold">Vaciar pedido</h3>
-      <p class="text-sm text-slate-300">Se eliminaran todos los productos del pedido actual.</p>
-      <div class="flex gap-2">
-        <button id="btnCancelClear" class="flex-1 px-4 py-2 rounded-xl border border-slate-700">Cancelar</button>
-        <button id="btnConfirmClear" class="flex-1 px-4 py-2 rounded-xl bg-red-500 text-white">Vaciar</button>
-      </div>
-    </div>
-  </div>
-
   <script type="module">
     import { requireAuth } from "/js/auth.js";
     import { initOrderPage } from "/js/order-page.js";
@@ -109,7 +89,7 @@
     if (!session) throw new Error("Redirecting to login...");
 
     initAppShell({
-      title: "Pedido",
+      title: "Carrito",
       onRefresh: async () => location.reload()
     });
 
