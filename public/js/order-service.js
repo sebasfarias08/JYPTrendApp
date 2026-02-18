@@ -1,13 +1,57 @@
 // public/js/order-service.js
 import { supabase } from "./supabase-client.js";
 
-export async function createOrderWithItems(order, cartItems) {
-  // 1) Insert order
-  const { data: orderRow, error: orderErr } = await supabase
+function isConstraintError(err, constraintName) {
+  return err?.code === "23514" && String(err?.message ?? "").includes(constraintName);
+}
+
+function toLegacyStatus(value) {
+  const map = {
+    NEW: "submitted",
+    PREPARING: "preparing",
+    READY: "ready",
+    DELIVERED: "delivered",
+    FINISHED: "finished",
+    CANCELLED: "cancelled",
+    PENDING: "pending",
+    PARTIAL: "partial",
+    PAID: "paid"
+  };
+  return map[value] ?? value;
+}
+
+async function insertOrder(payload) {
+  return supabase
     .from("orders")
-    .insert(order)
+    .insert(payload)
     .select("id")
     .single();
+}
+
+export async function createOrderWithItems(order, cartItems) {
+  // 1) Insert order (with compatibility fallback for different DB checks)
+  let { data: orderRow, error: orderErr } = await insertOrder(order);
+
+  if (orderErr && isConstraintError(orderErr, "orders_order_status_check")) {
+    const legacyOrder = {
+      ...order,
+      order_status: toLegacyStatus(order.order_status),
+      payment_status: toLegacyStatus(order.payment_status)
+    };
+    ({ data: orderRow, error: orderErr } = await insertOrder(legacyOrder));
+  }
+
+  if (
+    orderErr &&
+    (
+      isConstraintError(orderErr, "orders_order_status_check") ||
+      isConstraintError(orderErr, "orders_payment_status_check")
+    )
+  ) {
+    // Last fallback: let DB defaults decide status columns
+    const { order_status, payment_status, ...withoutStatuses } = order;
+    ({ data: orderRow, error: orderErr } = await insertOrder(withoutStatuses));
+  }
 
   if (orderErr) {
     console.error("Insert order error:", orderErr);
@@ -15,6 +59,20 @@ export async function createOrderWithItems(order, cartItems) {
   }
 
   const order_id = orderRow.id;
+
+  // Best-effort: ensure customer fields stay persisted even if DB defaults/triggers override on insert.
+  const customerPatch = {
+    customer_name: order.customer_name ?? null,
+    customer_phone: order.customer_phone ?? null,
+    notes: order.notes ?? null
+  };
+  const { error: patchErr } = await supabase
+    .from("orders")
+    .update(customerPatch)
+    .eq("id", order_id);
+  if (patchErr) {
+    console.warn("Customer patch warning:", patchErr);
+  }
 
   // 2) Insert items
   const items = cartItems.map(it => ({

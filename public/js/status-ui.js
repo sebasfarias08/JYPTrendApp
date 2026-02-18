@@ -6,7 +6,13 @@ export function orderStatusBadgeClass(status) {
     READY: "bg-amber-600 text-white",
     DELIVERED: "bg-emerald-600 text-white",
     FINISHED: "bg-emerald-900 text-white",
-    CANCELLED: "bg-red-700 text-white"
+    CANCELLED: "bg-red-700 text-white",
+    submitted: "bg-slate-700 text-slate-100",
+    preparing: "bg-blue-700 text-white",
+    ready: "bg-amber-600 text-white",
+    delivered: "bg-emerald-600 text-white",
+    finished: "bg-emerald-900 text-white",
+    cancelled: "bg-red-700 text-white"
   }[status] ?? "bg-slate-700 text-white";
 }
 
@@ -14,7 +20,10 @@ export function paymentStatusBadgeClass(status) {
   return {
     PENDING: "bg-slate-600 text-white",
     PARTIAL: "bg-yellow-600 text-black",
-    PAID: "bg-emerald-600 text-white"
+    PAID: "bg-emerald-600 text-white",
+    pending: "bg-slate-600 text-white",
+    partial: "bg-yellow-600 text-black",
+    paid: "bg-emerald-600 text-white"
   }[status] ?? "bg-slate-600 text-white";
 }
 

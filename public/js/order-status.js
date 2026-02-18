@@ -16,7 +16,7 @@ export const PAYMENT_STATUS = [
 export function statusLabel(s) {
   return {
     NEW: "Nuevo",
-    PREPARING: "En preparación",
+    PREPARING: "En preparacion",
     READY: "Listo para retirar",
     DELIVERED: "Entregado",
     CANCELLED: "Cancelado",
@@ -24,6 +24,16 @@ export function statusLabel(s) {
 
     PENDING: "Pendiente",
     PARTIAL: "Parcial",
-    PAID: "Pagado"
+    PAID: "Pagado",
+
+    submitted: "Nuevo",
+    preparing: "En preparacion",
+    ready: "Listo para retirar",
+    delivered: "Entregado",
+    finished: "Finalizado",
+    cancelled: "Cancelado",
+    pending: "Pendiente",
+    partial: "Parcial",
+    paid: "Pagado"
   }[s] ?? s;
 }
