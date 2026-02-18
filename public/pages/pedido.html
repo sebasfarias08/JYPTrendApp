@@ -9,33 +9,52 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-slate-950 text-slate-100 min-h-screen">
-  <header class="p-4 border-b border-slate-800 flex items-center justify-between">
-    <a href="/index.html" class="text-sm text-slate-300">← Catálogo</a>
-    <h1 class="text-lg font-semibold">Pedido</h1>
-    <button id="btnLogout" class="text-sm text-slate-300">Salir</button>
+<body class="min-h-screen text-slate-100 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+  <header class="sticky top-0 z-20 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur">
+    <div class="p-4 flex items-center justify-between gap-3">
+      <a href="/index.html" class="text-sm text-slate-300">&larr; Catalogo</a>
+      <div class="text-center">
+        <h1 class="text-lg font-semibold">Pedido</h1>
+        <p class="text-xs text-slate-400">Revisa items y confirma la venta</p>
+      </div>
+      <button id="btnLogout" class="text-sm text-slate-300">Salir</button>
+    </div>
   </header>
 
-  <main class="p-4 space-y-4">
-    <div id="list" class="space-y-3"></div>
+  <main class="p-4 space-y-4 pb-28">
+    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-slate-200">Items del pedido</h2>
+        <span id="itemCount" class="text-xs px-2 py-1 rounded-full bg-slate-800 text-slate-300">0 item(s)</span>
+      </div>
+      <div id="list" class="space-y-3"></div>
+    </section>
 
-    <div class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
+    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
+      <h2 class="text-sm font-semibold text-slate-200">Datos del cliente</h2>
+      <div class="grid gap-2">
+        <label class="text-xs text-slate-400" for="customerName">Nombre (obligatorio)</label>
+        <input id="customerName" required class="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-800"
+          placeholder="Ej: Juan Perez" />
+
+        <label class="text-xs text-slate-400" for="customerPhone">Telefono (opcional)</label>
+        <input id="customerPhone" type="tel" class="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-800"
+          placeholder="Ej: 11 5555-5555" />
+
+        <label class="text-xs text-slate-400" for="notes">Notas (opcional)</label>
+        <textarea id="notes" class="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-800"
+          placeholder="Entrega, forma de pago, comentario..."></textarea>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
       <div class="flex items-center justify-between">
         <div class="text-slate-300">Total</div>
-        <div id="total" class="text-xl font-semibold"></div>
-      </div>
-
-      <div class="grid gap-2">
-        <input id="customerName" class="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-800"
-          placeholder="Cliente (nombre)" />
-        <input id="customerPhone" class="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-800"
-          placeholder="Teléfono (opcional)" />
-        <textarea id="notes" class="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-800"
-          placeholder="Notas (opcional)"></textarea>
+        <div id="total" class="text-2xl font-semibold">$ 0</div>
       </div>
 
       <button id="btnSubmit"
-        class="w-full px-4 py-3 rounded-xl bg-slate-100 text-slate-900 font-semibold">
+        class="hidden md:inline-flex w-full px-4 py-3 rounded-xl bg-slate-100 text-slate-900 font-semibold items-center justify-center">
         Confirmar pedido
       </button>
 
@@ -45,8 +64,32 @@
       </button>
 
       <p id="msg" class="text-sm text-slate-400"></p>
-    </div>
+    </section>
   </main>
+
+  <div class="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
+    <div class="mx-auto max-w-3xl p-3 flex items-center gap-3">
+      <div class="flex-1">
+        <div class="text-xs text-slate-400">Total a cobrar</div>
+        <div id="totalSticky" class="text-lg font-semibold">$ 0</div>
+      </div>
+      <button id="btnSubmitSticky"
+        class="px-4 py-3 rounded-xl bg-slate-100 text-slate-900 font-semibold whitespace-nowrap">
+        Confirmar pedido
+      </button>
+    </div>
+  </div>
+
+  <div id="clearModal" class="hidden fixed inset-0 z-40 bg-slate-950/70 p-4">
+    <div class="max-w-sm mx-auto mt-24 rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
+      <h3 class="font-semibold">Vaciar pedido</h3>
+      <p class="text-sm text-slate-300">Se eliminaran todos los productos del pedido actual.</p>
+      <div class="flex gap-2">
+        <button id="btnCancelClear" class="flex-1 px-4 py-2 rounded-xl border border-slate-700">Cancelar</button>
+        <button id="btnConfirmClear" class="flex-1 px-4 py-2 rounded-xl bg-red-500 text-white">Vaciar</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
     import { requireAuth, signOut } from "/js/auth.js";

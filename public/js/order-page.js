@@ -20,19 +20,31 @@ function escapeHtml(str) {
 function render() {
   const listEl = document.getElementById("list");
   const totalEl = document.getElementById("total");
+  const totalStickyEl = document.getElementById("totalSticky");
+  const itemCountEl = document.getElementById("itemCount");
 
   const items = getCart();
+  const count = items.reduce((acc, it) => acc + (Number(it.qty) || 0), 0);
+  const total = cartTotal();
+
+  itemCountEl.textContent = `${count} item(s)`;
+  totalEl.textContent = `$ ${formatArs(total)}`;
+  totalStickyEl.textContent = `$ ${formatArs(total)}`;
 
   if (!items.length) {
-    listEl.innerHTML = `<div class="text-slate-300">Tu pedido esta vacio.</div>`;
-    totalEl.textContent = "$ 0";
+    listEl.innerHTML = `
+      <div class="rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-300">
+        Tu pedido esta vacio. <a href="/index.html" class="text-emerald-300 underline">Volver al catalogo</a>
+      </div>
+    `;
     return;
   }
 
-  listEl.innerHTML = items.map(it => {
+  listEl.innerHTML = items.map((it) => {
     const img = it.image_path ? getImageUrl(String(it.image_path).trim().replace(/^\/+/, "")) : "";
+
     return `
-      <div class="rounded-2xl border border-slate-800 bg-slate-900 p-3 flex gap-3">
+      <div class="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 flex gap-3">
         <img src="${img}" class="w-16 h-16 object-contain rounded-xl bg-slate-950 border border-slate-800" />
         <div class="flex-1">
           <div class="font-semibold">${escapeHtml(it.name)}</div>
@@ -51,27 +63,25 @@ function render() {
     `;
   }).join("");
 
-  totalEl.textContent = `$ ${formatArs(cartTotal())}`;
-
-  listEl.querySelectorAll("[data-inc]").forEach(btn => {
+  listEl.querySelectorAll("[data-inc]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-inc");
-      const it = getCart().find(x => x.product_id === id);
+      const it = getCart().find((x) => x.product_id === id);
       updateQty(id, (it?.qty || 0) + 1);
       render();
     });
   });
 
-  listEl.querySelectorAll("[data-dec]").forEach(btn => {
+  listEl.querySelectorAll("[data-dec]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-dec");
-      const it = getCart().find(x => x.product_id === id);
+      const it = getCart().find((x) => x.product_id === id);
       updateQty(id, (it?.qty || 0) - 1);
       render();
     });
   });
 
-  listEl.querySelectorAll("[data-qty]").forEach(inp => {
+  listEl.querySelectorAll("[data-qty]").forEach((inp) => {
     inp.addEventListener("change", () => {
       const id = inp.getAttribute("data-qty");
       const q = Number(inp.value);
@@ -87,19 +97,59 @@ export function initOrderPage(session) {
   const msgEl = document.getElementById("msg");
   const btnClear = document.getElementById("btnClear");
   const btnSubmit = document.getElementById("btnSubmit");
+  const btnSubmitSticky = document.getElementById("btnSubmitSticky");
   const customerNameEl = document.getElementById("customerName");
   const customerPhoneEl = document.getElementById("customerPhone");
   const notesEl = document.getElementById("notes");
 
+  const clearModalEl = document.getElementById("clearModal");
+  const btnConfirmClear = document.getElementById("btnConfirmClear");
+  const btnCancelClear = document.getElementById("btnCancelClear");
+
   let submitting = false;
 
-  btnClear.addEventListener("click", () => {
+  function setSubmitState(isBusy) {
+    submitting = isBusy;
+
+    const buttons = [btnSubmit, btnSubmitSticky].filter(Boolean);
+    for (const btn of buttons) {
+      btn.disabled = isBusy;
+      btn.classList.toggle("opacity-60", isBusy);
+      btn.classList.toggle("cursor-not-allowed", isBusy);
+      btn.textContent = isBusy ? "Enviando..." : "Confirmar pedido";
+    }
+  }
+
+  function openClearModal() {
+    clearModalEl?.classList.remove("hidden");
+  }
+
+  function closeClearModal() {
+    clearModalEl?.classList.add("hidden");
+  }
+
+  btnClear?.addEventListener("click", () => {
+    if (!getCart().length) {
+      msgEl.textContent = "No hay productos para vaciar.";
+      return;
+    }
+    openClearModal();
+  });
+
+  btnCancelClear?.addEventListener("click", closeClearModal);
+
+  clearModalEl?.addEventListener("click", (event) => {
+    if (event.target === clearModalEl) closeClearModal();
+  });
+
+  btnConfirmClear?.addEventListener("click", () => {
     clearCart();
+    closeClearModal();
     msgEl.textContent = "Pedido vaciado.";
     render();
   });
 
-  btnSubmit.addEventListener("click", async () => {
+  async function submitOrder() {
     if (submitting) return;
 
     const items = getCart();
@@ -118,13 +168,8 @@ export function initOrderPage(session) {
       return;
     }
 
-    submitting = true;
-    btnSubmit.disabled = true;
-    btnSubmit.classList.add("opacity-60", "cursor-not-allowed");
-    btnSubmit.textContent = "Enviando...";
+    setSubmitState(true);
     msgEl.textContent = "Enviando pedido. Espera un momento...";
-
-    const total = cartTotal();
 
     const order = {
       user_id: session.user.id,
@@ -133,7 +178,7 @@ export function initOrderPage(session) {
       customer_name,
       customer_phone,
       notes,
-      total
+      total: cartTotal()
     };
 
     let res = { ok: false };
@@ -146,22 +191,18 @@ export function initOrderPage(session) {
 
     if (!res.ok) {
       msgEl.textContent = "No pudimos enviar el pedido. Verifica conexion e intenta de nuevo.";
-      submitting = false;
-      btnSubmit.disabled = false;
-      btnSubmit.classList.remove("opacity-60", "cursor-not-allowed");
-      btnSubmit.textContent = "Confirmar pedido";
+      setSubmitState(false);
       return;
     }
 
     clearCart();
     render();
     msgEl.textContent = `Pedido enviado (ID: ${res.order_id})`;
+    setSubmitState(false);
+  }
 
-    submitting = false;
-    btnSubmit.disabled = false;
-    btnSubmit.classList.remove("opacity-60", "cursor-not-allowed");
-    btnSubmit.textContent = "Confirmar pedido";
-  });
+  btnSubmit?.addEventListener("click", submitOrder);
+  btnSubmitSticky?.addEventListener("click", submitOrder);
 
   window.addEventListener("cart:changed", () => render());
 }
