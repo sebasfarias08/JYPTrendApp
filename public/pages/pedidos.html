@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -9,32 +9,40 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-slate-950 text-slate-100 min-h-screen">
+<body class="h-screen overflow-hidden flex flex-col bg-slate-950 text-slate-100">
+  <header class="sticky top-0 z-30 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+    <div class="px-3 py-2 flex items-center gap-2">
+      <button id="btnShellMenu" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Menu">
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path></svg>
+      </button>
+      <div class="w-8 h-8 rounded-md bg-emerald-400 text-slate-950 text-xs font-bold inline-flex items-center justify-center">JYP</div>
+      <h1 id="appShellTitle" class="text-base font-semibold truncate">Mis pedidos</h1>
+      <div class="ml-auto flex items-center gap-1">
+        <button id="btnShellSearch" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Buscar">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        </button>
+        <button id="btnShellSelect" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Modo seleccion">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg>
+        </button>
+        <button id="btnShellAdd" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Agregar">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+        </button>
+        <button id="btnShellRefresh" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Recargar">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36"></path><path d="M21 3v6h-6"></path></svg>
+        </button>
+      </div>
+    </div>
 
-  <!-- HEADER -->
-  <header class="p-4 border-b border-slate-800 flex items-center justify-between">
-    <a href="/index.html" class="text-sm text-slate-300">← Catálogo</a>
-    <h1 class="text-lg font-semibold">Mis pedidos</h1>
-    <a href="/pages/pedido.html" class="text-sm text-slate-300">Pedido</a>
+    <div id="appShellSearchWrap" class="hidden px-3 pb-2">
+      <input id="appShellSearchInput" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700" placeholder="Buscar..." />
+    </div>
   </header>
 
-  <!-- CONTENT -->
-  <main class="p-4 space-y-3">
-
-    <!-- FILTERS -->
+  <main class="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
     <div class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
-
       <div class="flex items-center gap-3">
-        <input
-          id="q"
-          class="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-800"
-          placeholder="Buscar por cliente o ID" />
-
-        <button
-          id="btnClearFilters"
-          class="px-4 py-3 rounded-xl border border-slate-700 text-slate-100">
-          Limpiar
-        </button>
+        <input id="q" class="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-800" placeholder="Buscar por cliente o ID" />
+        <button id="btnClearFilters" class="px-4 py-3 rounded-xl border border-slate-700 text-slate-100">Limpiar</button>
       </div>
 
       <div class="space-y-2">
@@ -53,28 +61,33 @@
       </div>
     </div>
 
-    <!-- LIST -->
     <div id="list" class="space-y-3"></div>
   </main>
+
+  <nav class="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
+    <div class="grid grid-cols-5">
+      <a data-shell-tab="botellas" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🍾</span><span>Botellas</span></a>
+      <a data-shell-tab="perfumes" class="py-2 text-[11px] text-slate-100 flex flex-col items-center gap-1 bg-slate-900/80"><span>🧴</span><span>Perfumes</span></a>
+      <a data-shell-tab="importados" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🌍</span><span>Importados</span></a>
+      <a data-shell-tab="outlet" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🏷️</span><span>Outlet</span></a>
+      <a data-shell-tab="reservas" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>⏳</span><span>Reservas</span></a>
+    </div>
+  </nav>
 
   <script type="module">
     import { requireAuth } from "/js/auth.js";
     import { getMyOrders } from "/js/orders-service.js";
-
-    import {
-      ORDER_STATUS,
-      PAYMENT_STATUS,
-      statusLabel
-    } from "/js/order-status.js";
-
-    import {
-      orderStatusBadgeClass,
-      paymentStatusBadgeClass,
-      chipClass
-    } from "/js/status-ui.js";
+    import { ORDER_STATUS, PAYMENT_STATUS, statusLabel } from "/js/order-status.js";
+    import { orderStatusBadgeClass, paymentStatusBadgeClass, chipClass } from "/js/status-ui.js";
+    import { initAppShell } from "/js/app-shell.js";
 
     const session = await requireAuth();
     if (!session) throw new Error("Redirect login");
+
+    initAppShell({
+      title: "Mis pedidos",
+      onRefresh: async () => location.reload()
+    });
 
     const msgEl = document.getElementById("msg");
     const countEl = document.getElementById("count");
@@ -88,9 +101,7 @@
     let selectedOrder = "";
     let selectedPay = "";
 
-    const fmtMoney = n =>
-      new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 })
-        .format(Number(n ?? 0));
+    const fmtMoney = (n) => new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(Number(n ?? 0));
 
     function chipButton(label, active, onClick) {
       const btn = document.createElement("button");
@@ -101,75 +112,61 @@
     }
 
     function renderChips() {
-      // Pedido
       orderChipsEl.innerHTML = "";
-      orderChipsEl.appendChild(
-        chipButton("Todos", selectedOrder === "", () => {
-          selectedOrder = "";
+      orderChipsEl.appendChild(chipButton("Todos", selectedOrder === "", () => {
+        selectedOrder = "";
+        renderChips();
+        render();
+      }));
+
+      ORDER_STATUS.forEach((s) => {
+        orderChipsEl.appendChild(chipButton(statusLabel(s), selectedOrder === s, () => {
+          selectedOrder = selectedOrder === s ? "" : s;
           renderChips();
           render();
-        })
-      );
-
-      ORDER_STATUS.forEach(s => {
-        orderChipsEl.appendChild(
-          chipButton(statusLabel(s), selectedOrder === s, () => {
-            selectedOrder = selectedOrder === s ? "" : s;
-            renderChips();
-            render();
-          })
-        );
+        }));
       });
 
-      // Pago
       payChipsEl.innerHTML = "";
-      payChipsEl.appendChild(
-        chipButton("Todos", selectedPay === "", () => {
-          selectedPay = "";
+      payChipsEl.appendChild(chipButton("Todos", selectedPay === "", () => {
+        selectedPay = "";
+        renderChips();
+        render();
+      }));
+
+      PAYMENT_STATUS.forEach((s) => {
+        payChipsEl.appendChild(chipButton(statusLabel(s), selectedPay === s, () => {
+          selectedPay = selectedPay === s ? "" : s;
           renderChips();
           render();
-        })
-      );
-
-      PAYMENT_STATUS.forEach(s => {
-        payChipsEl.appendChild(
-          chipButton(statusLabel(s), selectedPay === s, () => {
-            selectedPay = selectedPay === s ? "" : s;
-            renderChips();
-            render();
-          })
-        );
+        }));
       });
     }
 
     function applyFilters() {
       const q = (qEl.value || "").toLowerCase().trim();
 
-      return all.filter(o => {
+      return all.filter((o) => {
         if (selectedOrder && o.order_status !== selectedOrder) return false;
         if (selectedPay && o.payment_status !== selectedPay) return false;
-
         if (!q) return true;
 
         const shortId = String(o.id).slice(0, 8).toLowerCase();
         const cliente = String(o.customer_name ?? "").toLowerCase();
-
         return shortId.includes(q) || cliente.includes(q);
       });
     }
 
     function render() {
       const rows = applyFilters();
-
       countEl.textContent = `${rows.length} pedido(s)`;
 
       if (!rows.length) {
-        listEl.innerHTML =
-          `<p class="text-slate-400">No hay pedidos con esos filtros.</p>`;
+        listEl.innerHTML = `<p class="text-slate-400">No hay pedidos con esos filtros.</p>`;
         return;
       }
 
-      listEl.innerHTML = rows.map(o => {
+      listEl.innerHTML = rows.map((o) => {
         const fecha = new Date(o.created_at).toLocaleString("es-AR");
         const shortId = String(o.id).slice(0, 8);
         const total = fmtMoney(o.total);
@@ -179,8 +176,7 @@
         const ps = o.payment_status ?? "PENDING";
 
         return `
-          <a href="/pages/pedido-detalle.html?id=${encodeURIComponent(o.id)}"
-             class="block rounded-2xl border border-slate-800 bg-slate-900 p-4">
+          <a href="/pages/pedido-detalle.html?id=${encodeURIComponent(o.id)}" class="block rounded-2xl border border-slate-800 bg-slate-900 p-4">
             <div class="flex justify-between gap-3">
               <div>
                 <div class="font-semibold">Pedido ${shortId}</div>
@@ -188,25 +184,18 @@
                 ${cliente ? `<div class="text-slate-300 text-sm mt-1">${cliente}</div>` : ""}
 
                 <div class="mt-2 flex flex-wrap gap-2">
-                  <span class="px-2 py-1 rounded-lg text-xs ${orderStatusBadgeClass(os)}">
-                    ${statusLabel(os)}
-                  </span>
-                  <span class="px-2 py-1 rounded-lg text-xs ${paymentStatusBadgeClass(ps)}">
-                    Pago: ${statusLabel(ps)}
-                  </span>
+                  <span class="px-2 py-1 rounded-lg text-xs ${orderStatusBadgeClass(os)}">${statusLabel(os)}</span>
+                  <span class="px-2 py-1 rounded-lg text-xs ${paymentStatusBadgeClass(ps)}">Pago: ${statusLabel(ps)}</span>
                 </div>
               </div>
 
-              <div class="text-right font-semibold">
-                $ ${total}
-              </div>
+              <div class="text-right font-semibold">$ ${total}</div>
             </div>
           </a>
         `;
       }).join("");
     }
 
-    // INIT
     msgEl.textContent = "Cargando pedidos...";
     all = await getMyOrders({ limit: 200 });
     msgEl.textContent = "";
@@ -224,6 +213,5 @@
       render();
     };
   </script>
-
 </body>
 </html>
