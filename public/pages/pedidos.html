@@ -19,14 +19,20 @@
         <button id="btnClearFilters" class="px-4 py-3 rounded-xl border border-slate-700 text-slate-100">Limpiar</button>
       </div>
 
-      <div class="space-y-2">
-        <div class="text-sm text-slate-400">Estado del pedido</div>
-        <div id="orderChips" class="flex flex-wrap gap-2"></div>
-      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label class="block">
+          <span class="text-sm text-slate-400">Estado del pedido</span>
+          <select id="orderFilter" class="mt-1 w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 appearance-none">
+            <option value="">Todos</option>
+          </select>
+        </label>
 
-      <div class="space-y-2">
-        <div class="text-sm text-slate-400">Estado del pago</div>
-        <div id="payChips" class="flex flex-wrap gap-2"></div>
+        <label class="block">
+          <span class="text-sm text-slate-400">Estado del pago</span>
+          <select id="payFilter" class="mt-1 w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 appearance-none">
+            <option value="">Todos</option>
+          </select>
+        </label>
       </div>
 
       <div class="flex items-center justify-between text-sm text-slate-400">
@@ -43,7 +49,7 @@
     import { requireAuth } from "/js/auth.js";
     import { getMyOrders } from "/js/orders-service.js";
     import { ORDER_STATUS, PAYMENT_STATUS, statusLabel } from "/js/order-status.js";
-    import { orderStatusBadgeClass, paymentStatusBadgeClass, chipClass } from "/js/status-ui.js";
+    import { orderStatusBadgeClass, paymentStatusBadgeClass } from "/js/status-ui.js";
     import { formatOrderRef, matchesOrderQuery } from "/js/order-ref.js";
     import { initAppShell } from "/js/app-shell.js";
     import { showToast } from "/js/toast.js";
@@ -60,8 +66,8 @@
     const listEl = document.getElementById("list");
 
     const qEl = document.getElementById("q");
-    const orderChipsEl = document.getElementById("orderChips");
-    const payChipsEl = document.getElementById("payChips");
+    const orderFilterEl = document.getElementById("orderFilter");
+    const payFilterEl = document.getElementById("payFilter");
 
     let all = [];
     let selectedOrder = "";
@@ -69,43 +75,19 @@
 
     const fmtMoney = (n) => new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(Number(n ?? 0));
 
-    function chipButton(label, active, onClick) {
-      const btn = document.createElement("button");
-      btn.className = chipClass(active);
-      btn.textContent = label;
-      btn.onclick = onClick;
-      return btn;
-    }
-
-    function renderChips() {
-      orderChipsEl.innerHTML = "";
-      orderChipsEl.appendChild(chipButton("Todos", selectedOrder === "", () => {
-        selectedOrder = "";
-        renderChips();
-        render();
-      }));
-
+    function initSelectFilters() {
       ORDER_STATUS.forEach((s) => {
-        orderChipsEl.appendChild(chipButton(statusLabel(s), selectedOrder === s, () => {
-          selectedOrder = selectedOrder === s ? "" : s;
-          renderChips();
-          render();
-        }));
+        const op = document.createElement("option");
+        op.value = s;
+        op.textContent = statusLabel(s);
+        orderFilterEl.appendChild(op);
       });
 
-      payChipsEl.innerHTML = "";
-      payChipsEl.appendChild(chipButton("Todos", selectedPay === "", () => {
-        selectedPay = "";
-        renderChips();
-        render();
-      }));
-
       PAYMENT_STATUS.forEach((s) => {
-        payChipsEl.appendChild(chipButton(statusLabel(s), selectedPay === s, () => {
-          selectedPay = selectedPay === s ? "" : s;
-          renderChips();
-          render();
-        }));
+        const op = document.createElement("option");
+        op.value = s;
+        op.textContent = statusLabel(s);
+        payFilterEl.appendChild(op);
       });
     }
 
@@ -161,16 +143,25 @@
     showToast("Cargando pedidos...", { type: "info", duration: 1100 });
     all = await getMyOrders({ limit: 200 });
 
-    renderChips();
+    initSelectFilters();
     render();
 
     qEl.addEventListener("input", render);
+    orderFilterEl.addEventListener("change", () => {
+      selectedOrder = orderFilterEl.value || "";
+      render();
+    });
+    payFilterEl.addEventListener("change", () => {
+      selectedPay = payFilterEl.value || "";
+      render();
+    });
 
     document.getElementById("btnClearFilters").onclick = () => {
       qEl.value = "";
       selectedOrder = "";
       selectedPay = "";
-      renderChips();
+      orderFilterEl.value = "";
+      payFilterEl.value = "";
       render();
     };
   </script>
