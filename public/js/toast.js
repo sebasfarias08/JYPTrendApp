@@ -12,10 +12,10 @@ function ensureContainer() {
 }
 
 function toneClass(type) {
-  if (type === "success") return "border-emerald-500/40 bg-emerald-500/15 text-emerald-100";
-  if (type === "error") return "border-red-500/40 bg-red-500/15 text-red-100";
-  if (type === "warning") return "border-amber-500/40 bg-amber-500/15 text-amber-100";
-  return "border-slate-600 bg-slate-900/95 text-slate-100";
+  if (type === "success") return "alert alert-success";
+  if (type === "error") return "alert alert-danger";
+  if (type === "warning") return "alert alert-warning";
+  return "alert alert-info";
 }
 
 export function showToast(message, { type = "info", duration = 2200 } = {}) {
@@ -23,7 +23,7 @@ export function showToast(message, { type = "info", duration = 2200 } = {}) {
 
   const root = ensureContainer();
   const toast = document.createElement("div");
-  toast.className = `pointer-events-auto rounded-xl border px-3 py-2 text-sm shadow-lg backdrop-blur ${toneClass(type)}`;
+  toast.className = `pointer-events-auto text-sm shadow-md ${toneClass(type)}`;
   toast.textContent = String(message);
   root.appendChild(toast);
 

@@ -1,46 +1,46 @@
 // public/js/status-ui.js
 export function orderStatusBadgeClass(status) {
   return {
-    NUEVO: "bg-slate-700 text-slate-100",
-    EN_PREPARACION: "bg-blue-700 text-white",
-    LISTO_PARA_RETIRO: "bg-amber-600 text-white",
-    ENTREGADO: "bg-emerald-600 text-white",
-    FINALIZADO: "bg-emerald-900 text-white",
-    CANCELADO: "bg-red-700 text-white",
-    NEW: "bg-slate-700 text-slate-100",
-    PREPARING: "bg-blue-700 text-white",
-    READY: "bg-amber-600 text-white",
-    DELIVERED: "bg-emerald-600 text-white",
-    FINISHED: "bg-emerald-900 text-white",
-    CANCELLED: "bg-red-700 text-white",
-    submitted: "bg-slate-700 text-slate-100",
-    preparing: "bg-blue-700 text-white",
-    ready: "bg-amber-600 text-white",
-    delivered: "bg-emerald-600 text-white",
-    finished: "bg-emerald-900 text-white",
-    cancelled: "bg-red-700 text-white"
-  }[status] ?? "bg-slate-700 text-white";
+    NUEVO: "badge badge-neutral",
+    EN_PREPARACION: "badge badge-primary",
+    LISTO_PARA_RETIRO: "badge badge-warning",
+    ENTREGADO: "badge badge-success",
+    FINALIZADO: "badge badge-success",
+    CANCELADO: "badge badge-danger",
+    NEW: "badge badge-neutral",
+    PREPARING: "badge badge-primary",
+    READY: "badge badge-warning",
+    DELIVERED: "badge badge-success",
+    FINISHED: "badge badge-success",
+    CANCELLED: "badge badge-danger",
+    submitted: "badge badge-neutral",
+    preparing: "badge badge-primary",
+    ready: "badge badge-warning",
+    delivered: "badge badge-success",
+    finished: "badge badge-success",
+    cancelled: "badge badge-danger"
+  }[status] ?? "badge badge-neutral";
 }
 
 export function paymentStatusBadgeClass(status) {
   return {
-    PENDIENTE: "bg-slate-600 text-white",
-    PARCIAL: "bg-yellow-600 text-black",
-    PAGADO: "bg-emerald-600 text-white",
-    CANCELADO: "bg-red-700 text-white",
-    FINALIZADO: "bg-emerald-900 text-white",
-    PENDING: "bg-slate-600 text-white",
-    PARTIAL: "bg-yellow-600 text-black",
-    PAID: "bg-emerald-600 text-white",
-    pending: "bg-slate-600 text-white",
-    partial: "bg-yellow-600 text-black",
-    paid: "bg-emerald-600 text-white"
-  }[status] ?? "bg-slate-600 text-white";
+    PENDIENTE: "badge badge-neutral",
+    PARCIAL: "badge badge-warning",
+    PAGADO: "badge badge-success",
+    CANCELADO: "badge badge-danger",
+    FINALIZADO: "badge badge-success",
+    PENDING: "badge badge-neutral",
+    PARTIAL: "badge badge-warning",
+    PAID: "badge badge-success",
+    pending: "badge badge-neutral",
+    partial: "badge badge-warning",
+    paid: "badge badge-success"
+  }[status] ?? "badge badge-neutral";
 }
 
 /* Chips de filtros */
 export function chipClass(active = false) {
   return active
-    ? "px-3 py-1.5 rounded-full text-sm bg-slate-100 text-slate-900 font-semibold"
-    : "px-3 py-1.5 rounded-full text-sm bg-slate-800 text-slate-300 border border-slate-700";
+    ? "chip chip-active text-sm font-semibold"
+    : "chip text-sm";
 }

@@ -76,46 +76,46 @@ function ensureShellContainers() {
 function renderShell({ title }) {
   const { top, bottom } = ensureShellContainers();
 
-  top.className = "sticky top-0 z-30 border-b border-slate-800 bg-slate-950/95 backdrop-blur";
+  top.className = "sticky top-0 z-30 border-b divider bg-surface backdrop-blur";
   top.innerHTML = `
     <div class="px-3 py-2 flex items-center gap-2">
-      <button id="btnShellMenu" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Menu">
+      <button id="btnShellMenu" class="icon-btn" aria-label="Menu">
         <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path>
         </svg>
       </button>
-      <div class="w-8 h-8 rounded-md bg-emerald-400 text-slate-950 text-xs font-bold inline-flex items-center justify-center">JYP</div>
+      <div class="w-8 h-8 rounded-md bg-primary-soft text-primary-strong text-xs font-bold inline-flex items-center justify-center">JYP</div>
       <h1 id="appShellTitle" class="text-base font-semibold truncate">${title}</h1>
       <div class="ml-auto flex items-center gap-1">
-        <button id="btnShellSearch" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Buscar">
+        <button id="btnShellSearch" class="icon-btn" aria-label="Buscar">
           <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
         </button>
-        <button id="btnShellAdd" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Ver pedido"></button>
-        <button id="btnShellRefresh" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Recargar">
+        <button id="btnShellAdd" class="icon-btn" aria-label="Ver pedido"></button>
+        <button id="btnShellRefresh" class="icon-btn" aria-label="Recargar">
           <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36"></path><path d="M21 3v6h-6"></path></svg>
         </button>
       </div>
     </div>
 
     <div id="appShellSearchWrap" class="hidden px-3 pb-2">
-      <input id="appShellSearchInput" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700" placeholder="Buscar..." />
+      <input id="appShellSearchInput" class="input" placeholder="Buscar..." />
     </div>
 
     <div id="updateBanner" class="hidden px-3 pb-2">
-      <button id="btnUpdate" class="w-full text-left px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-100 text-sm">
+      <button id="btnUpdate" class="w-full text-left text-sm alert alert-warning">
         Hay una nueva version disponible. Tocar para actualizar.
       </button>
     </div>
   `;
 
-  bottom.className = "fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-slate-950/95 backdrop-blur";
+  bottom.className = "fixed bottom-0 left-0 right-0 z-30 border-t divider bg-surface backdrop-blur";
   bottom.innerHTML = `
-    <div class="grid grid-cols-5">
-      <a data-shell-tab="botellas" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🍾</span><span>Botellas</span></a>
-      <a data-shell-tab="perfumes" class="py-2 text-[11px] text-slate-100 flex flex-col items-center gap-1 bg-slate-900/80"><span>🧴</span><span>Perfumes</span></a>
-      <a data-shell-tab="importados" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🌍</span><span>Importados</span></a>
-      <a data-shell-tab="outlet" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🏷️</span><span>Outlet</span></a>
-      <a data-shell-tab="home" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🏠</span><span>Home</span></a>
+    <div class="grid grid-cols-5 gap-1 p-1">
+      <a data-shell-tab="botellas" class="chip py-2 text-[11px] flex flex-col items-center gap-1"><span>Botellas</span></a>
+      <a data-shell-tab="perfumes" class="chip chip-active py-2 text-[11px] flex flex-col items-center gap-1"><span>Perfumes</span></a>
+      <a data-shell-tab="importados" class="chip py-2 text-[11px] flex flex-col items-center gap-1"><span>Importados</span></a>
+      <a data-shell-tab="outlet" class="chip py-2 text-[11px] flex flex-col items-center gap-1"><span>Outlet</span></a>
+      <a data-shell-tab="home" class="chip py-2 text-[11px] flex flex-col items-center gap-1"><span>Home</span></a>
     </div>
   `;
 }
@@ -126,25 +126,25 @@ function createMenuDrawer() {
 
   overlay = document.createElement("div");
   overlay.id = "appShellMenuOverlay";
-  overlay.className = "hidden fixed inset-0 z-50 bg-slate-950/60";
+  overlay.className = "hidden fixed inset-0 z-50 overlay-backdrop";
 
   const panel = document.createElement("aside");
-  panel.className = "absolute left-0 top-0 h-full w-72 max-w-[84vw] bg-slate-950 border-r border-slate-800 flex flex-col";
+  panel.className = "absolute left-0 top-0 h-full w-72 max-w-[84vw] bg-surface border-r divider flex flex-col";
   panel.innerHTML = `
-    <div class="px-4 py-3 border-b border-slate-800">
+    <div class="px-4 py-3 border-b divider">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-md bg-emerald-400 text-slate-950 text-xs font-bold inline-flex items-center justify-center">JYP</div>
-          <div class="font-semibold text-slate-100">JyP Trend New</div>
+          <div class="w-8 h-8 rounded-md bg-primary-soft text-primary-strong text-xs font-bold inline-flex items-center justify-center">JYP</div>
+          <div class="font-semibold">JyP Trend New</div>
         </div>
-        <button id="appShellMenuClose" class="w-8 h-8 rounded-lg border border-slate-700 text-slate-300">X</button>
+        <button id="appShellMenuClose" class="icon-btn !w-8 !h-8">X</button>
       </div>
     </div>
     <nav id="appShellMenuList" class="flex-1 overflow-y-auto px-3 py-3 space-y-1"></nav>
-    <div class="border-t border-slate-800 px-4 py-3">
+    <div class="border-t divider px-4 py-3">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-blue-500 text-white text-sm font-semibold inline-flex items-center justify-center">S</div>
-        <div class="text-sm text-slate-400 truncate">${getUserEmail()}</div>
+        <div class="w-8 h-8 rounded-full bg-primary text-inverse text-sm font-semibold inline-flex items-center justify-center">S</div>
+        <div class="text-sm text-muted truncate">${getUserEmail()}</div>
       </div>
     </div>
   `;
@@ -156,14 +156,14 @@ function createMenuDrawer() {
   MENU_ITEMS.forEach((item, index) => {
     if (index === 2 || index === 5) {
       const divider = document.createElement("div");
-      divider.className = "my-2 border-t border-slate-800";
+      divider.className = "my-2 border-t divider";
       list.appendChild(divider);
     }
 
     const btn = document.createElement(item.href ? "a" : "button");
-    btn.className = "w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-900/70 flex items-center gap-3 text-slate-200";
+    btn.className = "w-full text-left px-2.5 py-2 rounded-lg hover-surface-2 flex items-center gap-3";
     btn.innerHTML = `
-      <span class="w-5 h-5 inline-flex items-center justify-center text-slate-400">
+      <span class="w-5 h-5 inline-flex items-center justify-center text-subtle">
         <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${iconSvg(item.icon)}</svg>
       </span>
       <span class="text-[15px]">${item.label}</span>
@@ -214,9 +214,8 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
   document.querySelectorAll("[data-shell-tab]").forEach((el) => {
     const key = el.getAttribute("data-shell-tab");
     const active = key === activeTab;
-    el.classList.toggle("bg-slate-900/80", active);
-    el.classList.toggle("text-slate-100", active);
-    el.classList.toggle("text-slate-400", !active);
+    el.classList.toggle("chip-active", active);
+    el.classList.toggle("text-muted", !active);
     if (el.tagName === "A") el.href = TAB_LINKS[key] || "/index.html";
   });
 
@@ -238,7 +237,7 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
         <circle cx="17" cy="20" r="1"></circle>
         <path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h8.8a1 1 0 0 0 1-.8L20 7H7"></path>
       </svg>
-      <span id="appShellCartCount" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-emerald-400 text-[10px] leading-[18px] text-slate-950 font-bold text-center">0</span>
+      <span id="appShellCartCount" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-[10px] leading-[18px] text-inverse font-bold text-center">0</span>
     `;
   }
 
