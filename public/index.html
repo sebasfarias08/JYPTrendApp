@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1220" />
+  <meta name="theme-color" content="#F7F8FA" />
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="JyP Ventas">
@@ -11,6 +11,7 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <title>JyP Ventas</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/theme.css" />
   <style>
     .line-clamp-2 {
       display: -webkit-box;
@@ -21,13 +22,13 @@
   </style>
 </head>
 
-<body class="h-screen overflow-hidden flex flex-col bg-slate-950 text-slate-100">
+<body class="h-screen overflow-hidden flex flex-col">
   <header id="appShellTop"></header>
 
   <main id="mainScroll" class="flex-1 overflow-y-auto pb-20">
-    <div id="list" class="divide-y divide-slate-800"></div>
-    <div id="emptyState" class="hidden p-4 text-sm text-slate-300">No hay productos para mostrar.</div>
-    <div id="statusLine" class="p-3 text-xs text-slate-400"></div>
+    <div id="list" class="divide-y divider"></div>
+    <div id="emptyState" class="hidden p-4 text-sm text-muted">No hay productos para mostrar.</div>
+    <div id="statusLine" class="p-3 text-xs text-subtle"></div>
   </main>
 
   <nav id="appShellBottom"></nav>
@@ -95,9 +96,8 @@
     function updateTabUi() {
       document.querySelectorAll("[data-shell-tab]").forEach((btn) => {
         const active = btn.getAttribute("data-shell-tab") === selectedTab;
-        btn.classList.toggle("bg-slate-900/80", active);
-        btn.classList.toggle("text-slate-100", active);
-        btn.classList.toggle("text-slate-400", !active);
+        btn.classList.toggle("chip-active", active);
+        btn.classList.toggle("text-muted", !active);
       });
     }
 
@@ -116,25 +116,25 @@
 
         return `
           <article class="px-3 py-2">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 card p-2.5">
               <a href="/pages/producto.html?id=${encodeURIComponent(p.id)}" class="block shrink-0">
-                <img src="${img}" class="w-[70px] h-[70px] rounded-lg border border-slate-800 bg-slate-900 object-contain" />
+                <img src="${img}" class="w-[70px] h-[70px] rounded-lg border divider bg-surface-2 object-contain" />
               </a>
 
               <a href="/pages/producto.html?id=${encodeURIComponent(p.id)}" class="min-w-0 flex-1">
                 <h2 class="font-semibold text-sm leading-5 line-clamp-2">${escapeHtml(p.name)}</h2>
-                <p class="text-xs text-slate-400 mt-1">$ ${fmtMoney(p.price)}</p>
+                <p class="text-xs text-muted mt-1">$ ${fmtMoney(p.price)}</p>
               </a>
 
               <div class="w-14 flex flex-col items-end gap-2">
-                <span class="text-xs text-slate-400">${qty}</span>
+                <span class="text-xs text-muted">${qty}</span>
                 <button
                   type="button"
                   data-add-id="${escapeHtml(p.id)}"
                   data-add-name="${escapeHtml(p.name)}"
                   data-add-price="${Number(p.price ?? 0)}"
                   data-add-image="${escapeHtml(p.image_path ?? "")}"
-                  class="w-9 h-9 rounded-full bg-emerald-400 text-slate-950 inline-flex items-center justify-center"
+                  class="btn btn-primary w-11 h-11 rounded-full p-0"
                   aria-label="Agregar al carrito">
                   <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="9" cy="20" r="1"></circle>

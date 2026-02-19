@@ -3,30 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1220" />
+  <meta name="theme-color" content="#F7F8FA" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <title>About</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/theme.css" />
 </head>
 
-<body class="h-screen overflow-hidden flex flex-col bg-slate-950 text-slate-100">
+<body class="h-screen overflow-hidden flex flex-col">
   <header id="appShellTop"></header>
 
   <main class="flex-1 overflow-y-auto p-4 pb-24 space-y-4">
-    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-2">
-      <h2 class="text-sm font-semibold text-slate-200">Version de la aplicacion</h2>
-      <div class="text-sm text-slate-300">Version local (SW activo): <span id="localVersion" class="font-semibold text-slate-100">-</span></div>
-      <div class="text-sm text-slate-300">Version servidor: <span id="serverVersion" class="font-semibold text-slate-100">-</span></div>
-      <div class="text-xs text-slate-400">Publicado: <span id="releasedAt">-</span></div>
-      <div id="versionStatus" class="text-sm font-medium text-amber-300">Verificando...</div>
+    <section class="card p-4 space-y-2">
+      <h2 class="text-sm font-semibold">Version de la aplicacion</h2>
+      <div class="text-sm text-muted">Version local (SW activo): <span id="localVersion" class="font-semibold">-</span></div>
+      <div class="text-sm text-muted">Version servidor: <span id="serverVersion" class="font-semibold">-</span></div>
+      <div class="text-xs text-muted">Publicado: <span id="releasedAt">-</span></div>
+      <div id="versionStatus" class="text-sm font-medium text-warning">Verificando...</div>
     </section>
 
-    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
-      <h2 class="text-sm font-semibold text-slate-200">Actualizacion</h2>
-      <button id="btnCheckUpdate" class="w-full px-4 py-3 rounded-xl border border-slate-700 text-slate-100">Buscar actualizacion</button>
-      <button id="btnApplyUpdate" class="w-full px-4 py-3 rounded-xl bg-emerald-400 text-slate-950 font-semibold hidden">Aplicar actualizacion disponible</button>
-      <button id="btnForceRefresh" class="w-full px-4 py-3 rounded-xl border border-amber-500/40 text-amber-200">Forzar actualizacion completa</button>
-      <p class="text-xs text-slate-400">Forzar actualizacion limpia cache local del navegador y recarga la app.</p>
+    <section class="card p-4 space-y-3">
+      <h2 class="text-sm font-semibold">Actualizacion</h2>
+      <button id="btnCheckUpdate" class="btn btn-secondary w-full">Buscar actualizacion</button>
+      <button id="btnApplyUpdate" class="btn btn-primary w-full hidden">Aplicar actualizacion disponible</button>
+      <button id="btnForceRefresh" class="btn btn-secondary w-full">Forzar actualizacion completa</button>
+      <p class="text-xs text-muted">Forzar actualizacion limpia cache local del navegador y recarga la app.</p>
     </section>
   </main>
 
@@ -66,16 +67,16 @@
 
       if (!local || !server) {
         versionStatusEl.textContent = "No se pudo comparar versiones.";
-        versionStatusEl.className = "text-sm font-medium text-amber-300";
+        versionStatusEl.className = "text-sm font-medium text-warning";
         return;
       }
 
       if (local === server) {
         versionStatusEl.textContent = "Aplicacion actualizada.";
-        versionStatusEl.className = "text-sm font-medium text-emerald-300";
+        versionStatusEl.className = "text-sm font-medium text-success";
       } else {
         versionStatusEl.textContent = `Hay una version nueva (${server}).`;
-        versionStatusEl.className = "text-sm font-medium text-amber-300";
+        versionStatusEl.className = "text-sm font-medium text-warning";
       }
     }
 

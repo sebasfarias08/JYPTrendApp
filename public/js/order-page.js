@@ -35,8 +35,8 @@ function render() {
 
   if (!items.length) {
     listEl.innerHTML = `
-      <div class="rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-300">
-        Tu pedido esta vacio. <a href="/index.html" class="text-emerald-300 underline">Volver al catalogo</a>
+      <div class="card p-4 text-sm text-muted">
+        Tu pedido esta vacio. <a href="/index.html" class="text-primary underline">Volver al catalogo</a>
       </div>
     `;
     return;
@@ -46,17 +46,17 @@ function render() {
     const img = it.image_path ? getImageUrl(String(it.image_path).trim().replace(/^\/+/, "")) : "";
 
     return `
-      <div class="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 flex gap-3">
-        <img src="${img}" class="w-16 h-16 object-contain rounded-xl bg-slate-950 border border-slate-800" />
+      <div class="card p-3 flex gap-3">
+        <img src="${img}" class="w-16 h-16 object-contain rounded-xl bg-surface-2 border divider" />
         <div class="flex-1">
           <div class="font-semibold">${escapeHtml(it.name)}</div>
-          <div class="text-slate-300 text-sm">$ ${formatArs(it.price)} c/u</div>
+          <div class="text-muted text-sm">$ ${formatArs(it.price)} c/u</div>
 
           <div class="mt-2 flex items-center gap-2">
-            <button data-dec="${it.product_id}" class="px-3 py-2 rounded-lg border border-slate-700">-</button>
+            <button data-dec="${it.product_id}" class="btn btn-secondary px-3 py-2">-</button>
             <input data-qty="${it.product_id}" value="${it.qty}"
-              class="w-16 text-center px-2 py-2 rounded-lg bg-slate-950 border border-slate-800" />
-            <button data-inc="${it.product_id}" class="px-3 py-2 rounded-lg border border-slate-700">+</button>
+              class="input w-16 text-center px-2 py-2" />
+            <button data-inc="${it.product_id}" class="btn btn-secondary px-3 py-2">+</button>
 
             <div class="ml-auto font-semibold">$ ${formatArs(Number(it.price) * Number(it.qty))}</div>
           </div>

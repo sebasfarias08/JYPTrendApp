@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1220" />
+  <meta name="theme-color" content="#F7F8FA" />
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="JyP Ventas">
@@ -11,19 +11,20 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <title>Producto</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/theme.css" />
 </head>
 
-<body class="h-screen overflow-hidden flex flex-col bg-slate-950 text-slate-100">
+<body class="h-screen overflow-hidden flex flex-col">
   <header id="appShellTop"></header>
 
   <main class="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
-    <img id="img" class="w-full h-56 object-contain rounded-2xl border border-slate-800 bg-slate-900" alt="" />
+    <img id="img" class="w-full h-56 object-contain rounded-2xl border divider bg-surface" alt="" />
 
-    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
+    <section class="card p-4 space-y-3">
       <h1 id="name" class="text-xl font-semibold leading-tight"></h1>
-      <div id="price" class="text-2xl font-bold text-emerald-300"></div>
-      <div id="category" class="text-slate-400 text-sm"></div>
-      <button id="btnAddCart" class="w-full px-4 py-3 rounded-xl bg-emerald-400 text-slate-950 font-semibold inline-flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+      <div id="price" class="text-2xl font-bold text-primary"></div>
+      <div id="category" class="text-muted text-sm"></div>
+      <button id="btnAddCart" class="btn btn-primary w-full">
         <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="9" cy="20" r="1"></circle>
           <circle cx="17" cy="20" r="1"></circle>
@@ -35,49 +36,49 @@
       </button>
     </section>
 
-    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-      <h2 class="text-sm font-semibold text-slate-200 mb-2">Descripcion</h2>
-      <p id="desc" class="text-slate-300 text-sm leading-relaxed"></p>
+    <section class="card p-4">
+      <h2 class="text-sm font-semibold mb-2">Descripcion</h2>
+      <p id="desc" class="text-muted text-sm leading-relaxed"></p>
     </section>
 
-    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
+    <section class="card p-4 space-y-3">
       <div class="flex items-center justify-between">
-        <h2 class="text-sm font-semibold text-slate-200">Edicion</h2>
-        <button id="btnToggleEdit" class="px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-100 text-sm">Editar producto</button>
+        <h2 class="text-sm font-semibold">Edicion</h2>
+        <button id="btnToggleEdit" class="btn btn-secondary text-sm">Editar producto</button>
       </div>
 
       <div id="editPanel" class="hidden space-y-3">
         <div>
-          <label for="editName" class="block text-xs text-slate-400 mb-1">Nombre</label>
-          <input id="editName" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700" />
+          <label for="editName" class="block text-xs text-muted mb-1">Nombre</label>
+          <input id="editName" class="input" />
         </div>
 
         <div>
-          <label for="editPrice" class="block text-xs text-slate-400 mb-1">Precio</label>
-          <input id="editPrice" type="number" min="0" step="1" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700" />
+          <label for="editPrice" class="block text-xs text-muted mb-1">Precio</label>
+          <input id="editPrice" type="number" min="0" step="1" class="input" />
         </div>
 
         <div>
-          <label for="editDescription" class="block text-xs text-slate-400 mb-1">Descripcion</label>
-          <textarea id="editDescription" rows="3" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700"></textarea>
+          <label for="editDescription" class="block text-xs text-muted mb-1">Descripcion</label>
+          <textarea id="editDescription" rows="3" class="input"></textarea>
         </div>
 
         <div>
-          <label for="editImagePath" class="block text-xs text-slate-400 mb-1">Ruta imagen (image_path)</label>
-          <input id="editImagePath" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700" placeholder="products/imagen.jpg" />
+          <label for="editImagePath" class="block text-xs text-muted mb-1">Ruta imagen (image_path)</label>
+          <input id="editImagePath" class="input" placeholder="products/imagen.jpg" />
         </div>
 
         <div class="flex gap-2">
-          <button id="btnSaveProduct" class="flex-1 px-4 py-2.5 rounded-xl bg-emerald-400 text-slate-950 font-semibold">Guardar cambios</button>
-          <button id="btnCancelEdit" class="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-100">Cancelar</button>
+          <button id="btnSaveProduct" class="btn btn-primary flex-1">Guardar cambios</button>
+          <button id="btnCancelEdit" class="btn btn-secondary">Cancelar</button>
         </div>
       </div>
     </section>
 
-    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
-      <h2 class="text-sm font-semibold text-slate-200">Acciones rapidas</h2>
+    <section class="card p-4 space-y-3">
+      <h2 class="text-sm font-semibold">Acciones rapidas</h2>
       <div class="grid grid-cols-3 gap-2">
-        <button id="btnShare" class="px-3 py-3 rounded-xl border border-slate-700 bg-slate-950 hover:bg-slate-800 transition text-slate-100 inline-flex flex-col items-center justify-center gap-1">
+        <button id="btnShare" class="btn btn-secondary px-3 py-3 inline-flex flex-col items-center justify-center gap-1">
           <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="18" cy="5" r="3"></circle>
             <circle cx="6" cy="12" r="3"></circle>
@@ -88,7 +89,7 @@
           <span class="text-xs font-medium">Compartir</span>
         </button>
 
-        <button id="btnCopy" class="px-3 py-3 rounded-xl border border-slate-700 bg-slate-950 hover:bg-slate-800 transition text-slate-100 inline-flex flex-col items-center justify-center gap-1">
+        <button id="btnCopy" class="btn btn-secondary px-3 py-3 inline-flex flex-col items-center justify-center gap-1">
           <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <rect x="9" y="9" width="13" height="13" rx="2"></rect>
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -96,7 +97,7 @@
           <span class="text-xs font-medium">Copiar link</span>
         </button>
 
-        <button id="btnDownload" class="px-3 py-3 rounded-xl border border-slate-700 bg-slate-950 hover:bg-slate-800 transition text-slate-100 inline-flex flex-col items-center justify-center gap-1">
+        <button id="btnDownload" class="btn btn-secondary px-3 py-3 inline-flex flex-col items-center justify-center gap-1">
           <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M12 3v12"></path>
             <path d="M7 10l5 5 5-5"></path>
