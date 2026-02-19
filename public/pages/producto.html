@@ -17,12 +17,13 @@
   <header id="appShellTop"></header>
 
   <main class="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
-    <img id="img" class="w-full h-56 object-contain rounded-xl border border-slate-800 bg-slate-900" alt="" />
+    <img id="img" class="w-full h-56 object-contain rounded-2xl border border-slate-800 bg-slate-900" alt="" />
 
-    <div>
-      <h1 id="name" class="text-xl font-semibold"></h1>
-      <div id="price" class="text-slate-300 mt-1"></div>
-      <button id="btnAddCart" class="w-full px-4 py-3 rounded-xl bg-emerald-400 text-slate-950 font-semibold inline-flex items-center justify-center gap-2">
+    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
+      <h1 id="name" class="text-xl font-semibold leading-tight"></h1>
+      <div id="price" class="text-2xl font-bold text-emerald-300"></div>
+      <div id="category" class="text-slate-400 text-sm"></div>
+      <button id="btnAddCart" class="w-full px-4 py-3 rounded-xl bg-emerald-400 text-slate-950 font-semibold inline-flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
         <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="9" cy="20" r="1"></circle>
           <circle cx="17" cy="20" r="1"></circle>
@@ -30,20 +31,47 @@
           <path d="M12 9v4"></path>
           <path d="M10 11h4"></path>
         </svg>
-        <span>Agregar al pedido</span>
+        <span>Agregar al carrito</span>
       </button>
-      <a href="/pages/pedido.html" class="block text-center w-full px-4 py-3 rounded-xl border border-slate-700 text-slate-100">Ver pedido</a>
-      <div id="category" class="text-slate-400 mt-1 text-sm"></div>
-    </div>
+    </section>
 
-    <p id="desc" class="text-slate-300 text-sm leading-relaxed"></p>
+    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+      <h2 class="text-sm font-semibold text-slate-200 mb-2">Descripcion</h2>
+      <p id="desc" class="text-slate-300 text-sm leading-relaxed"></p>
+    </section>
 
-    <div class="flex gap-2">
-      <button id="btnShare" class="flex-1 px-4 py-3 rounded-xl bg-slate-100 text-slate-900 font-semibold">Compartir</button>
-      <button id="btnCopy" class="px-4 py-3 rounded-xl border border-slate-700 text-slate-100">Copiar link</button>
-    </div>
+    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
+      <h2 class="text-sm font-semibold text-slate-200">Acciones rapidas</h2>
+      <div class="grid grid-cols-3 gap-2">
+        <button id="btnShare" class="px-3 py-3 rounded-xl border border-slate-700 bg-slate-950 hover:bg-slate-800 transition text-slate-100 inline-flex flex-col items-center justify-center gap-1">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <path d="M8.7 13.5l6.6 3.9"></path>
+            <path d="M15.3 6.6L8.7 10.5"></path>
+          </svg>
+          <span class="text-xs font-medium">Compartir</span>
+        </button>
 
-    <button id="btnDownload" class="w-full px-4 py-3 rounded-xl border border-slate-700 text-slate-100">Descargar imagen</button>
+        <button id="btnCopy" class="px-3 py-3 rounded-xl border border-slate-700 bg-slate-950 hover:bg-slate-800 transition text-slate-100 inline-flex flex-col items-center justify-center gap-1">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span class="text-xs font-medium">Copiar link</span>
+        </button>
+
+        <button id="btnDownload" class="px-3 py-3 rounded-xl border border-slate-700 bg-slate-950 hover:bg-slate-800 transition text-slate-100 inline-flex flex-col items-center justify-center gap-1">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 3v12"></path>
+            <path d="M7 10l5 5 5-5"></path>
+            <path d="M5 21h14"></path>
+          </svg>
+          <span class="text-xs font-medium">Descargar</span>
+        </button>
+      </div>
+    </section>
   </main>
 
   <nav id="appShellBottom"></nav>
