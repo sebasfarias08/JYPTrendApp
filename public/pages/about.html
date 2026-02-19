@@ -106,7 +106,14 @@
     });
 
     btnCheckUpdate.addEventListener("click", async () => {
-      const reg = await navigator.serviceWorker.getRegistration();
+      let reg = await navigator.serviceWorker.getRegistration();
+      if (!reg) {
+        try {
+          reg = await navigator.serviceWorker.register("/sw.js");
+        } catch {
+          reg = null;
+        }
+      }
       if (!reg) {
         showToast("Service Worker no disponible.", { type: "warning" });
         return;

@@ -2,7 +2,7 @@
 export function registerServiceWorker({ onUpdate } = {}) {
   if (!("serviceWorker" in navigator)) return;
 
-  window.addEventListener("load", async () => {
+  const startRegistration = async () => {
     try {
       const reg = await navigator.serviceWorker.register("/sw.js");
       await reg.update().catch(() => {});
@@ -38,7 +38,14 @@ export function registerServiceWorker({ onUpdate } = {}) {
     } catch (e) {
       console.warn("SW register failed:", e);
     }
-  });
+  };
+
+  if (document.readyState === "complete") {
+    startRegistration();
+    return;
+  }
+
+  window.addEventListener("load", startRegistration, { once: true });
 }
 
 // Llamar cuando el usuario acepta actualizar
@@ -50,7 +57,15 @@ export function applyUpdate(reg) {
 export async function requestSwVersion() {
   if (!("serviceWorker" in navigator)) return null;
 
-  const reg = await navigator.serviceWorker.getRegistration();
+  let reg = await navigator.serviceWorker.getRegistration();
+  if (!reg) {
+    try {
+      reg = await navigator.serviceWorker.register("/sw.js");
+      await reg.update().catch(() => {});
+    } catch {
+      return null;
+    }
+  }
   const worker = reg?.active || reg?.waiting || reg?.installing;
   if (!worker) return null;
 
