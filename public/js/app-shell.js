@@ -4,8 +4,7 @@ const TAB_LINKS = {
   botellas: "/index.html?tab=botellas",
   perfumes: "/index.html?tab=perfumes",
   importados: "/index.html?tab=importados",
-  outlet: "/index.html?tab=outlet",
-  reservas: "/pages/pedidos.html"
+  outlet: "/index.html?tab=outlet"
 };
 
 const MENU_ITEMS = [
@@ -52,10 +51,73 @@ function resolveActiveTab() {
   if (path === "/" || path === "/index.html") {
     return tab || "perfumes";
   }
-  if (path.includes("/pages/pedidos.html") || path.includes("/pages/pedido-detalle.html")) {
-    return "reservas";
+  return "home";
+}
+
+function ensureShellContainers() {
+  let top = document.getElementById("appShellTop");
+  let bottom = document.getElementById("appShellBottom");
+
+  if (!top) {
+    top = document.createElement("header");
+    top.id = "appShellTop";
+    document.body.prepend(top);
   }
-  return "perfumes";
+
+  if (!bottom) {
+    bottom = document.createElement("nav");
+    bottom.id = "appShellBottom";
+    document.body.append(bottom);
+  }
+
+  return { top, bottom };
+}
+
+function renderShell({ title }) {
+  const { top, bottom } = ensureShellContainers();
+
+  top.className = "sticky top-0 z-30 border-b border-slate-800 bg-slate-950/95 backdrop-blur";
+  top.innerHTML = `
+    <div class="px-3 py-2 flex items-center gap-2">
+      <button id="btnShellMenu" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Menu">
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path>
+        </svg>
+      </button>
+      <div class="w-8 h-8 rounded-md bg-emerald-400 text-slate-950 text-xs font-bold inline-flex items-center justify-center">JYP</div>
+      <h1 id="appShellTitle" class="text-base font-semibold truncate">${title}</h1>
+      <div class="ml-auto flex items-center gap-1">
+        <button id="btnShellSearch" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Buscar">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        </button>
+        <button id="btnShellAdd" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Ver pedido"></button>
+        <button id="btnShellRefresh" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Recargar">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36"></path><path d="M21 3v6h-6"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="appShellSearchWrap" class="hidden px-3 pb-2">
+      <input id="appShellSearchInput" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700" placeholder="Buscar..." />
+    </div>
+
+    <div id="updateBanner" class="hidden px-3 pb-2">
+      <button id="btnUpdate" class="w-full text-left px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-100 text-sm">
+        Hay una nueva version disponible. Tocar para actualizar.
+      </button>
+    </div>
+  `;
+
+  bottom.className = "fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-slate-950/95 backdrop-blur";
+  bottom.innerHTML = `
+    <div class="grid grid-cols-5">
+      <a data-shell-tab="botellas" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🍾</span><span>Botellas</span></a>
+      <a data-shell-tab="perfumes" class="py-2 text-[11px] text-slate-100 flex flex-col items-center gap-1 bg-slate-900/80"><span>🧴</span><span>Perfumes</span></a>
+      <a data-shell-tab="importados" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🌍</span><span>Importados</span></a>
+      <a data-shell-tab="outlet" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🏷️</span><span>Outlet</span></a>
+      <a data-shell-tab="home" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🏠</span><span>Home</span></a>
+    </div>
+  `;
 }
 
 function createMenuDrawer() {
@@ -102,9 +164,7 @@ function createMenuDrawer() {
     btn.className = "w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-900/70 flex items-center gap-3 text-slate-200";
     btn.innerHTML = `
       <span class="w-5 h-5 inline-flex items-center justify-center text-slate-400">
-        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          ${iconSvg(item.icon)}
-        </svg>
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${iconSvg(item.icon)}</svg>
       </span>
       <span class="text-[15px]">${item.label}</span>
     `;
@@ -128,11 +188,11 @@ function createMenuDrawer() {
         alert(`"${item.label}" estara disponible pronto.`);
       });
     }
+
     list.appendChild(btn);
   });
 
-  const closeBtn = panel.querySelector("#appShellMenuClose");
-  closeBtn?.addEventListener("click", () => {
+  panel.querySelector("#appShellMenuClose")?.addEventListener("click", () => {
     overlay.classList.add("hidden");
   });
 
@@ -148,10 +208,7 @@ function createMenuDrawer() {
 }
 
 export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
-  const titleEl = document.getElementById("appShellTitle");
-  const legacyTitleEl = document.getElementById("headerTitle");
-  if (titleEl) titleEl.textContent = title;
-  if (legacyTitleEl) legacyTitleEl.textContent = title;
+  renderShell({ title });
 
   const activeTab = resolveActiveTab();
   document.querySelectorAll("[data-shell-tab]").forEach((el) => {
@@ -163,17 +220,15 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
     if (el.tagName === "A") el.href = TAB_LINKS[key] || "/index.html";
   });
 
-  const btnMenu = document.getElementById("btnShellMenu") || document.getElementById("btnMenu");
-  const btnSearch = document.getElementById("btnShellSearch") || document.getElementById("btnSearch");
-  const btnAdd = document.getElementById("btnShellAdd") || document.getElementById("btnAdd");
-  const btnRefresh = document.getElementById("btnShellRefresh") || document.getElementById("btnRefresh");
-  const btnSelectLegacy = document.getElementById("btnSelectMode");
-  const searchWrap = document.getElementById("appShellSearchWrap") || document.getElementById("searchWrap");
-  const searchInput = document.getElementById("appShellSearchInput") || document.getElementById("searchInput");
+  const btnMenu = document.getElementById("btnShellMenu");
+  const btnSearch = document.getElementById("btnShellSearch");
+  const btnAdd = document.getElementById("btnShellAdd");
+  const btnRefresh = document.getElementById("btnShellRefresh");
+  const searchWrap = document.getElementById("appShellSearchWrap");
+  const searchInput = document.getElementById("appShellSearchInput");
 
   const menuOverlay = createMenuDrawer();
 
-  // Redesign: make add button a cart button with live item count
   if (btnAdd) {
     btnAdd.setAttribute("aria-label", "Ver pedido");
     btnAdd.classList.add("relative");
@@ -186,19 +241,14 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
       <span id="appShellCartCount" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-emerald-400 text-[10px] leading-[18px] text-slate-950 font-bold text-center">0</span>
     `;
   }
-  btnSelectLegacy?.remove();
 
   btnMenu?.addEventListener("click", () => {
     menuOverlay.classList.remove("hidden");
   });
 
   btnSearch?.addEventListener("click", () => {
-    if (!searchWrap) {
-      location.href = "/index.html";
-      return;
-    }
-    searchWrap.classList.toggle("hidden");
-    if (!searchWrap.classList.contains("hidden")) searchInput?.focus();
+    searchWrap?.classList.toggle("hidden");
+    if (searchWrap && !searchWrap.classList.contains("hidden")) searchInput?.focus();
   });
 
   btnAdd?.addEventListener("click", () => {

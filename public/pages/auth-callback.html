@@ -10,44 +10,13 @@
 </head>
 
 <body class="h-screen overflow-hidden flex flex-col bg-slate-950 text-slate-100">
-  <header class="sticky top-0 z-30 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
-    <div class="px-3 py-2 flex items-center gap-2">
-      <button id="btnShellMenu" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Menu">
-        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path></svg>
-      </button>
-      <div class="w-8 h-8 rounded-md bg-emerald-400 text-slate-950 text-xs font-bold inline-flex items-center justify-center">JYP</div>
-      <h1 id="appShellTitle" class="text-base font-semibold truncate">Ingresando</h1>
-      <div class="ml-auto flex items-center gap-1">
-        <button id="btnShellSearch" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Buscar">
-          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
-        </button>
-<button id="btnShellAdd" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Agregar">
-          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
-        </button>
-        <button id="btnShellRefresh" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Recargar">
-          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36"></path><path d="M21 3v6h-6"></path></svg>
-        </button>
-      </div>
-    </div>
-
-    <div id="appShellSearchWrap" class="hidden px-3 pb-2">
-      <input id="appShellSearchInput" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700" placeholder="Buscar..." />
-    </div>
-  </header>
+  <header id="appShellTop"></header>
 
   <main class="flex-1 overflow-y-auto p-4 pb-24">
     <div class="rounded-xl border border-slate-800 bg-slate-900 p-4 text-slate-200">Ingresando...</div>
   </main>
 
-  <nav class="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
-    <div class="grid grid-cols-5">
-      <a data-shell-tab="botellas" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🍾</span><span>Botellas</span></a>
-      <a data-shell-tab="perfumes" class="py-2 text-[11px] text-slate-100 flex flex-col items-center gap-1 bg-slate-900/80"><span>🧴</span><span>Perfumes</span></a>
-      <a data-shell-tab="importados" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🌍</span><span>Importados</span></a>
-      <a data-shell-tab="outlet" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>🏷️</span><span>Outlet</span></a>
-      <a data-shell-tab="reservas" class="py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1"><span>⏳</span><span>Reservas</span></a>
-    </div>
-  </nav>
+  <nav id="appShellBottom"></nav>
 
   <script type="module">
     import { supabase } from "/js/supabase-client.js";
@@ -78,4 +47,5 @@
   </script>
 </body>
 </html>
+
 

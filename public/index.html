@@ -8,10 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="JyP Ventas">
   <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
-
   <link rel="manifest" href="/manifest.webmanifest" />
   <title>JyP Ventas</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .line-clamp-2 {
@@ -24,59 +22,7 @@
 </head>
 
 <body class="h-screen overflow-hidden flex flex-col bg-slate-950 text-slate-100">
-  <header class="sticky top-0 z-30 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
-    <div class="px-3 py-2 flex items-center gap-2">
-      <button id="btnMenu" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Menu">
-        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 6h18"></path>
-          <path d="M3 12h18"></path>
-          <path d="M3 18h18"></path>
-        </svg>
-      </button>
-
-      <div class="w-8 h-8 rounded-md bg-emerald-400 text-slate-950 text-xs font-bold inline-flex items-center justify-center">JYP</div>
-      <h1 id="headerTitle" class="text-base font-semibold truncate">Perfumes</h1>
-
-      <div class="ml-auto flex items-center gap-1">
-        <button id="btnSearch" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Buscar">
-          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="7"></circle>
-            <path d="M20 20l-3.5-3.5"></path>
-          </svg>
-        </button>
-
-        <button id="btnSelectMode" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Modo seleccion">
-          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 6L9 17l-5-5"></path>
-          </svg>
-        </button>
-
-        <button id="btnAdd" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Agregar">
-          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 5v14"></path>
-            <path d="M5 12h14"></path>
-          </svg>
-        </button>
-
-        <button id="btnRefresh" class="w-9 h-9 rounded-lg border border-slate-700 inline-flex items-center justify-center" aria-label="Recargar">
-          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
-            <path d="M21 3v6h-6"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <div id="searchWrap" class="hidden px-3 pb-2">
-      <input id="searchInput" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700" placeholder="Buscar producto..." />
-    </div>
-
-    <div id="updateBanner" class="hidden px-3 pb-2">
-      <button id="btnUpdate" class="w-full text-left px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-100 text-sm">
-        Hay una nueva version disponible. Tocar para actualizar.
-      </button>
-    </div>
-  </header>
+  <header id="appShellTop"></header>
 
   <main id="mainScroll" class="flex-1 overflow-y-auto pb-20">
     <div id="list" class="divide-y divide-slate-800"></div>
@@ -84,25 +30,7 @@
     <div id="statusLine" class="p-3 text-xs text-slate-400"></div>
   </main>
 
-  <nav class="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
-    <div class="grid grid-cols-5">
-      <button data-tab="botellas" class="tab-btn py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1">
-        <span>🍾</span><span>Botellas</span>
-      </button>
-      <button data-tab="perfumes" class="tab-btn py-2 text-[11px] text-slate-100 flex flex-col items-center gap-1 bg-slate-900/80">
-        <span>🧴</span><span>Perfumes</span>
-      </button>
-      <button data-tab="importados" class="tab-btn py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1">
-        <span>🌍</span><span>Importados</span>
-      </button>
-      <button data-tab="outlet" class="tab-btn py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1">
-        <span>🏷️</span><span>Outlet</span>
-      </button>
-      <button data-tab="home" class="tab-btn py-2 text-[11px] text-slate-400 flex flex-col items-center gap-1">
-        <span>🏠</span><span>Home</span>
-      </button>
-    </div>
-  </nav>
+  <nav id="appShellBottom"></nav>
 
   <script type="module">
     import { requireAuth } from "/js/auth.js";
@@ -112,14 +40,10 @@
     import { addToCart, getCart } from "/js/cart.js";
     import { initAppShell } from "/js/app-shell.js";
 
-    const headerTitleEl = document.getElementById("headerTitle");
-    const searchWrapEl = document.getElementById("searchWrap");
-    const searchInputEl = document.getElementById("searchInput");
+    let searchInputEl = null;
     const listEl = document.getElementById("list");
     const emptyStateEl = document.getElementById("emptyState");
     const statusLineEl = document.getElementById("statusLine");
-    const updateBannerEl = document.getElementById("updateBanner");
-    const btnUpdateEl = document.getElementById("btnUpdate");
 
     const TABS = {
       "botellas": "Botellas",
@@ -165,13 +89,12 @@
     }
 
     function updateTabUi() {
-      document.querySelectorAll(".tab-btn").forEach((btn) => {
-        const active = btn.getAttribute("data-tab") === selectedTab;
+      document.querySelectorAll("[data-shell-tab]").forEach((btn) => {
+        const active = btn.getAttribute("data-shell-tab") === selectedTab;
         btn.classList.toggle("bg-slate-900/80", active);
         btn.classList.toggle("text-slate-100", active);
         btn.classList.toggle("text-slate-400", !active);
       });
-      headerTitleEl.textContent = currentTabLabel();
     }
 
     function renderList(rows) {
@@ -242,7 +165,7 @@
     }
 
     function applyFilters() {
-      const q = (searchInputEl.value || "").toLowerCase().trim();
+      const q = (searchInputEl?.value || "").toLowerCase().trim();
       const rows = products.filter((p) => {
         const name = String(p.name ?? "").toLowerCase();
         const slug = normalizeSlug(p.categories?.slug ?? p.categories?.name ?? "");
@@ -278,28 +201,31 @@
       onRefresh: reloadProducts
     });
 
+    searchInputEl = document.getElementById("appShellSearchInput");
+
     registerServiceWorker({
       onUpdate: (reg) => {
         pendingReg = reg;
-        updateBannerEl.classList.remove("hidden");
+        document.getElementById("updateBanner")?.classList.remove("hidden");
       }
     });
 
-    btnUpdateEl.addEventListener("click", () => applyUpdate(pendingReg), { once: true });
+    document.getElementById("btnUpdate")?.addEventListener("click", () => applyUpdate(pendingReg), { once: true });
 
-    document.querySelectorAll(".tab-btn").forEach((btn) => {
+    document.querySelectorAll("[data-shell-tab]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        selectedTab = btn.getAttribute("data-tab") || "";
-        if (selectedTab === "home") {
+        const value = btn.getAttribute("data-shell-tab") || "";
+        if (value === "home") {
           location.href = "/index.html";
           return;
         }
+        selectedTab = value;
         updateTabUi();
         applyFilters();
       });
     });
 
-    searchInputEl.addEventListener("input", applyFilters);
+    searchInputEl?.addEventListener("input", applyFilters);
     window.addEventListener("cart:changed", applyFilters);
 
     await reloadProducts();
