@@ -139,8 +139,8 @@ export function initOrderPage(session) {
 
     const order = {
       user_id: session.user.id,
-      order_status: "NEW",
-      payment_status: "PENDING",
+      order_status: "NUEVO",
+      payment_status: "PENDIENTE",
       customer_name,
       customer_phone,
       notes,

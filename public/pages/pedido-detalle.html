@@ -90,8 +90,8 @@
     const fecha = new Date(o.created_at).toLocaleString("es-AR");
     const total = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(Number(o.total ?? 0));
 
-    const orderStatus = o.order_status ?? "NEW";
-    const paymentStatus = o.payment_status ?? "PENDING";
+    const orderStatus = o.order_status ?? "NUEVO";
+    const paymentStatus = o.payment_status ?? "PENDIENTE";
 
     const orderBadge = `<span class="px-2 py-1 rounded-lg text-xs ${orderStatusBadgeClass(orderStatus)}">${statusLabel(orderStatus)}</span>`;
     const paymentBadge = `<span class="px-2 py-1 rounded-lg text-xs ${paymentStatusBadgeClass(paymentStatus)}">${statusLabel(paymentStatus)}</span>`;

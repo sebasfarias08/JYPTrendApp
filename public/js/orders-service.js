@@ -49,15 +49,19 @@ export async function getOrderDetail(orderId) {
 }
 
 export async function updateOrderStatus(orderId, order_status) {
-  return supabase
+  const { data, error } = await supabase
     .from("orders")
     .update({ order_status })
     .eq("id", orderId);
+  if (error) throw error;
+  return data;
 }
 
 export async function updatePaymentStatus(orderId, payment_status) {
-  return supabase
+  const { data, error } = await supabase
     .from("orders")
     .update({ payment_status })
     .eq("id", orderId);
+  if (error) throw error;
+  return data;
 }

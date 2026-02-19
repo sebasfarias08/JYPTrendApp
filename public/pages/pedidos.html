@@ -168,8 +168,8 @@
         const total = fmtMoney(o.total);
         const cliente = (o.customer_name ?? "").trim();
 
-        const os = o.order_status ?? "NEW";
-        const ps = o.payment_status ?? "PENDING";
+        const os = o.order_status ?? "NUEVO";
+        const ps = o.payment_status ?? "PENDIENTE";
 
         return `
           <a href="/pages/pedido-detalle.html?id=${encodeURIComponent(o.id)}" class="block rounded-2xl border border-slate-800 bg-slate-900 p-4">

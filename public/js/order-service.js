@@ -15,7 +15,16 @@ function toLegacyStatus(value) {
     CANCELLED: "cancelled",
     PENDING: "pending",
     PARTIAL: "partial",
-    PAID: "paid"
+    PAID: "paid",
+    NUEVO: "submitted",
+    EN_PREPARACION: "preparing",
+    LISTO_PARA_RETIRO: "ready",
+    ENTREGADO: "delivered",
+    FINALIZADO: "finished",
+    CANCELADO: "cancelled",
+    PENDIENTE: "pending",
+    PARCIAL: "partial",
+    PAGADO: "paid"
   };
   return map[value] ?? value;
 }

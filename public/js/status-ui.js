@@ -1,6 +1,12 @@
 // public/js/status-ui.js
 export function orderStatusBadgeClass(status) {
   return {
+    NUEVO: "bg-slate-700 text-slate-100",
+    EN_PREPARACION: "bg-blue-700 text-white",
+    LISTO_PARA_RETIRO: "bg-amber-600 text-white",
+    ENTREGADO: "bg-emerald-600 text-white",
+    FINALIZADO: "bg-emerald-900 text-white",
+    CANCELADO: "bg-red-700 text-white",
     NEW: "bg-slate-700 text-slate-100",
     PREPARING: "bg-blue-700 text-white",
     READY: "bg-amber-600 text-white",
@@ -18,6 +24,11 @@ export function orderStatusBadgeClass(status) {
 
 export function paymentStatusBadgeClass(status) {
   return {
+    PENDIENTE: "bg-slate-600 text-white",
+    PARCIAL: "bg-yellow-600 text-black",
+    PAGADO: "bg-emerald-600 text-white",
+    CANCELADO: "bg-red-700 text-white",
+    FINALIZADO: "bg-emerald-900 text-white",
     PENDING: "bg-slate-600 text-white",
     PARTIAL: "bg-yellow-600 text-black",
     PAID: "bg-emerald-600 text-white",

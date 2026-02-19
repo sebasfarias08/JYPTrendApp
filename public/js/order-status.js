@@ -1,30 +1,32 @@
 export const ORDER_STATUS = [
-  "NEW",
-  "PREPARING",
-  "READY",
-  "DELIVERED",
-  "FINISHED",
-  "CANCELLED"
+  "NUEVO",
+  "EN_PREPARACION",
+  "LISTO_PARA_RETIRO",
+  "ENTREGADO",
+  "FINALIZADO",
+  "CANCELADO"
 ];
 
 export const PAYMENT_STATUS = [
-  "PENDING",
-  "PARTIAL",
-  "PAID"
+  "PENDIENTE",
+  "PARCIAL",
+  "PAGADO",
+  "CANCELADO",
+  "FINALIZADO"
 ];
 
 export function statusLabel(s) {
   return {
-    NEW: "Nuevo",
-    PREPARING: "En preparacion",
-    READY: "Listo para retirar",
-    DELIVERED: "Entregado",
-    CANCELLED: "Cancelado",
-    FINISHED: "Finalizado",
+    NUEVO: "Nuevo",
+    EN_PREPARACION: "En preparacion",
+    LISTO_PARA_RETIRO: "Listo para retirar",
+    ENTREGADO: "Entregado",
+    CANCELADO: "Cancelado",
+    FINALIZADO: "Finalizado",
 
-    PENDING: "Pendiente",
-    PARTIAL: "Parcial",
-    PAID: "Pagado",
+    PENDIENTE: "Pendiente",
+    PARCIAL: "Parcial",
+    PAGADO: "Pagado",
 
     submitted: "Nuevo",
     preparing: "En preparacion",
@@ -34,6 +36,16 @@ export function statusLabel(s) {
     cancelled: "Cancelado",
     pending: "Pendiente",
     partial: "Parcial",
-    paid: "Pagado"
+    paid: "Pagado",
+
+    NEW: "Nuevo",
+    PREPARING: "En preparacion",
+    READY: "Listo para retirar",
+    DELIVERED: "Entregado",
+    CANCELLED: "Cancelado",
+    FINISHED: "Finalizado",
+    PENDING: "Pendiente",
+    PARTIAL: "Parcial",
+    PAID: "Pagado"
   }[s] ?? s;
 }
