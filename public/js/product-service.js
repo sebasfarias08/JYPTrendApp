@@ -25,3 +25,18 @@ export async function getProductById(id) {
   }
   return data;
 }
+
+export async function updateProductById(id, changes) {
+  const { error } = await supabase
+    .from("products")
+    .update(changes)
+    .eq("id", id);
+
+  if (error) {
+    console.error("updateProductById error:", error);
+    return { ok: false, error };
+  }
+
+  const updated = await getProductById(id);
+  return { ok: true, data: updated };
+}

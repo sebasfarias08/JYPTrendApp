@@ -1,5 +1,5 @@
-// public/js/product-page.js
-import { getProductById } from "./product-service.js";
+﻿// public/js/product-page.js
+import { getProductById, updateProductById } from "./product-service.js";
 import { getImageUrl } from "./image.js";
 import { shareProduct, copyToClipboard, downloadImage } from "./share.js";
 import { addToCart } from "./cart.js";
@@ -15,11 +15,6 @@ function setText(id, text) {
   if (el) el.textContent = text ?? "";
 }
 
-function setHtml(id, html) {
-  const el = document.getElementById(id);
-  if (el) el.innerHTML = html ?? "";
-}
-
 function setSrc(id, src, alt = "") {
   const el = document.getElementById(id);
   if (el) {
@@ -33,50 +28,75 @@ export async function initProductPage() {
   const id = params.get("id");
 
   if (!id) {
-    setText("msg", "Falta el parámetro id en la URL.");
+    showToast("Falta el parametro id en la URL.", { type: "error" });
     return;
   }
 
-  setText("msg", "Cargando producto...");
-  const p = await getProductById(id);
+  showToast("Cargando producto...", { type: "info", duration: 900 });
+  let p = await getProductById(id);
 
   if (!p) {
-    setText("msg", "No se encontró el producto (o está inactivo).");
+    showToast("No se encontro el producto (o esta inactivo).", { type: "error" });
     return;
   }
 
-  console.log("Producto:", p);
-  console.log("image_path raw:", JSON.stringify(p?.image_path));
+  const editPanelEl = document.getElementById("editPanel");
+  const btnToggleEditEl = document.getElementById("btnToggleEdit");
+  const btnSaveProductEl = document.getElementById("btnSaveProduct");
+  const btnCancelEditEl = document.getElementById("btnCancelEdit");
+  const editNameEl = document.getElementById("editName");
+  const editPriceEl = document.getElementById("editPrice");
+  const editDescriptionEl = document.getElementById("editDescription");
+  const editImagePathEl = document.getElementById("editImagePath");
 
-  const imageUrl = p.image_path ? getImageUrl(p.image_path) : "";
+  function currentShareMeta() {
+    const shareUrl = `${location.origin}/pages/producto.html?id=${encodeURIComponent(p.id)}`;
+    const shareText = `Mira este producto: ${p.name} - $ ${formatArs(p.price)}`;
+    const imageUrl = p.image_path ? getImageUrl(p.image_path) : "";
+    return { shareUrl, shareText, imageUrl };
+  }
 
-  console.log("imageUrl final:", imageUrl);
+  function fillEditForm() {
+    if (editNameEl) editNameEl.value = p.name ?? "";
+    if (editPriceEl) editPriceEl.value = String(Number(p.price ?? 0));
+    if (editDescriptionEl) editDescriptionEl.value = p.description ?? "";
+    if (editImagePathEl) editImagePathEl.value = p.image_path ?? "";
+  }
 
-  const shareUrl = `${location.origin}/pages/producto.html?id=${encodeURIComponent(p.id)}`;
-  const shareText = `Mirá este producto: ${p.name} - $ ${formatArs(p.price)}`;
+  function renderProduct() {
+    const imageUrl = p.image_path ? getImageUrl(p.image_path) : "";
+    setText("name", p.name);
+    setText("price", `$ ${formatArs(p.price)}`);
+    setText("category", p.categories?.name ? p.categories.name : "");
+    setText("desc", p.description || "");
+    setSrc("img", imageUrl, p.name);
+  }
 
-  // Render
-  setText("name", p.name);
-  setText("price", `$ ${formatArs(p.price)}`);
-  setText("category", p.categories?.name ? p.categories.name : "");
-  setText("desc", p.description || "");
-  setSrc("img", imageUrl, p.name);
+  function setEditMode(enabled) {
+    if (!editPanelEl || !btnToggleEditEl) return;
+    editPanelEl.classList.toggle("hidden", !enabled);
+    btnToggleEditEl.textContent = enabled ? "Ocultar edicion" : "Editar producto";
+    if (enabled) fillEditForm();
+  }
 
-  setText("msg", "");
+  renderProduct();
+  setEditMode(false);
 
-  // Agregar al carrito
   document.getElementById("btnAddCart")?.addEventListener("click", () => {
-    addToCart({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      image_path: p.image_path
-    }, 1);
+    addToCart(
+      {
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        image_path: p.image_path
+      },
+      1
+    );
     showToast("Agregado al pedido.", { type: "success" });
   });
 
-  // Botones
   document.getElementById("btnShare")?.addEventListener("click", async () => {
+    const { shareUrl, shareText, imageUrl } = currentShareMeta();
     const res = await shareProduct({
       title: p.name,
       text: shareText,
@@ -89,16 +109,72 @@ export async function initProductPage() {
   });
 
   document.getElementById("btnCopy")?.addEventListener("click", async () => {
+    const { shareUrl } = currentShareMeta();
     const ok = await copyToClipboard(shareUrl);
-    showToast(ok ? "Link copiado." : "No se pudo copiar el link.", { type: ok ? "success" : "error" });
+    showToast(ok ? "Link copiado." : "No se pudo copiar el link.", {
+      type: ok ? "success" : "error"
+    });
   });
 
   document.getElementById("btnDownload")?.addEventListener("click", () => {
+    const { imageUrl } = currentShareMeta();
     if (!imageUrl) {
       showToast("Este producto no tiene imagen.", { type: "warning" });
       return;
     }
     downloadImage(imageUrl, `producto-${p.id}.jpg`);
     showToast("Descarga iniciada.", { type: "info" });
+  });
+
+  btnToggleEditEl?.addEventListener("click", () => {
+    const willOpen = editPanelEl?.classList.contains("hidden");
+    setEditMode(Boolean(willOpen));
+  });
+
+  btnCancelEditEl?.addEventListener("click", () => {
+    setEditMode(false);
+  });
+
+  btnSaveProductEl?.addEventListener("click", async () => {
+    const name = editNameEl?.value?.trim() || "";
+    const price = Number(editPriceEl?.value ?? NaN);
+    const description = editDescriptionEl?.value?.trim() || null;
+    const image_path = editImagePathEl?.value?.trim() || null;
+
+    if (!name) {
+      showToast("El nombre es obligatorio.", { type: "warning" });
+      editNameEl?.focus();
+      return;
+    }
+
+    if (!Number.isFinite(price) || price < 0) {
+      showToast("El precio debe ser un numero mayor o igual a 0.", { type: "warning" });
+      editPriceEl?.focus();
+      return;
+    }
+
+    btnSaveProductEl.disabled = true;
+    btnSaveProductEl.classList.add("opacity-70", "cursor-not-allowed");
+    showToast("Guardando cambios...", { type: "info", duration: 1000 });
+
+    const result = await updateProductById(p.id, {
+      name,
+      price,
+      description,
+      image_path
+    });
+
+    btnSaveProductEl.disabled = false;
+    btnSaveProductEl.classList.remove("opacity-70", "cursor-not-allowed");
+
+    if (!result.ok) {
+      showToast("No se pudieron guardar los cambios.", { type: "error", duration: 2600 });
+      return;
+    }
+
+    p = result.data || { ...p, name, price, description, image_path };
+    renderProduct();
+    setEditMode(false);
+    showToast("Producto actualizado.", { type: "success" });
   });
 }

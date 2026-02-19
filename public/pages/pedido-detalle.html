@@ -25,6 +25,7 @@
     import { getOrderDetail, updateOrderStatus, updatePaymentStatus } from "/js/orders-service.js";
     import { ORDER_STATUS, PAYMENT_STATUS, statusLabel } from "/js/order-status.js";
     import { orderStatusBadgeClass, paymentStatusBadgeClass } from "/js/status-ui.js";
+    import { formatOrderRef } from "/js/order-ref.js";
     import { initAppShell } from "/js/app-shell.js";
     import { showToast } from "/js/toast.js";
 
@@ -58,6 +59,7 @@
 
     const fecha = new Date(o.created_at).toLocaleString("es-AR");
     const total = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(Number(o.total ?? 0));
+    const orderRef = formatOrderRef(o);
 
     const orderStatus = o.order_status ?? "NUEVO";
     const paymentStatus = o.payment_status ?? "PENDIENTE";
@@ -67,7 +69,8 @@
 
     cardEl.classList.remove("hidden");
     cardEl.innerHTML = `
-      <div><span class="text-slate-400">Pedido:</span> <span class="font-semibold">${o.id}</span></div>
+      <div><span class="text-slate-400">Pedido:</span> <span class="font-semibold">${orderRef}</span></div>
+      <div><span class="text-slate-400">UUID:</span> <span class="font-mono text-xs">${o.id}</span></div>
       <div><span class="text-slate-400">Fecha:</span> ${fecha}</div>
 
       <div class="flex gap-2 flex-wrap">

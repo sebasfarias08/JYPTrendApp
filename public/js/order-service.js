@@ -103,5 +103,16 @@ export async function createOrderWithItems(order, cartItems) {
     return { ok: false };
   }
 
-  return { ok: true, order_id };
+  let order_number = null;
+  const { data: numRow, error: numErr } = await supabase
+    .from("orders")
+    .select("order_number")
+    .eq("id", order_id)
+    .maybeSingle();
+
+  if (!numErr) {
+    order_number = numRow?.order_number ?? null;
+  }
+
+  return { ok: true, order_id, order_number };
 }

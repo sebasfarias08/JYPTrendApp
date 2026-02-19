@@ -1,31 +1,63 @@
 /* public/sw.js */
-const APP_VERSION = "v1.0.20"; // subilo cuando publiques cambios importantes
+const APP_VERSION = "v1.0.21";
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 
-// Archivos esenciales (ajustá cuando agregues más)
+// Keep this list in sync with routes/assets required by the mobile shell.
 const PRECACHE_URLS = [
   "/",
   "/index.html",
+  "/manifest.webmanifest",
+
+  "/pages/login.html",
+  "/pages/auth-callback.html",
   "/pages/producto.html",
   "/pages/pedido.html",
-  "/manifest.webmanifest",
-  "/js/app.js",
+  "/pages/pedidos.html",
+  "/pages/pedido-detalle.html",
+
+  "/js/app-shell.js",
+  "/js/auth.js",
+  "/js/cart.js",
+  "/js/catalog-service.js",
+  "/js/image.js",
+  "/js/order-page.js",
+  "/js/order-ref.js",
+  "/js/order-service.js",
+  "/js/orders-service.js",
+  "/js/order-status.js",
+  "/js/product-page.js",
+  "/js/product-service.js",
   "/js/share.js",
+  "/js/status-ui.js",
+  "/js/supabase-client.js",
   "/js/sw-register.js",
+  "/js/toast.js",
+
   "/assets/icons/icon-192.png",
   "/assets/icons/icon-512.png"
 ];
 
-// Instala y precachea
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_STATIC).then((cache) => cache.addAll(PRECACHE_URLS))
+async function precacheStaticAssets() {
+  const cache = await caches.open(CACHE_STATIC);
+  await Promise.all(
+    PRECACHE_URLS.map(async (url) => {
+      try {
+        await cache.add(url);
+      } catch (e) {
+        // Do not fail installation if one optional asset cannot be cached.
+        console.warn("[SW] precache failed:", url, e);
+      }
+    })
   );
-  self.skipWaiting();
+}
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(precacheStaticAssets());
+  // Important: do NOT call skipWaiting here.
+  // We want the update banner in the UI and activate only after user confirmation.
 });
 
-// Activa y limpia caches viejos
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
@@ -38,13 +70,13 @@ self.addEventListener("activate", (event) => {
   })());
 });
 
-// Helpers
-async function cacheFirst(req) {
-  const cache = await caches.open(CACHE_STATIC);
+async function cacheFirst(req, cacheName = CACHE_STATIC) {
+  const cache = await caches.open(cacheName);
   const cached = await cache.match(req);
   if (cached) return cached;
+
   const fresh = await fetch(req);
-  if (fresh.ok) cache.put(req, fresh.clone());
+  if (fresh.ok) await cache.put(req, fresh.clone());
   return fresh;
 }
 
@@ -52,7 +84,7 @@ async function networkFirst(req) {
   const cache = await caches.open(CACHE_RUNTIME);
   try {
     const fresh = await fetch(req, { cache: "no-store" });
-    if (fresh.ok) cache.put(req, fresh.clone());
+    if (fresh.ok) await cache.put(req, fresh.clone());
     return fresh;
   } catch {
     const cached = await cache.match(req);
@@ -61,56 +93,39 @@ async function networkFirst(req) {
   }
 }
 
-// Fetch strategy por tipo
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-
-  // Solo GET
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
-
-  // Solo mismo origen
   if (url.origin !== self.location.origin) return;
+  if (url.pathname === "/sw.js") return;
 
   const accept = req.headers.get("accept") || "";
 
-  // HTML: network-first para que siempre se actualice
   if (accept.includes("text/html")) {
     event.respondWith(networkFirst(req));
     return;
   }
 
-  // JS/CSS/manifest/icons: cache-first
   if (
     url.pathname.endsWith(".js") ||
     url.pathname.endsWith(".css") ||
     url.pathname.endsWith(".webmanifest") ||
     url.pathname.includes("/assets/icons/")
   ) {
-    event.respondWith(cacheFirst(req));
+    event.respondWith(cacheFirst(req, CACHE_STATIC));
     return;
   }
 
-  // Imágenes: cache-first en runtime
   if (accept.includes("image")) {
-    event.respondWith((async () => {
-      const cache = await caches.open(CACHE_RUNTIME);
-      const cached = await cache.match(req);
-      if (cached) return cached;
-
-      const fresh = await fetch(req);
-      if (fresh.ok) cache.put(req, fresh.clone());
-      return fresh;
-    })());
+    event.respondWith(cacheFirst(req, CACHE_RUNTIME));
     return;
   }
 
-  // Default: network-first
   event.respondWith(networkFirst(req));
 });
 
-// Permite forzar activación inmediata desde la UI
 self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();

@@ -3,6 +3,7 @@ import { getCart, updateQty, clearCart, cartTotal } from "./cart.js";
 import { getImageUrl } from "./image.js";
 import { createOrderWithItems } from "./order-service.js";
 import { showToast } from "./toast.js";
+import { formatOrderRef } from "./order-ref.js";
 
 function formatArs(value) {
   const n = Number(value ?? 0);
@@ -163,7 +164,7 @@ export function initOrderPage(session) {
 
     clearCart();
     render();
-    showToast(`Pedido enviado (ID: ${res.order_id})`, { type: "success", duration: 3200 });
+    showToast(`Pedido enviado (${formatOrderRef({ id: res.order_id, order_number: res.order_number })})`, { type: "success", duration: 3200 });
     setSubmitState(false);
   }
 
