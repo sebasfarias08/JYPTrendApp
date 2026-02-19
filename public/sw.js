@@ -1,5 +1,5 @@
 /* public/sw.js */
-const APP_VERSION = "v1.0.21";
+const APP_VERSION = "v1.0.22";
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 
@@ -15,6 +15,7 @@ const PRECACHE_URLS = [
   "/pages/pedido.html",
   "/pages/pedidos.html",
   "/pages/pedido-detalle.html",
+  "/pages/about.html",
 
   "/js/app-shell.js",
   "/js/auth.js",
@@ -100,6 +101,17 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname === "/sw.js") return;
+  if (url.pathname === "/version.json") {
+    event.respondWith((async () => {
+      try {
+        return await fetch(req, { cache: "no-store" });
+      } catch {
+        const fallback = await caches.match("/version.json");
+        return fallback || new Response('{"version":"unknown"}', { headers: { "content-type": "application/json" } });
+      }
+    })());
+    return;
+  }
 
   const accept = req.headers.get("accept") || "";
 
@@ -127,6 +139,10 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("message", (event) => {
+  if (event.data?.type === "GET_VERSION") {
+    event.ports?.[0]?.postMessage({ version: APP_VERSION });
+    return;
+  }
   if (event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
   }

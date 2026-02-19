@@ -13,7 +13,7 @@ const MENU_ITEMS = [
   { label: "Clientes", href: null, icon: "users" },
   { label: "Parametros", href: null, icon: "settings" },
   { label: "Inventario", href: null, icon: "inventory" },
-  { label: "About", href: null, icon: "info" },
+  { label: "About", href: "/pages/about.html", icon: "info" },
   { label: "Salir", href: null, icon: "logout", action: "logout" }
 ];
 
