@@ -2,6 +2,7 @@
 import { getCart, updateQty, clearCart, cartTotal } from "./cart.js";
 import { getImageUrl } from "./image.js";
 import { createOrderWithItems } from "./order-service.js";
+import { getActiveCustomers, getCustomerById } from "./customers-service.js";
 import { showToast } from "./toast.js";
 import { formatOrderRef } from "./order-ref.js";
 
@@ -98,22 +99,86 @@ export function initOrderPage(session) {
 
   const btnSubmit = document.getElementById("btnSubmit");
   const btnSubmitSticky = document.getElementById("btnSubmitSticky");
-  const customerNameEl = document.getElementById("customerName");
-  const customerPhoneEl = document.getElementById("customerPhone");
-  const notesEl = document.getElementById("notes");
+  const customerSelectEl = document.getElementById("customerSelect");
+  const customerHelpEl = document.getElementById("customerHelp");
+  const btnNewCustomerEl = document.getElementById("btnNewCustomer");
 
   let submitting = false;
+  let customers = [];
+
+  const NEW_CUSTOMER_VALUE = "__new_customer__";
+
+  function openNewCustomerFlow() {
+    const returnTo = "/pages/pedido.html";
+    location.href = `/pages/clientes.html?mode=new&returnTo=${encodeURIComponent(returnTo)}`;
+  }
+
+  function setSubmitAvailability() {
+    const hasSelectedCustomer =
+      customerSelectEl &&
+      customerSelectEl.value &&
+      customerSelectEl.value !== NEW_CUSTOMER_VALUE;
+
+    if (btnSubmitSticky) btnSubmitSticky.disabled = !hasSelectedCustomer;
+    if (btnSubmit) btnSubmit.disabled = !hasSelectedCustomer;
+  }
+
+  async function loadCustomers() {
+    if (!customerSelectEl) return;
+
+    customerSelectEl.innerHTML = `<option value="">Cargando clientes...</option>`;
+    customers = await getActiveCustomers();
+
+    const requestedCustomerId = new URLSearchParams(location.search).get("customer_id");
+    if (requestedCustomerId && !customers.some((x) => x.id === requestedCustomerId)) {
+      const fetched = await getCustomerById(requestedCustomerId);
+      if (fetched?.is_active) {
+        customers = [fetched, ...customers];
+      }
+    }
+
+    if (!customers.length) {
+      customerSelectEl.innerHTML = `
+        <option value="">No hay clientes disponibles</option>
+        <option value="${NEW_CUSTOMER_VALUE}">+ Cliente nuevo</option>
+      `;
+      if (customerHelpEl) {
+        customerHelpEl.textContent = "No hay clientes creados. Crea uno para continuar.";
+      }
+      setSubmitAvailability();
+      return;
+    }
+
+    customerSelectEl.innerHTML = [
+      `<option value="">Seleccionar cliente</option>`,
+      ...customers.map((c) => {
+        const phone = c.phone ? ` - ${c.phone}` : "";
+        return `<option value="${c.id}">${escapeHtml(c.full_name)}${escapeHtml(phone)}</option>`;
+      }),
+      `<option value="${NEW_CUSTOMER_VALUE}">+ Cliente nuevo</option>`
+    ].join("");
+
+    if (requestedCustomerId && customers.some((x) => x.id === requestedCustomerId)) {
+      customerSelectEl.value = requestedCustomerId;
+      const cleanUrl = `${location.pathname}`;
+      history.replaceState({}, "", cleanUrl);
+      showToast("Cliente seleccionado para el pedido.", { type: "success", duration: 1600 });
+    }
+
+    setSubmitAvailability();
+  }
 
   function setSubmitState(isBusy) {
     submitting = isBusy;
 
     const buttons = [btnSubmit, btnSubmitSticky].filter(Boolean);
     for (const btn of buttons) {
-      btn.disabled = isBusy;
+      if (isBusy) btn.disabled = true;
       btn.classList.toggle("opacity-60", isBusy);
       btn.classList.toggle("cursor-not-allowed", isBusy);
       btn.textContent = isBusy ? "Enviando..." : "Confirmar pedido";
     }
+    if (!isBusy) setSubmitAvailability();
   }
 
   async function submitOrder() {
@@ -125,13 +190,21 @@ export function initOrderPage(session) {
       return;
     }
 
-    const customer_name = customerNameEl.value?.trim() || null;
-    const customer_phone = customerPhoneEl.value?.trim() || null;
-    const notes = notesEl.value?.trim() || null;
+    const selectedCustomerId = customerSelectEl?.value || "";
+    if (!selectedCustomerId || selectedCustomerId === NEW_CUSTOMER_VALUE) {
+      showToast("Selecciona un cliente para continuar.", { type: "warning" });
+      customerSelectEl?.focus();
+      return;
+    }
 
-    if (!customer_name) {
-      showToast("Ingresa el nombre del cliente para continuar.", { type: "warning" });
-      customerNameEl.focus();
+    let selectedCustomer = customers.find((x) => x.id === selectedCustomerId) ?? null;
+    if (!selectedCustomer) {
+      selectedCustomer = await getCustomerById(selectedCustomerId);
+    }
+    if (!selectedCustomer || !selectedCustomer.is_active) {
+      showToast("El cliente seleccionado no esta disponible.", { type: "warning" });
+      await loadCustomers();
+      customerSelectEl?.focus();
       return;
     }
 
@@ -140,11 +213,12 @@ export function initOrderPage(session) {
 
     const order = {
       user_id: session.user.id,
+      customer_id: selectedCustomer.id,
       order_status: "NUEVO",
       payment_status: "PENDIENTE",
-      customer_name,
-      customer_phone,
-      notes,
+      customer_name: selectedCustomer.full_name,
+      customer_phone: selectedCustomer.phone || null,
+      notes: null,
       total: cartTotal()
     };
 
@@ -170,6 +244,15 @@ export function initOrderPage(session) {
 
   btnSubmit?.addEventListener("click", submitOrder);
   btnSubmitSticky?.addEventListener("click", submitOrder);
+  btnNewCustomerEl?.addEventListener("click", openNewCustomerFlow);
+  customerSelectEl?.addEventListener("change", () => {
+    if (customerSelectEl.value === NEW_CUSTOMER_VALUE) {
+      openNewCustomerFlow();
+      return;
+    }
+    setSubmitAvailability();
+  });
 
   window.addEventListener("cart:changed", () => render());
+  loadCustomers();
 }

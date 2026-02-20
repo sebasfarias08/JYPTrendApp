@@ -41,6 +41,11 @@ export async function createOrderWithItems(order, cartItems) {
   // 1) Insert order (with compatibility fallback for different DB checks)
   let { data: orderRow, error: orderErr } = await insertOrder(order);
 
+  if (orderErr?.code === "42703" && String(orderErr?.message ?? "").includes("customer_id")) {
+    const { customer_id, ...legacyOrder } = order;
+    ({ data: orderRow, error: orderErr } = await insertOrder(legacyOrder));
+  }
+
   if (orderErr && isConstraintError(orderErr, "orders_order_status_check")) {
     const legacyOrder = {
       ...order,

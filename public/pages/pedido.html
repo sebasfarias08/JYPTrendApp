@@ -25,14 +25,16 @@
     <section class="card p-4 space-y-3">
       <h2 class="text-sm font-semibold">Datos del cliente</h2>
       <div class="grid gap-2">
-        <label class="text-xs text-muted" for="customerName">Nombre (obligatorio)</label>
-        <input id="customerName" required class="input" placeholder="Ej: Juan Perez" />
-
-        <label class="text-xs text-muted" for="customerPhone">Telefono (opcional)</label>
-        <input id="customerPhone" type="tel" class="input" placeholder="Ej: 11 5555-5555" />
-
-        <label class="text-xs text-muted" for="notes">Notas (opcional)</label>
-        <textarea id="notes" class="input" placeholder="Entrega, forma de pago, comentario..."></textarea>
+        <label class="text-xs text-muted" for="customerSelect">Cliente (obligatorio)</label>
+        <select id="customerSelect" class="input" required>
+          <option value="">Cargando clientes...</option>
+        </select>
+        <p id="customerHelp" class="text-xs text-muted">
+          Selecciona un cliente existente para confirmar el pedido.
+        </p>
+        <button id="btnNewCustomer" type="button" class="btn btn-secondary">
+          Cliente nuevo
+        </button>
       </div>
     </section>
   </main>
