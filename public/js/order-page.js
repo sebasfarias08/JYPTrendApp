@@ -118,9 +118,22 @@ export function initOrderPage(session) {
       customerSelectEl &&
       customerSelectEl.value &&
       customerSelectEl.value !== NEW_CUSTOMER_VALUE;
+    const hasItems = getCart().some((it) => Number(it.qty || 0) > 0);
+    const canSubmit = Boolean(hasSelectedCustomer && hasItems);
+
+    const buttons = [btnSubmit, btnSubmitSticky].filter(Boolean);
+    for (const btn of buttons) {
+      if (!submitting) {
+        btn.disabled = !canSubmit;
+        btn.classList.toggle("opacity-60", !canSubmit);
+        btn.classList.toggle("cursor-not-allowed", !canSubmit);
+      }
+    }
 
     if (customerHelpEl) {
-      customerHelpEl.textContent = hasSelectedCustomer
+      customerHelpEl.textContent = !hasItems
+        ? "Agrega al menos 1 producto para confirmar el pedido."
+        : hasSelectedCustomer
         ? "Cliente seleccionado. Ya puedes confirmar el pedido."
         : "Selecciona un cliente para confirmar el pedido.";
     }
