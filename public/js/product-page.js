@@ -40,8 +40,10 @@ export async function initProductPage() {
     return;
   }
 
-  const editPanelEl = document.getElementById("editPanel");
-  const btnToggleEditEl = document.getElementById("btnToggleEdit");
+  const editModalEl = document.getElementById("productEditModal");
+  const editModalDialogEl = document.getElementById("productEditModalDialog");
+  const btnEditProductEl = document.getElementById("btnEditProduct");
+  const btnCloseEditModalEl = document.getElementById("btnCloseEditModal");
   const btnSaveProductEl = document.getElementById("btnSaveProduct");
   const btnCancelEditEl = document.getElementById("btnCancelEdit");
   const editNameEl = document.getElementById("editName");
@@ -72,15 +74,19 @@ export async function initProductPage() {
     setSrc("img", imageUrl, p.name);
   }
 
-  function setEditMode(enabled) {
-    if (!editPanelEl || !btnToggleEditEl) return;
-    editPanelEl.classList.toggle("hidden", !enabled);
-    btnToggleEditEl.textContent = enabled ? "Ocultar edicion" : "Editar producto";
-    if (enabled) fillEditForm();
+  function openEditModal() {
+    if (!editModalEl) return;
+    fillEditForm();
+    editModalEl.classList.remove("hidden");
+    editNameEl?.focus();
+  }
+
+  function closeEditModal() {
+    editModalEl?.classList.add("hidden");
   }
 
   renderProduct();
-  setEditMode(false);
+  closeEditModal();
 
   document.getElementById("btnAddCart")?.addEventListener("click", () => {
     addToCart(
@@ -126,13 +132,24 @@ export async function initProductPage() {
     showToast("Descarga iniciada.", { type: "info" });
   });
 
-  btnToggleEditEl?.addEventListener("click", () => {
-    const willOpen = editPanelEl?.classList.contains("hidden");
-    setEditMode(Boolean(willOpen));
-  });
+  btnEditProductEl?.addEventListener("click", openEditModal);
 
   btnCancelEditEl?.addEventListener("click", () => {
-    setEditMode(false);
+    closeEditModal();
+  });
+
+  btnCloseEditModalEl?.addEventListener("click", closeEditModal);
+
+  editModalEl?.addEventListener("click", (event) => {
+    if (event.target === editModalEl) closeEditModal();
+  });
+
+  editModalDialogEl?.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeEditModal();
   });
 
   btnSaveProductEl?.addEventListener("click", async () => {
@@ -174,7 +191,7 @@ export async function initProductPage() {
 
     p = result.data || { ...p, name, price, description, image_path };
     renderProduct();
-    setEditMode(false);
+    closeEditModal();
     showToast("Producto actualizado.", { type: "success" });
   });
 }
