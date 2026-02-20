@@ -11,6 +11,7 @@ const MENU_ITEMS = [
   { label: "Catalogo", href: "/index.html", icon: "list" },
   { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history" },
   { label: "Clientes", href: "/pages/clientes.html", icon: "users" },
+  { label: "Productos", href: "/pages/productos.html", icon: "inventory" },
   { label: "Parametros", href: null, icon: "settings" },
   { label: "Inventario", href: null, icon: "inventory" },
   { label: "About", href: "/pages/about.html", icon: "info" },
@@ -154,7 +155,7 @@ function createMenuDrawer() {
 
   const list = panel.querySelector("#appShellMenuList");
   MENU_ITEMS.forEach((item, index) => {
-    if (index === 2 || index === 5) {
+    if (index === 2 || index === 6) {
       const divider = document.createElement("div");
       divider.className = "my-2 border-t divider";
       list.appendChild(divider);
