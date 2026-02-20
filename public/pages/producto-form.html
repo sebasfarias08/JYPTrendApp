@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F8FA" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <title>Formulario producto</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/theme.css" />
+</head>
+<body class="h-screen overflow-hidden flex flex-col">
+  <header id="appShellTop"></header>
+
+  <main class="flex-1 overflow-y-auto p-4 pb-24">
+    <section class="card p-4 space-y-3">
+      <h2 id="productFormTitle" class="text-sm font-semibold">Nuevo producto</h2>
+      <form id="productForm" class="space-y-3">
+        <div>
+          <label class="text-xs text-muted block mb-1" for="productName">Nombre *</label>
+          <input id="productName" class="input" required />
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="productPrice">Precio *</label>
+          <input id="productPrice" type="number" min="0" step="1" class="input" required />
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="productCategory">Categoria</label>
+          <select id="productCategory" class="input"></select>
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="productImagePath">Ruta imagen</label>
+          <input id="productImagePath" class="input" placeholder="products/imagen.jpg" />
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="productDescription">Descripcion</label>
+          <textarea id="productDescription" class="input" placeholder="Descripcion corta del producto"></textarea>
+        </div>
+
+        <div class="flex gap-2">
+          <button id="btnSaveProduct" type="submit" class="btn btn-primary flex-1">Guardar</button>
+          <button id="btnCancelProduct" type="button" class="btn btn-secondary">Cancelar</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <nav id="appShellBottom"></nav>
+
+  <script type="module">
+    import { requireAuth } from "/js/auth.js";
+    import { initAppShell } from "/js/app-shell.js";
+    import { initProductFormPage } from "/js/product-form-page.js";
+
+    const session = await requireAuth();
+    if (!session) throw new Error("Redirect login");
+
+    initAppShell({
+      title: "Producto",
+      onRefresh: async () => location.reload()
+    });
+
+    initProductFormPage();
+  </script>
+</body>
+</html>

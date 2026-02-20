@@ -110,7 +110,7 @@ export function initOrderPage(session) {
 
   function openNewCustomerFlow() {
     const returnTo = "/pages/pedido.html";
-    location.href = `/pages/clientes.html?mode=new&returnTo=${encodeURIComponent(returnTo)}`;
+    location.href = `/pages/cliente-form.html?mode=new&returnTo=${encodeURIComponent(returnTo)}`;
   }
 
   function setSubmitAvailability() {

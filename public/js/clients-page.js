@@ -1,24 +1,9 @@
 import {
-  createCustomer,
   deactivateCustomer,
   getCustomers,
-  reactivateCustomer,
-  updateCustomer
+  reactivateCustomer
 } from "./customers-service.js";
 import { showToast } from "./toast.js";
-
-const EMPTY_FORM = {
-  full_name: "",
-  phone: "",
-  email: "",
-  notes: ""
-};
-
-function toSafeReturnPath(value) {
-  const raw = String(value || "").trim();
-  if (!raw.startsWith("/")) return null;
-  return raw;
-}
 
 function escapeHtml(str) {
   return String(str ?? "")
@@ -29,13 +14,13 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-function summarizeError(err) {
-  const msg = String(err?.message || err?.details || err || "").trim();
-  if (!msg) return "No se pudo completar la operacion.";
-  if (msg.includes("customers_user_full_name_uidx")) return "Ya existe un cliente activo con ese nombre.";
-  if (msg.includes("customers_full_name_len_chk")) return "El nombre debe tener al menos 2 caracteres.";
-  if (msg.includes("customers_email_format_chk")) return "El email tiene un formato invalido.";
-  return msg;
+function buildFormUrl({ id = "", mode = "", returnTo = "" } = {}) {
+  const params = new URLSearchParams();
+  if (id) params.set("id", id);
+  if (mode) params.set("mode", mode);
+  if (returnTo) params.set("returnTo", returnTo);
+  const qs = params.toString();
+  return `/pages/cliente-form.html${qs ? `?${qs}` : ""}`;
 }
 
 export function initClientsPage() {
@@ -46,53 +31,16 @@ export function initClientsPage() {
   const showInactiveEl = document.getElementById("showInactive");
   const btnNewClientEl = document.getElementById("btnNewClient");
 
-  const panelEl = document.getElementById("clientFormPanel");
-  const formTitleEl = document.getElementById("clientFormTitle");
-  const formEl = document.getElementById("clientForm");
-  const nameEl = document.getElementById("clientName");
-  const phoneEl = document.getElementById("clientPhone");
-  const emailEl = document.getElementById("clientEmail");
-  const notesEl = document.getElementById("clientNotes");
-  const btnSaveEl = document.getElementById("btnSaveClient");
-  const btnCancelEl = document.getElementById("btnCancelClient");
-
   const params = new URLSearchParams(location.search);
   const mode = params.get("mode");
-  const returnTo = toSafeReturnPath(params.get("returnTo"));
+  const returnTo = params.get("returnTo");
+
+  if (mode === "new") {
+    location.replace(buildFormUrl({ mode: "new", returnTo: returnTo || "" }));
+    return;
+  }
 
   let rows = [];
-  let editingId = null;
-  let saving = false;
-
-  function setFormValues(data = EMPTY_FORM) {
-    nameEl.value = data.full_name || "";
-    phoneEl.value = data.phone || "";
-    emailEl.value = data.email || "";
-    notesEl.value = data.notes || "";
-  }
-
-  function readFormValues() {
-    return {
-      full_name: nameEl.value.trim(),
-      phone: phoneEl.value.trim(),
-      email: emailEl.value.trim(),
-      notes: notesEl.value.trim()
-    };
-  }
-
-  function openForm(customer = null) {
-    editingId = customer?.id ?? null;
-    formTitleEl.textContent = editingId ? "Editar cliente" : "Nuevo cliente";
-    setFormValues(customer ?? EMPTY_FORM);
-    panelEl.classList.remove("hidden");
-    nameEl.focus();
-  }
-
-  function closeForm() {
-    editingId = null;
-    setFormValues(EMPTY_FORM);
-    panelEl.classList.add("hidden");
-  }
 
   function renderList() {
     const q = (searchEl.value || "").trim().toLowerCase();
@@ -131,7 +79,7 @@ export function initClientsPage() {
             </div>
           </div>
           <div class="flex flex-col gap-2 shrink-0">
-            <button class="btn btn-secondary text-sm" data-edit-id="${c.id}">Editar</button>
+            <a class="btn btn-secondary text-sm" href="${buildFormUrl({ id: c.id })}">Editar</a>
             <button class="btn ${c.is_active ? "btn-secondary" : "btn-primary"} text-sm" data-toggle-id="${c.id}">
               ${c.is_active ? "Dar de baja" : "Reactivar"}
             </button>
@@ -139,15 +87,6 @@ export function initClientsPage() {
         </div>
       </article>
     `).join("");
-
-    listEl.querySelectorAll("[data-edit-id]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-edit-id");
-        const row = rows.find((x) => x.id === id);
-        if (!row) return;
-        openForm(row);
-      });
-    });
 
     listEl.querySelectorAll("[data-toggle-id]").forEach((btn) => {
       btn.addEventListener("click", async () => {
@@ -160,14 +99,14 @@ export function initClientsPage() {
           if (!ok) return;
           const res = await deactivateCustomer(id);
           if (!res.ok) {
-            showToast(summarizeError(res.error), { type: "error", duration: 2800 });
+            showToast("No se pudo dar de baja el cliente.", { type: "error", duration: 2800 });
             return;
           }
           showToast("Cliente dado de baja.", { type: "success" });
         } else {
           const res = await reactivateCustomer(id);
           if (!res.ok) {
-            showToast(summarizeError(res.error), { type: "error", duration: 2800 });
+            showToast("No se pudo reactivar el cliente.", { type: "error", duration: 2800 });
             return;
           }
           showToast("Cliente reactivado.", { type: "success" });
@@ -183,57 +122,11 @@ export function initClientsPage() {
     renderList();
   }
 
-  async function submitForm(event) {
-    event.preventDefault();
-    if (saving) return;
-
-    const body = readFormValues();
-    if (!body.full_name) {
-      showToast("El nombre del cliente es obligatorio.", { type: "warning" });
-      nameEl.focus();
-      return;
-    }
-
-    saving = true;
-    btnSaveEl.disabled = true;
-    btnSaveEl.classList.add("opacity-70", "cursor-not-allowed");
-
-    const creatingNew = !editingId;
-    let res = null;
-    if (editingId) {
-      res = await updateCustomer(editingId, body);
-    } else {
-      res = await createCustomer(body);
-    }
-
-    saving = false;
-    btnSaveEl.disabled = false;
-    btnSaveEl.classList.remove("opacity-70", "cursor-not-allowed");
-
-    if (!res?.ok) {
-      showToast(summarizeError(res?.error), { type: "error", duration: 3000 });
-      return;
-    }
-
-    showToast(editingId ? "Cliente actualizado." : "Cliente creado.", { type: "success" });
-    closeForm();
-    await loadRows();
-
-    if (creatingNew && returnTo) {
-      const sep = returnTo.includes("?") ? "&" : "?";
-      location.href = `${returnTo}${sep}customer_id=${encodeURIComponent(res.data.id)}`;
-    }
-  }
-
-  btnNewClientEl.addEventListener("click", () => openForm());
-  btnCancelEl.addEventListener("click", () => closeForm());
-  formEl.addEventListener("submit", submitForm);
+  btnNewClientEl.addEventListener("click", () => {
+    location.href = buildFormUrl({ mode: "new" });
+  });
   searchEl.addEventListener("input", renderList);
   showInactiveEl.addEventListener("change", renderList);
 
   loadRows();
-
-  if (mode === "new") {
-    openForm();
-  }
 }

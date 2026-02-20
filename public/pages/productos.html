@@ -28,41 +28,6 @@
       <div id="productsCount" class="text-sm text-muted">0 producto(s)</div>
     </section>
 
-    <section id="productFormPanel" class="card p-4 space-y-3 hidden">
-      <h2 id="productFormTitle" class="text-sm font-semibold">Nuevo producto</h2>
-      <form id="productForm" class="space-y-3">
-        <div>
-          <label class="text-xs text-muted block mb-1" for="productName">Nombre *</label>
-          <input id="productName" class="input" required />
-        </div>
-
-        <div>
-          <label class="text-xs text-muted block mb-1" for="productPrice">Precio *</label>
-          <input id="productPrice" type="number" min="0" step="1" class="input" required />
-        </div>
-
-        <div>
-          <label class="text-xs text-muted block mb-1" for="productCategory">Categoria</label>
-          <select id="productCategory" class="input"></select>
-        </div>
-
-        <div>
-          <label class="text-xs text-muted block mb-1" for="productImagePath">Ruta imagen</label>
-          <input id="productImagePath" class="input" placeholder="products/imagen.jpg" />
-        </div>
-
-        <div>
-          <label class="text-xs text-muted block mb-1" for="productDescription">Descripcion</label>
-          <textarea id="productDescription" class="input" placeholder="Descripcion corta del producto"></textarea>
-        </div>
-
-        <div class="flex gap-2">
-          <button id="btnSaveProduct" type="submit" class="btn btn-primary flex-1">Guardar</button>
-          <button id="btnCancelProduct" type="button" class="btn btn-secondary">Cancelar</button>
-        </div>
-      </form>
-    </section>
-
     <section class="space-y-3">
       <div id="productsEmpty" class="card p-4 text-sm text-muted">
         No hay productos cargados todavia.
