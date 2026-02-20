@@ -99,6 +99,7 @@ export function initOrderPage(session) {
 
   const btnSubmit = document.getElementById("btnSubmit");
   const btnSubmitSticky = document.getElementById("btnSubmitSticky");
+  const customerSearchEl = document.getElementById("customerSearch");
   const customerSelectEl = document.getElementById("customerSelect");
   const customerHelpEl = document.getElementById("customerHelp");
 
@@ -138,6 +139,43 @@ export function initOrderPage(session) {
     }
   }
 
+  function renderCustomerOptions(query = "") {
+    if (!customerSelectEl) return;
+
+    const q = String(query || "").trim().toLowerCase();
+    const selectedBefore = customerSelectEl.value || "";
+    const filtered = q
+      ? customers.filter((c) => (
+        String(c.full_name || "").toLowerCase().includes(q) ||
+        String(c.phone || "").toLowerCase().includes(q)
+      ))
+      : customers;
+
+    customerSelectEl.innerHTML = [
+      `<option value="">Seleccionar cliente</option>`,
+      ...filtered.map((c) => {
+        const phone = c.phone ? ` - ${c.phone}` : "";
+        return `<option value="${c.id}">${escapeHtml(c.full_name)}${escapeHtml(phone)}</option>`;
+      }),
+      `<option value="${NEW_CUSTOMER_VALUE}">+ Cliente nuevo</option>`
+    ].join("");
+
+    if (!filtered.length && q) {
+      customerSelectEl.insertAdjacentHTML(
+        "afterbegin",
+        `<option value="" disabled>Sin coincidencias para "${escapeHtml(query)}"</option>`
+      );
+    }
+
+    if (selectedBefore && selectedBefore !== NEW_CUSTOMER_VALUE && filtered.some((c) => c.id === selectedBefore)) {
+      customerSelectEl.value = selectedBefore;
+    } else if (selectedBefore === NEW_CUSTOMER_VALUE) {
+      customerSelectEl.value = NEW_CUSTOMER_VALUE;
+    }
+
+    setSubmitAvailability();
+  }
+
   async function loadCustomers() {
     if (!customerSelectEl) return;
 
@@ -164,14 +202,11 @@ export function initOrderPage(session) {
       return;
     }
 
-    customerSelectEl.innerHTML = [
-      `<option value="">Seleccionar cliente</option>`,
-      ...customers.map((c) => {
-        const phone = c.phone ? ` - ${c.phone}` : "";
-        return `<option value="${c.id}">${escapeHtml(c.full_name)}${escapeHtml(phone)}</option>`;
-      }),
-      `<option value="${NEW_CUSTOMER_VALUE}">+ Cliente nuevo</option>`
-    ].join("");
+    if (requestedCustomerId && customerSearchEl) {
+      customerSearchEl.value = "";
+    }
+
+    renderCustomerOptions(customerSearchEl?.value || "");
 
     if (requestedCustomerId && customers.some((x) => x.id === requestedCustomerId)) {
       customerSelectEl.value = requestedCustomerId;
@@ -266,7 +301,13 @@ export function initOrderPage(session) {
     }
     setSubmitAvailability();
   });
+  customerSearchEl?.addEventListener("input", () => {
+    renderCustomerOptions(customerSearchEl.value);
+  });
 
-  window.addEventListener("cart:changed", () => render());
+  window.addEventListener("cart:changed", () => {
+    render();
+    setSubmitAvailability();
+  });
   loadCustomers();
 }
