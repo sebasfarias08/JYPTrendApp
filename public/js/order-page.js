@@ -101,7 +101,6 @@ export function initOrderPage(session) {
   const btnSubmitSticky = document.getElementById("btnSubmitSticky");
   const customerSelectEl = document.getElementById("customerSelect");
   const customerHelpEl = document.getElementById("customerHelp");
-  const btnNewCustomerEl = document.getElementById("btnNewCustomer");
 
   let submitting = false;
   let customers = [];
@@ -260,7 +259,6 @@ export function initOrderPage(session) {
 
   btnSubmit?.addEventListener("click", submitOrder);
   btnSubmitSticky?.addEventListener("click", submitOrder);
-  btnNewCustomerEl?.addEventListener("click", openNewCustomerFlow);
   customerSelectEl?.addEventListener("change", () => {
     if (customerSelectEl.value === NEW_CUSTOMER_VALUE) {
       openNewCustomerFlow();
