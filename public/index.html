@@ -58,6 +58,9 @@
     let selectedTab = "perfumes";
     let pendingReg = null;
     const tabFromUrl = new URLSearchParams(location.search).get("tab");
+    if (!tabFromUrl) {
+      location.replace("/pages/seguimiento.html");
+    }
     if (tabFromUrl && TABS[tabFromUrl]) {
       selectedTab = tabFromUrl;
     }
@@ -221,7 +224,7 @@
         event.preventDefault();
         const value = btn.getAttribute("data-shell-tab") || "";
         if (value === "home") {
-          location.href = "/index.html";
+          location.href = "/pages/seguimiento.html";
           return;
         }
         selectedTab = value;

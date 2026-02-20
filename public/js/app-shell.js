@@ -1,6 +1,6 @@
 // public/js/app-shell.js
 const TAB_LINKS = {
-  home: "/index.html",
+  home: "/pages/seguimiento.html",
   botellas: "/index.html?tab=botellas",
   perfumes: "/index.html?tab=perfumes",
   importados: "/index.html?tab=importados",
@@ -8,7 +8,8 @@ const TAB_LINKS = {
 };
 
 const MENU_ITEMS = [
-  { label: "Catalogo", href: "/index.html", icon: "list" },
+  { label: "Seguimiento", href: "/pages/seguimiento.html", icon: "home" },
+  { label: "Catalogo", href: "/index.html?tab=perfumes", icon: "list" },
   { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history" },
   { label: "Clientes", href: "/pages/clientes.html", icon: "users" },
   { label: "Productos", href: "/pages/productos.html", icon: "inventory" },
@@ -20,6 +21,7 @@ const MENU_ITEMS = [
 
 function iconSvg(name) {
   const icons = {
+    home: '<path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path>',
     list: '<path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><circle cx="3" cy="6" r="1"></circle><circle cx="3" cy="12" r="1"></circle><circle cx="3" cy="18" r="1"></circle>',
     history: '<path d="M3 3v5h5"></path><path d="M3.5 8a9 9 0 1 0 2.4-3.4"></path><path d="M12 7v5l3 2"></path>',
     users: '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M20 8v6"></path><path d="M23 11h-6"></path>',
@@ -155,7 +157,7 @@ function createMenuDrawer() {
 
   const list = panel.querySelector("#appShellMenuList");
   MENU_ITEMS.forEach((item, index) => {
-    if (index === 2 || index === 6) {
+    if (index === 3 || index === 7) {
       const divider = document.createElement("div");
       divider.className = "my-2 border-t divider";
       list.appendChild(divider);
