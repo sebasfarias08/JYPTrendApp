@@ -126,6 +126,18 @@ body {
   color: var(--primary-hover);
 }
 
+.shell-home-tab {
+  transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.shell-home-tab.chip-active {
+  background: var(--primary);
+  border-color: var(--primary-hover);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
 .alert {
   border: 1px solid var(--border);
   border-radius: var(--radius);

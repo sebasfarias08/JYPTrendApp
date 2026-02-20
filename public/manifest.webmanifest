@@ -2,7 +2,7 @@
   "name": "JyP Ventas",
   "short_name": "JyP",
   "description": "App de ventas JyP",
-  "start_url": "/pages/seguimiento.html",
+  "start_url": "/pages/home.html",
   "scope": "/",
   "display": "standalone",
   "background_color": "#F7F8FA",

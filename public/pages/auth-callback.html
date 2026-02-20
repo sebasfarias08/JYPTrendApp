@@ -29,7 +29,7 @@
     });
 
     const next = new URLSearchParams(location.search).get("next");
-    const fallbackTarget = "/pages/seguimiento.html";
+    const fallbackTarget = "/pages/home.html";
     const target = next ? decodeURIComponent(next) : fallbackTarget;
 
     const { data } = await supabase.auth.getSession();

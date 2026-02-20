@@ -1,6 +1,6 @@
 // public/js/app-shell.js
 const TAB_LINKS = {
-  home: "/pages/seguimiento.html",
+  home: "/pages/home.html",
   botellas: "/index.html?tab=botellas",
   perfumes: "/index.html?tab=perfumes",
   importados: "/index.html?tab=importados",
@@ -8,7 +8,7 @@ const TAB_LINKS = {
 };
 
 const MENU_ITEMS = [
-  { label: "Seguimiento", href: "/pages/seguimiento.html", icon: "home" },
+  { label: "Home", href: "/pages/home.html", icon: "home" },
   { label: "Catalogo", href: "/index.html?tab=perfumes", icon: "list" },
   { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history" },
   { label: "Clientes", href: "/pages/clientes.html", icon: "users" },
@@ -113,12 +113,18 @@ function renderShell({ title }) {
 
   bottom.className = "fixed bottom-0 left-0 right-0 z-30 border-t divider bg-surface backdrop-blur";
   bottom.innerHTML = `
-    <div class="grid grid-cols-5 gap-1 p-1">
-      <a data-shell-tab="botellas" class="chip py-2 text-[11px] flex flex-col items-center gap-1"><span>Botellas</span></a>
-      <a data-shell-tab="perfumes" class="chip chip-active py-2 text-[11px] flex flex-col items-center gap-1"><span>Perfumes</span></a>
-      <a data-shell-tab="importados" class="chip py-2 text-[11px] flex flex-col items-center gap-1"><span>Importados</span></a>
-      <a data-shell-tab="outlet" class="chip py-2 text-[11px] flex flex-col items-center gap-1"><span>Outlet</span></a>
-      <a data-shell-tab="home" class="chip py-2 text-[11px] flex flex-col items-center gap-1"><span>Home</span></a>
+    <div class="grid grid-cols-5 gap-1 px-1 pt-2 pb-3">
+      <a data-shell-tab="botellas" class="chip py-2.5 text-[11px] flex flex-col items-center gap-1"><span>Botellas</span></a>
+      <a data-shell-tab="perfumes" class="chip chip-active py-2.5 text-[11px] flex flex-col items-center gap-1"><span>Perfumes</span></a>
+      <a data-shell-tab="home" class="chip shell-home-tab p-0 w-11 h-11 mx-auto -mt-4 rounded-full flex items-center justify-center" aria-label="Home">
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M3 11l9-7 9 7"></path>
+          <path d="M5 10v10h14V10"></path>
+          <path d="M9 20v-6h6v6"></path>
+        </svg>
+      </a>
+      <a data-shell-tab="importados" class="chip py-2.5 text-[11px] flex flex-col items-center gap-1"><span>Importados</span></a>
+      <a data-shell-tab="outlet" class="chip py-2.5 text-[11px] flex flex-col items-center gap-1"><span>Outlet</span></a>
     </div>
   `;
 }

@@ -59,7 +59,7 @@
     let pendingReg = null;
     const tabFromUrl = new URLSearchParams(location.search).get("tab");
     if (!tabFromUrl) {
-      location.replace("/pages/seguimiento.html");
+      location.replace("/pages/home.html");
     }
     if (tabFromUrl && TABS[tabFromUrl]) {
       selectedTab = tabFromUrl;
@@ -224,7 +224,7 @@
         event.preventDefault();
         const value = btn.getAttribute("data-shell-tab") || "";
         if (value === "home") {
-          location.href = "/pages/seguimiento.html";
+          location.href = "/pages/home.html";
           return;
         }
         selectedTab = value;
