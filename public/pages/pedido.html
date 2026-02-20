@@ -25,14 +25,18 @@
     <section class="card p-4 space-y-3">
       <h2 class="text-sm font-semibold">Datos del cliente</h2>
       <div class="grid gap-2">
-        <label class="text-xs text-muted" for="customerSelect">Cliente (obligatorio)</label>
-        <input id="customerSearch" class="input" placeholder="Buscar cliente..." />
-        <select id="customerSelect" class="input" required>
-          <option value="">Cargando clientes...</option>
-        </select>
-        <p id="customerHelp" class="text-xs text-muted">
-          Selecciona un cliente existente para confirmar el pedido.
-        </p>
+        <label class="text-xs text-muted" for="customerSelectTrigger">Cliente (obligatorio)</label>
+        <div id="customerSelect" class="relative">
+          <button id="customerSelectTrigger" type="button" class="input text-left flex items-center justify-between">
+            <span id="customerSelectLabel">Seleccionar cliente</span>
+            <span class="text-muted">▾</span>
+          </button>
+
+          <div id="customerSelectPanel" class="hidden absolute left-0 right-0 mt-1 z-20 card p-2">
+            <input id="customerSearch" class="input mb-2" placeholder="Buscar cliente..." />
+            <div id="customerOptions" class="max-h-56 overflow-y-auto space-y-1"></div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
