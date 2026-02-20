@@ -10,7 +10,7 @@ const TAB_LINKS = {
 const MENU_ITEMS = [
   { label: "Catalogo", href: "/index.html", icon: "list" },
   { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history" },
-  { label: "Clientes", href: null, icon: "users" },
+  { label: "Clientes", href: "/pages/clientes.html", icon: "users" },
   { label: "Parametros", href: null, icon: "settings" },
   { label: "Inventario", href: null, icon: "inventory" },
   { label: "About", href: "/pages/about.html", icon: "info" },
