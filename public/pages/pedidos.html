@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#F7F8FA" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <title>Mis pedidos</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/js/vendor/tailwindcss-playcdn.js"></script>
   <link rel="stylesheet" href="/css/theme.css" />
 </head>
 
@@ -75,6 +75,12 @@
     let selectedPay = "";
 
     const fmtMoney = (n) => new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(Number(n ?? 0));
+    const escapeHtml = (str) => String(str ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
 
     function initSelectFilters() {
       ORDER_STATUS.forEach((s) => {
@@ -116,6 +122,9 @@
         const orderRef = formatOrderRef(o);
         const total = fmtMoney(o.total);
         const cliente = (o.customer_name ?? "").trim();
+        const safeOrderRef = escapeHtml(orderRef);
+        const safeFecha = escapeHtml(fecha);
+        const safeCliente = escapeHtml(cliente);
 
         const os = o.order_status ?? "NUEVO";
         const ps = o.payment_status ?? "PENDIENTE";
@@ -124,13 +133,13 @@
           <a href="/pages/pedido-detalle.html?id=${encodeURIComponent(o.id)}" class="block card p-4">
             <div class="flex justify-between gap-3">
               <div>
-                <div class="font-semibold">Pedido ${orderRef}</div>
-                <div class="text-muted text-sm">${fecha}</div>
-                ${cliente ? `<div class="text-muted text-sm mt-1">${cliente}</div>` : ""}
+                <div class="font-semibold">Pedido ${safeOrderRef}</div>
+                <div class="text-muted text-sm">${safeFecha}</div>
+                ${cliente ? `<div class="text-muted text-sm mt-1">${safeCliente}</div>` : ""}
 
                 <div class="mt-2 flex flex-wrap gap-2">
-                  <span class="px-2 py-1 rounded-lg text-xs ${orderStatusBadgeClass(os)}">${statusLabel(os)}</span>
-                  <span class="px-2 py-1 rounded-lg text-xs ${paymentStatusBadgeClass(ps)}">Pago: ${statusLabel(ps)}</span>
+                  <span class="px-2 py-1 rounded-lg text-xs ${orderStatusBadgeClass(os)}">${escapeHtml(statusLabel(os))}</span>
+                  <span class="px-2 py-1 rounded-lg text-xs ${paymentStatusBadgeClass(ps)}">Pago: ${escapeHtml(statusLabel(ps))}</span>
                 </div>
               </div>
 
@@ -168,5 +177,3 @@
   </script>
 </body>
 </html>
-
-

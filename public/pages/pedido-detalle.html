@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#F7F8FA" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <title>Detalle del pedido</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/js/vendor/tailwindcss-playcdn.js"></script>
   <link rel="stylesheet" href="/css/theme.css" />
 </head>
 
@@ -60,6 +60,17 @@
     const fecha = new Date(o.created_at).toLocaleString("es-AR");
     const total = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(Number(o.total ?? 0));
     const orderRef = formatOrderRef(o);
+    const escapeHtml = (str) => String(str ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+    const safeCustomerName = escapeHtml(o.customer_name ?? "-");
+    const safeOrderRef = escapeHtml(orderRef);
+    const safeFecha = escapeHtml(fecha);
+    const safePhone = escapeHtml(o.customer_phone ?? "-");
+    const safeNotes = escapeHtml(o.notes ?? "-");
 
     const orderStatus = o.order_status ?? "NUEVO";
     const paymentStatus = o.payment_status ?? "PENDIENTE";
@@ -84,15 +95,15 @@
       <div class="grid grid-cols-2 gap-3 items-start">
         <div>
           <span class="text-muted">Cliente:</span>
-          <span class="font-semibold">${o.customer_name ?? "-"}</span>
+          <span class="font-semibold">${safeCustomerName}</span>
         </div>
         <div class="text-right">
           <span class="text-muted">Pedido:</span>
-          <span class="font-semibold">${orderRef}</span>
+          <span class="font-semibold">${safeOrderRef}</span>
         </div>
       </div>
 
-      <div><span class="text-muted">Fecha:</span> ${fecha}</div>
+      <div><span class="text-muted">Fecha:</span> ${safeFecha}</div>
 
       <div class="grid grid-cols-2 gap-3 pt-2">
         <div>
@@ -109,10 +120,10 @@
       <div>
         <span class="text-muted">WhatsApp:</span>
         ${customerWaShareUrl
-          ? `<a class="inline-flex items-center gap-1 underline underline-offset-2 hover:opacity-80" style="color:#25D366" href="${customerWaShareUrl}" target="_blank" rel="noopener noreferrer">${whatsappIconSvg}<span>Compartir detalle con ${o.customer_phone ?? "-"}</span></a>`
+          ? `<a class="inline-flex items-center gap-1 underline underline-offset-2 hover:opacity-80" style="color:#25D366" href="${customerWaShareUrl}" target="_blank" rel="noopener noreferrer">${whatsappIconSvg}<span>Compartir detalle con ${safePhone}</span></a>`
           : "-"}
       </div>
-      <div><span class="text-muted">Notas:</span> ${o.notes ?? "-"}</div>
+      <div><span class="text-muted">Notas:</span> ${safeNotes}</div>
 
       <div class="pt-2 border-t divider flex justify-between">
         <span class="text-muted">Total</span>
@@ -124,11 +135,11 @@
     const paySel = document.getElementById("paymentStatus");
 
     ORDER_STATUS.forEach((s) => {
-      orderSel.innerHTML += `<option value="${s}" ${s === orderStatus ? "selected" : ""}>${statusLabel(s)}</option>`;
+      orderSel.innerHTML += `<option value="${s}" ${s === orderStatus ? "selected" : ""}>${escapeHtml(statusLabel(s))}</option>`;
     });
 
     PAYMENT_STATUS.forEach((s) => {
-      paySel.innerHTML += `<option value="${s}" ${s === paymentStatus ? "selected" : ""}>${statusLabel(s)}</option>`;
+      paySel.innerHTML += `<option value="${s}" ${s === paymentStatus ? "selected" : ""}>${escapeHtml(statusLabel(s))}</option>`;
     });
 
     let lastOrder = orderStatus;
@@ -186,7 +197,7 @@
             <div class="card p-3 flex gap-3">
               <img src="${img}" class="w-16 h-16 object-contain rounded-xl bg-surface-2 border divider" />
               <div class="flex-1">
-                <div class="font-semibold">${p.name ?? "Producto"}</div>
+                <div class="font-semibold">${escapeHtml(p.name ?? "Producto")}</div>
                 <div class="text-muted text-sm">${it.qty} x $ ${unit}</div>
               </div>
               <div class="font-semibold">$ ${sub}</div>
@@ -197,4 +208,3 @@
   </script>
 </body>
 </html>
-

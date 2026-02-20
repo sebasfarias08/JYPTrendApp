@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#F7F8FA" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <title>Ingresando...</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/js/vendor/tailwindcss-playcdn.js"></script>
   <link rel="stylesheet" href="/css/theme.css" />
 </head>
 
@@ -32,21 +32,35 @@
     const fallbackTarget = "/pages/home.html";
     const target = next ? decodeURIComponent(next) : fallbackTarget;
 
+    let hasNavigated = false;
+    let fallbackTimer = null;
+    const navigateOnce = (url) => {
+      if (hasNavigated) return;
+      hasNavigated = true;
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      location.replace(url);
+    };
+
     const { data } = await supabase.auth.getSession();
     if (data?.session) {
-      location.replace(target);
+      navigateOnce(target);
     } else {
       const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session) {
           sub.subscription.unsubscribe();
-          location.replace(target);
+          navigateOnce(target);
         }
       });
 
-      setTimeout(() => location.replace(target), 2000);
+      fallbackTimer = setTimeout(async () => {
+        const { data: retry } = await supabase.auth.getSession();
+        if (retry?.session) {
+          navigateOnce(target);
+          return;
+        }
+        navigateOnce(`/pages/login.html?next=${encodeURIComponent(target)}`);
+      }, 10000);
     }
   </script>
 </body>
 </html>
-
-
