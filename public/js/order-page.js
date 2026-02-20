@@ -119,8 +119,11 @@ export function initOrderPage(session) {
       customerSelectEl.value &&
       customerSelectEl.value !== NEW_CUSTOMER_VALUE;
 
-    if (btnSubmitSticky) btnSubmitSticky.disabled = !hasSelectedCustomer;
-    if (btnSubmit) btnSubmit.disabled = !hasSelectedCustomer;
+    if (customerHelpEl) {
+      customerHelpEl.textContent = hasSelectedCustomer
+        ? "Cliente seleccionado. Ya puedes confirmar el pedido."
+        : "Selecciona un cliente para confirmar el pedido.";
+    }
   }
 
   async function loadCustomers() {
@@ -173,7 +176,7 @@ export function initOrderPage(session) {
 
     const buttons = [btnSubmit, btnSubmitSticky].filter(Boolean);
     for (const btn of buttons) {
-      if (isBusy) btn.disabled = true;
+      btn.disabled = isBusy;
       btn.classList.toggle("opacity-60", isBusy);
       btn.classList.toggle("cursor-not-allowed", isBusy);
       btn.textContent = isBusy ? "Enviando..." : "Confirmar pedido";
