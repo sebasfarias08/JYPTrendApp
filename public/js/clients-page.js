@@ -23,6 +23,12 @@ function buildFormUrl({ id = "", mode = "", returnTo = "" } = {}) {
   return `/pages/cliente-form.html${qs ? `?${qs}` : ""}`;
 }
 
+function buildWhatsAppUrl(phone) {
+  const digits = String(phone ?? "").replace(/\D/g, "");
+  if (digits.length < 8) return null;
+  return `https://wa.me/${digits}`;
+}
+
 export function initClientsPage() {
   const listEl = document.getElementById("clientsList");
   const emptyEl = document.getElementById("clientsEmpty");
@@ -66,12 +72,20 @@ export function initClientsPage() {
     }
 
     emptyEl.classList.add("hidden");
-    listEl.innerHTML = filtered.map((c) => `
+    listEl.innerHTML = filtered.map((c) => {
+      const waUrl = buildWhatsAppUrl(c.phone);
+      const phoneCell = c.phone
+        ? waUrl
+          ? `<a class="text-sm text-muted underline underline-offset-2 hover:opacity-80" href="${waUrl}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.phone)}</a>`
+          : `<div class="text-sm text-muted">${escapeHtml(c.phone)}</div>`
+        : `<div class="text-sm text-muted">-</div>`;
+
+      return `
       <article class="card p-3">
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">
             <div class="font-semibold break-words">${escapeHtml(c.full_name)}</div>
-            <div class="text-sm text-muted">${escapeHtml(c.phone || "-")}</div>
+            ${phoneCell}
             <div class="text-sm text-muted">${escapeHtml(c.email || "-")}</div>
             ${c.notes ? `<div class="text-sm text-subtle mt-1 break-words">${escapeHtml(c.notes)}</div>` : ""}
             <div class="mt-2">
@@ -86,7 +100,8 @@ export function initClientsPage() {
           </div>
         </div>
       </article>
-    `).join("");
+    `;
+    }).join("");
 
     listEl.querySelectorAll("[data-toggle-id]").forEach((btn) => {
       btn.addEventListener("click", async () => {
