@@ -111,20 +111,44 @@ function renderShell({ title }) {
     </div>
   `;
 
-  bottom.className = "fixed bottom-0 left-0 right-0 z-30 border-t divider bg-surface backdrop-blur";
+  bottom.className = "fixed bottom-0 inset-x-0 z-50 bg-white border-t border-slate-200 shadow-[0_-6px_20px_rgba(0,0,0,0.06)]";
   bottom.innerHTML = `
-    <div class="grid grid-cols-5 gap-1 px-1 pt-2 pb-3">
-      <a data-shell-tab="botellas" class="chip py-2.5 text-[11px] flex flex-col items-center gap-1"><span>Botellas</span></a>
-      <a data-shell-tab="perfumes" class="chip chip-active py-2.5 text-[11px] flex flex-col items-center gap-1"><span>Perfumes</span></a>
-      <a data-shell-tab="home" class="chip shell-home-tab p-0 w-11 h-11 mx-auto -mt-4 rounded-full flex items-center justify-center" aria-label="Home">
+    <div class="relative grid grid-cols-5 items-end px-3 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
+      <a data-shell-tab="botellas" class="flex flex-col items-center justify-end gap-1 h-14 text-[12px] leading-none text-slate-500" aria-label="Botellas">
         <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M3 11l9-7 9 7"></path>
-          <path d="M5 10v10h14V10"></path>
-          <path d="M9 20v-6h6v6"></path>
+          <path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path>
         </svg>
+        <span>Botellas</span>
       </a>
-      <a data-shell-tab="importados" class="chip py-2.5 text-[11px] flex flex-col items-center gap-1"><span>Importados</span></a>
-      <a data-shell-tab="outlet" class="chip py-2.5 text-[11px] flex flex-col items-center gap-1"><span>Outlet</span></a>
+      <a data-shell-tab="perfumes" class="flex flex-col items-center justify-end gap-1 h-14 text-[12px] leading-none text-slate-500" aria-label="Perfumes">
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><circle cx="3" cy="6" r="1"></circle><circle cx="3" cy="12" r="1"></circle><circle cx="3" cy="18" r="1"></circle>
+        </svg>
+        <span>Perfumes</span>
+      </a>
+      <a data-shell-tab="home" class="relative flex flex-col items-center justify-end gap-1 h-14 pt-6 text-[12px] leading-none text-slate-500" aria-label="Home">
+        <span>Home</span>
+      </a>
+      <a data-shell-tab="importados" class="flex flex-col items-center justify-end gap-1 h-14 text-[12px] leading-none text-slate-500" aria-label="Importados">
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle><path d="M12 8v8"></path><path d="M8 12h8"></path>
+        </svg>
+        <span>Importados</span>
+      </a>
+      <a data-shell-tab="outlet" class="flex flex-col items-center justify-end gap-1 h-14 text-[12px] leading-none text-slate-500" aria-label="Outlet">
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3 1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8 1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path>
+        </svg>
+        <span>Outlet</span>
+      </a>
+
+      <div class="pointer-events-none absolute left-1/2 -translate-x-1/2 -translate-y-4">
+        <div class="rounded-full bg-gradient-to-br from-emerald-400 via-blue-500 to-purple-500 p-[2px] shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+          <a data-shell-tab="home" class="pointer-events-auto relative w-16 h-16 rounded-full bg-white border-[6px] border-white grid place-items-center text-blue-600" aria-label="Home">
+            <span class="text-2xl font-extrabold">$</span>
+          </a>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -223,8 +247,10 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
   document.querySelectorAll("[data-shell-tab]").forEach((el) => {
     const key = el.getAttribute("data-shell-tab");
     const active = key === activeTab;
-    el.classList.toggle("chip-active", active);
-    el.classList.toggle("text-muted", !active);
+    el.classList.toggle("text-blue-600", active);
+    el.classList.toggle("font-semibold", active);
+    el.classList.toggle("text-slate-500", !active);
+    el.setAttribute("aria-current", active ? "page" : "false");
     if (el.tagName === "A") el.href = TAB_LINKS[key] || "/index.html";
   });
 

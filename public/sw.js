@@ -1,5 +1,5 @@
 /* public/sw.js */
-const APP_VERSION = "v1.0.34";
+const APP_VERSION = "v1.0.35";
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 
