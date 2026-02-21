@@ -29,8 +29,8 @@ function iconSvg(name) {
     inventory: '<path d="M3 7h18"></path><path d="M6 7l1.5-3h9L18 7"></path><rect x="4" y="7" width="16" height="13" rx="2"></rect><path d="M9 11h6"></path>',
     info: '<circle cx="12" cy="12" r="9"></circle><path d="M12 10v6"></path><circle cx="12" cy="7" r="1"></circle>',
     logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path>',
-    package: '<path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path>',
-    spray: '<path d="M3 3h18"></path><path d="M7 7h10"></path><rect x="8" y="7" width="8" height="14" rx="2"></rect><path d="M12 11v3"></path>',
+    package: '<path d="M10 2h4"></path><path d="M10 2v3"></path><path d="M14 2v3"></path><path d="M9 8h6"></path><path d="M9 5h6v3l1.5 2.5V20a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2v-9.5L9 8z"></path>',
+    spray: '<rect x="7" y="8" width="10" height="12" rx="2"></rect><path d="M10 8V6h4v2"></path><path d="M14 6V4h4"></path><path d="M18 4h3"></path><path d="M12 12v4"></path>',
     globe: '<circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path><path d="M12 2a15 15 0 0 1 0 20"></path><path d="M12 2a15 15 0 0 0 0 20"></path>',
     badgePercent: '<path d="M12 2l2.2 2.2 3.1-.4 1.1 2.9 2.8 1.5-.9 3 1.7 2.6-2.3 2.1.2 3.1-3 .8-1.4 2.8-2.9-1-2.9 1-1.4-2.8-3-.8.2-3.1-2.3-2.1 1.7-2.6-.9-3 2.8-1.5 1.1-2.9 3.1.4Z"></path><path d="m9 15 6-6"></path><circle cx="9.5" cy="9.5" r=".5"></circle><circle cx="14.5" cy="14.5" r=".5"></circle>',
     layoutList: '<line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><circle cx="3" cy="6" r="1"></circle><circle cx="3" cy="12" r="1"></circle><circle cx="3" cy="18" r="1"></circle>',
@@ -38,7 +38,8 @@ function iconSvg(name) {
     search: '<circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path>',
     refresh: '<path d="M21 12a9 9 0 1 1-2.64-6.36"></path><path d="M21 3v6h-6"></path>',
     menu: '<path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path>',
-    plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>'
+    plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>',
+    cart: '<circle cx="9" cy="20" r="1"></circle><circle cx="17" cy="20" r="1"></circle><path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h8.8a1 1 0 0 0 1-.8L20 7H7"></path>'
   };
   return icons[name] ?? icons.list;
 }
@@ -135,7 +136,6 @@ function renderShell({ title }) {
         <span>Perfumes</span>
       </a>
       <a data-shell-tab="home" class="relative flex flex-col items-center justify-end gap-1 h-14 pt-6 text-[12px] leading-none text-slate-500" aria-label="Home">
-        <span>Pagar</span>
       </a>
       <a data-shell-tab="importados" class="flex flex-col items-center justify-end gap-1 h-14 text-[12px] leading-none text-slate-500" aria-label="Importados">
         ${renderIcon("globe")}
@@ -148,8 +148,8 @@ function renderShell({ title }) {
 
       <div class="pointer-events-none absolute left-1/2 -translate-x-1/2 -translate-y-4">
         <div class="rounded-full bg-gradient-to-br from-emerald-400 via-blue-500 to-purple-500 p-[2px] shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
-          <a data-shell-tab="home" class="pointer-events-auto relative w-16 h-16 rounded-full bg-white border-[6px] border-white grid place-items-center text-blue-600" aria-label="Pagar">
-            ${renderIcon("dollar", "w-7 h-7")}
+          <a data-shell-tab="home" class="pointer-events-auto relative w-16 h-16 rounded-full bg-white border-[6px] border-white grid place-items-center text-blue-600" aria-label="Home">
+            ${renderIcon("home", "w-7 h-7")}
           </a>
         </div>
       </div>
@@ -277,7 +277,7 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
     btnAdd.setAttribute("aria-label", "Ver pedido");
     btnAdd.classList.add("relative");
     btnAdd.innerHTML = `
-      ${renderIcon("plus", "w-6 h-6")}
+      ${renderIcon("cart", "w-6 h-6")}
       <span id="appShellCartCount" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-[10px] leading-[18px] text-inverse font-bold text-center">0</span>
     `;
   }

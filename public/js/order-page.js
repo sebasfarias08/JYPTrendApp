@@ -37,7 +37,7 @@ function render() {
   if (!items.length) {
     listEl.innerHTML = `
       <div class="card p-4 text-sm text-muted">
-        Tu pedido esta vacio. <a href="/index.html" class="text-primary underline">Volver al catalogo</a>
+        Tu pedido esta vacio. <a href="/index.html?tab=perfumes" class="text-primary underline">Volver al catalogo</a>
       </div>
     `;
     return;
