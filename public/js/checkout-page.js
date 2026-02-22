@@ -1,4 +1,4 @@
-// public/js/order-page.js
+// public/js/checkout-page.js
 import { getCart, updateQty, clearCart, cartTotal } from "./cart.js";
 import { getImageUrl } from "./image.js";
 import { createOrderWithItems } from "./order-service.js";
@@ -94,7 +94,7 @@ function render() {
   });
 }
 
-export function initOrderPage(session) {
+export function initCheckoutPage(session) {
   render();
 
   const btnSubmit = document.getElementById("btnSubmit");
@@ -113,7 +113,7 @@ export function initOrderPage(session) {
   const NEW_CUSTOMER_VALUE = "__new_customer__";
 
   function openNewCustomerFlow() {
-    const returnTo = "/pages/pedido.html";
+    const returnTo = "/pages/checkout.html";
     location.href = `/pages/cliente-form.html?mode=new&returnTo=${encodeURIComponent(returnTo)}`;
   }
 

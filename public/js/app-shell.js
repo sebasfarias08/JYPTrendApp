@@ -292,7 +292,7 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
   });
 
   btnAdd?.addEventListener("click", () => {
-    location.href = "/pages/pedido.html";
+    location.href = "/pages/checkout.html";
   });
 
   btnRefresh?.addEventListener("click", async () => {

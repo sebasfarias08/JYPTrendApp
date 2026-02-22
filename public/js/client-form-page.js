@@ -90,7 +90,7 @@ export function initClientFormPage() {
 
     showToast(isEdit ? "Cliente actualizado." : "Cliente creado.", { type: "success", duration: 1200 });
 
-    if (!isEdit && returnTo === "/pages/pedido.html") {
+    if (!isEdit && returnTo === "/pages/checkout.html") {
       goBack(`customer_id=${encodeURIComponent(res.data.id)}`);
       return;
     }
