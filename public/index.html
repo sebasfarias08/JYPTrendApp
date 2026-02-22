@@ -100,8 +100,16 @@
     function updateTabUi() {
       document.querySelectorAll("[data-shell-tab]").forEach((btn) => {
         const active = btn.getAttribute("data-shell-tab") === selectedTab;
-        btn.classList.toggle("chip-active", active);
-        btn.classList.toggle("text-muted", !active);
+        btn.classList.toggle("text-blue-600", active);
+        btn.classList.toggle("font-semibold", active);
+        if (btn.getAttribute("data-shell-tab") === "outlet") {
+          btn.classList.toggle("text-rose-600", !active);
+          btn.classList.remove("text-slate-500");
+        } else {
+          btn.classList.toggle("text-slate-500", !active);
+          btn.classList.remove("text-rose-600");
+        }
+        btn.setAttribute("aria-current", active ? "page" : "false");
       });
     }
 
