@@ -37,20 +37,39 @@ public/
   pages/
     login.html
     auth-callback.html
+    home.html
     producto.html
-    pedido.html
     pedidos.html
     pedido-detalle.html
+    checkout.html
+    clientes.html
+    cliente-form.html
+    productos.html
+    producto-form.html
+    about.html
   js/
+    app-shell.js
     auth.js
-    supabase-client.js
-    app.js
-    product-*.js
     cart.js
-    order-*.js
-    orders-*.js
+    catalog-service.js
+    checkout-page.js
+    client-form-page.js
+    clients-page.js
+    customers-service.js
+    image.js
+    order-ref.js
+    order-service.js
+    order-status.js
+    orders-service.js
+    product-form-page.js
+    product-page.js
+    product-service.js
+    products-page.js
+    share.js
     status-ui.js
+    supabase-client.js
     sw-register.js
+    toast.js
 ```
 
 ## Flujo principal
@@ -74,10 +93,6 @@ public/
 - Hay valores de configuracion hardcodeados:
   - URL y anon key de Supabase en `public/js/supabase-client.js`
   - Project ID en `public/js/image.js`
-- `public/js/orders-status.js` duplica funciones ya presentes en `public/js/orders-service.js`.
-- Inconsistencia de estado:
-  - `FINISHED` en `public/js/order-status.js`
-  - `FINALIZADO` en `public/js/status-ui.js`
 - El Service Worker no precachea todas las paginas/modulos usados en navegacion completa.
 
 ## Prioridades sugeridas (siguiente actualizacion)
