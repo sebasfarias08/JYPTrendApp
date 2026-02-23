@@ -8,8 +8,14 @@ import { showToast } from "./toast.js";
 
 function safeReturnPath(value) {
   const raw = String(value || "").trim();
-  if (!raw.startsWith("/")) return "/pages/productos.html";
-  return raw;
+  if (!raw) return "/pages/productos.html";
+  try {
+    const url = new URL(raw, location.origin);
+    if (url.origin !== location.origin) return "/pages/productos.html";
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return "/pages/productos.html";
+  }
 }
 
 function escapeHtml(str) {

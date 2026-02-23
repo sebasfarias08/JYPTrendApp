@@ -23,6 +23,18 @@
     import { supabase } from "/js/supabase-client.js";
     import { initAppShell } from "/js/app-shell.js";
 
+    function sanitizeInternalPath(value, fallback = "/pages/home.html") {
+      const raw = String(value || "").trim();
+      if (!raw) return fallback;
+      try {
+        const url = new URL(raw, location.origin);
+        if (url.origin !== location.origin) return fallback;
+        return `${url.pathname}${url.search}${url.hash}`;
+      } catch {
+        return fallback;
+      }
+    }
+
     initAppShell({
       title: "Ingresando",
       onRefresh: async () => location.reload()
@@ -30,7 +42,7 @@
 
     const next = new URLSearchParams(location.search).get("next");
     const fallbackTarget = "/pages/home.html";
-    const target = next ? decodeURIComponent(next) : fallbackTarget;
+    const target = sanitizeInternalPath(next ? decodeURIComponent(next) : fallbackTarget, fallbackTarget);
 
     let hasNavigated = false;
     let fallbackTimer = null;

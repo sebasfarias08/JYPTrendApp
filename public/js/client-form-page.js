@@ -3,8 +3,14 @@ import { showToast } from "./toast.js";
 
 function safeReturnPath(value) {
   const raw = String(value || "").trim();
-  if (!raw.startsWith("/")) return "/pages/clientes.html";
-  return raw;
+  if (!raw) return "/pages/clientes.html";
+  try {
+    const url = new URL(raw, location.origin);
+    if (url.origin !== location.origin) return "/pages/clientes.html";
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return "/pages/clientes.html";
+  }
 }
 
 function summarizeError(err) {

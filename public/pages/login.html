@@ -28,6 +28,18 @@
     import { signInWithGoogle } from "/js/auth.js";
     import { initAppShell } from "/js/app-shell.js";
 
+    function sanitizeInternalPath(value, fallback = "/pages/home.html") {
+      const raw = String(value || "").trim();
+      if (!raw) return fallback;
+      try {
+        const url = new URL(raw, location.origin);
+        if (url.origin !== location.origin) return fallback;
+        return `${url.pathname}${url.search}${url.hash}`;
+      } catch {
+        return fallback;
+      }
+    }
+
     initAppShell({
       title: "Login",
       onRefresh: async () => location.reload()
@@ -36,7 +48,8 @@
     const params = new URLSearchParams(location.search);
     const next = params.get("next");
     if (next) {
-      localStorage.setItem("auth_next", decodeURIComponent(next));
+      const sanitized = sanitizeInternalPath(decodeURIComponent(next), "");
+      if (sanitized) localStorage.setItem("auth_next", sanitized);
     }
 
     document.getElementById("btnGoogle").addEventListener("click", async () => {

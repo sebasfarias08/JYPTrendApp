@@ -1,8 +1,32 @@
 // public/js/auth.js
 import { supabase } from "./supabase-client.js";
 
+function sanitizeInternalPath(value, fallback = "/pages/home.html") {
+  const raw = String(value || "").trim();
+  if (!raw) return fallback;
+  try {
+    const url = new URL(raw, location.origin);
+    if (url.origin !== location.origin) return fallback;
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return fallback;
+  }
+}
+
+function readAuthNext() {
+  try {
+    const raw = localStorage.getItem("auth_next");
+    if (!raw) return "";
+    const next = sanitizeInternalPath(raw, "");
+    localStorage.removeItem("auth_next");
+    return next;
+  } catch {
+    return "";
+  }
+}
+
 export async function signInWithGoogle() {
-  const next = localStorage.getItem("auth_next");
+  const next = readAuthNext();
   const redirectTo = `${location.origin}/pages/auth-callback.html${next ? `?next=${encodeURIComponent(next)}` : ""}`;
   
   const { error } = await supabase.auth.signInWithOAuth({
