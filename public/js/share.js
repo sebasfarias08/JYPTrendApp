@@ -47,7 +47,9 @@ export async function shareProduct({ title, text, url, imageUrl }) {
   // Fallback 2: abrir whatsapp web share (solo link) (opcional)
   // Nota: Instagram no tiene un deep link universal para “compartir” desde web sin selector
   try {
-    window.open(`https://wa.me/?text=${encodeURIComponent(`${text || ""} ${url}`)}`, "_blank");
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(`${text || ""} ${url}`)}`;
+    const popup = window.open(waUrl, "_blank", "noopener,noreferrer");
+    if (popup) popup.opener = null;
     return { ok: true, mode: "wa_fallback" };
   } catch {
     return { ok: false, mode: "none" };
@@ -59,21 +61,7 @@ export async function copyToClipboard(str) {
     await navigator.clipboard.writeText(str);
     return true;
   } catch {
-    // fallback viejo
-    try {
-      const ta = document.createElement("textarea");
-      ta.value = str;
-      ta.style.position = "fixed";
-      ta.style.top = "-1000px";
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      const ok = document.execCommand("copy");
-      document.body.removeChild(ta);
-      return ok;
-    } catch {
-      return false;
-    }
+    return false;
   }
 }
 

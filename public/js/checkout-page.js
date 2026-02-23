@@ -48,7 +48,7 @@ function render() {
 
     return `
       <div class="card p-3 flex gap-3">
-        <img src="${img}" class="w-16 h-16 object-contain rounded-xl bg-surface-2 border divider" />
+        <img src="${img}" alt="${escapeHtml(it.name)}" class="w-16 h-16 object-contain rounded-xl bg-surface-2 border divider" />
         <div class="flex-1">
           <div class="font-semibold">${escapeHtml(it.name)}</div>
           <div class="text-muted text-sm">$ ${formatArs(it.price)} c/u</div>
