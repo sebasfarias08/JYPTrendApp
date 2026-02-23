@@ -13,7 +13,7 @@
 <body class="h-screen overflow-hidden flex flex-col">
   <header id="appShellTop"></header>
 
-  <main class="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
+  <main class="flex-1 overflow-y-auto p-4 space-y-4 pb-[calc(env(safe-area-inset-bottom)+7rem)]">
     <section class="grid grid-cols-2 gap-3">
       <article class="card p-3">
         <div class="text-xs text-muted">Pedidos hoy</div>
@@ -140,11 +140,12 @@
       showToast("Actualizando home...", { type: "info", duration: 1000 });
 
       const orders = await getMyOrders({ limit: 200 });
+      const openOrders = orders.filter((o) => isDeliveryPending(o.order_status));
       const todayOrders = orders.filter((o) => isSameLocalDay(o.created_at));
 
       const revenueToday = todayOrders.reduce((sum, o) => sum + Number(o.total ?? 0), 0);
       const avgTicket = todayOrders.length ? (revenueToday / todayOrders.length) : 0;
-      const pendingDeliveries = orders.filter((o) => isDeliveryPending(o.order_status)).length;
+      const pendingDeliveries = openOrders.length;
       const pendingPayments = orders.filter((o) => isPaymentPending(o.payment_status)).length;
 
       kpiOrdersTodayEl.textContent = String(todayOrders.length);
@@ -153,7 +154,7 @@
       kpiPendingPaymentsEl.textContent = String(pendingPayments);
       pendingDeliveriesEl.textContent = `Pendientes: ${pendingDeliveries}`;
 
-      renderRecentOrders(orders);
+      renderRecentOrders(openOrders);
     }
 
     await loadDashboard();

@@ -105,12 +105,23 @@ export function initCheckoutPage(session) {
   const customerSelectLabelEl = document.getElementById("customerSelectLabel");
   const customerSearchEl = document.getElementById("customerSearch");
   const customerOptionsEl = document.getElementById("customerOptions");
+  const customerRequiredWarningEl = document.getElementById("customerRequiredWarning");
 
   let submitting = false;
   let customers = [];
   let selectedCustomerId = "";
 
   const NEW_CUSTOMER_VALUE = "__new_customer__";
+
+  function updateCustomerRequiredState() {
+    const hasSelectedCustomer = Boolean(
+      selectedCustomerId &&
+      selectedCustomerId !== NEW_CUSTOMER_VALUE
+    );
+    customerRequiredWarningEl?.classList.toggle("hidden", hasSelectedCustomer);
+    customerSelectTriggerEl?.classList.toggle("border-red-400", !hasSelectedCustomer);
+    customerSelectTriggerEl?.classList.toggle("bg-red-50", !hasSelectedCustomer);
+  }
 
   function openNewCustomerFlow() {
     const returnTo = "/pages/checkout.html";
@@ -134,6 +145,7 @@ export function initCheckoutPage(session) {
         ? `${selected.full_name}${selected.phone ? ` - ${selected.phone}` : ""}`
         : "Seleccionar cliente";
     }
+    updateCustomerRequiredState();
     setSubmitAvailability();
   }
 
