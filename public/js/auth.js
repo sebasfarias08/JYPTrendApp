@@ -1,5 +1,10 @@
 // public/js/auth.js
-import { supabase } from "./supabase-client.js";
+import {
+  fetchSession,
+  signInWithGoogleOAuth,
+  signOutSession,
+  subscribeAuthChange
+} from "../../src/services/auth-service.js";
 
 function sanitizeInternalPath(value, fallback = "/pages/home.html") {
   const raw = String(value || "").trim();
@@ -29,29 +34,24 @@ export async function signInWithGoogle() {
   const next = readAuthNext();
   const redirectTo = `${location.origin}/pages/auth-callback.html${next ? `?next=${encodeURIComponent(next)}` : ""}`;
   
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo }
-  });
+  const { error } = await signInWithGoogleOAuth(redirectTo);
 
   if (error) console.error("Google sign-in error:", error);
 }
 
 export async function signOut() {
-  const { error } = await supabase.auth.signOut();
+  const { error } = await signOutSession();
   if (error) console.error("Sign out error:", error);
 }
 
 export async function getSession() {
-  const { data, error } = await supabase.auth.getSession();
+  const { data, error } = await fetchSession();
   if (error) console.error("getSession error:", error);
   return data?.session ?? null;
 }
 
 export function onAuthChange(callback) {
-  return supabase.auth.onAuthStateChange((_event, session) => {
-    callback(session ?? null);
-  });
+  return subscribeAuthChange(callback);
 }
 
 // Guard para páginas protegidas

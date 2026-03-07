@@ -59,7 +59,7 @@
   <script type="module">
     import { requireAuth } from "/js/auth.js";
     import { initAppShell } from "/js/app-shell.js";
-    import { getMyOrders } from "/js/orders-service.js";
+    import { getMyOrders, getPendingPaymentsCount } from "/js/orders-service.js";
     import { statusLabel } from "/js/order-status.js";
     import { orderStatusBadgeClass, paymentStatusBadgeClass } from "/js/status-ui.js";
     import { showToast } from "/js/toast.js";
@@ -97,11 +97,7 @@
     }
 
     function isDeliveryPending(status) {
-      return !["ENTREGADO", "FINALIZADO", "CANCELADO", "DELIVERED", "FINISHED", "CANCELLED", "delivered", "finished", "cancelled"].includes(String(status ?? ""));
-    }
-
-    function isPaymentPending(status) {
-      return !["PAGADO", "FINALIZADO", "CANCELADO", "PAID", "FINISHED", "CANCELLED", "paid", "finished", "cancelled"].includes(String(status ?? ""));
+      return !["ENTREGADO", "CANCELADO"].includes(String(status ?? ""));
     }
 
     function renderRecentOrders(rows) {
@@ -146,7 +142,7 @@
       const revenueToday = todayOrders.reduce((sum, o) => sum + Number(o.total ?? 0), 0);
       const avgTicket = todayOrders.length ? (revenueToday / todayOrders.length) : 0;
       const pendingDeliveries = openOrders.length;
-      const pendingPayments = orders.filter((o) => isPaymentPending(o.payment_status)).length;
+      const pendingPayments = await getPendingPaymentsCount();
 
       kpiOrdersTodayEl.textContent = String(todayOrders.length);
       kpiRevenueTodayEl.textContent = `$ ${fmtMoney(revenueToday)}`;

@@ -20,7 +20,7 @@
   <nav id="appShellBottom"></nav>
 
   <script type="module">
-    import { supabase } from "/js/supabase-client.js";
+    import { getSession, onAuthChange } from "/js/auth.js";
     import { initAppShell } from "/js/app-shell.js";
 
     function sanitizeInternalPath(value, fallback = "/pages/home.html") {
@@ -53,11 +53,11 @@
       location.replace(url);
     };
 
-    const { data } = await supabase.auth.getSession();
-    if (data?.session) {
+    const currentSession = await getSession();
+    if (currentSession) {
       navigateOnce(target);
     } else {
-      const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      const { data: sub } = onAuthChange((session) => {
         if (session) {
           sub.subscription.unsubscribe();
           navigateOnce(target);
@@ -65,8 +65,8 @@
       });
 
       fallbackTimer = setTimeout(async () => {
-        const { data: retry } = await supabase.auth.getSession();
-        if (retry?.session) {
+        const retrySession = await getSession();
+        if (retrySession) {
           navigateOnce(target);
           return;
         }

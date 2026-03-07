@@ -8,7 +8,7 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 - Version de app en repo: `v1.0.39` (`public/version.json`, fecha `2026-02-23`).
 - Arquitectura: HTML + JS modular + Tailwind CDN + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
-- Riesgo principal: configuracion hardcodeada de Supabase y heterogeneidad de estados de pedidos/pagos por compatibilidad de esquema.
+- Riesgo principal: configuracion hardcodeada de Supabase (sin estrategia formal multiambiente en frontend).
 
 ## Stack y arquitectura
 
@@ -35,6 +35,7 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 database/
   2026-02-19_add_order_number.sql
   2026-02-20_customers_abm.sql
+  2026-03-07_enforce_canonical_statuses.sql
 public/
   _headers
   index.html
@@ -99,6 +100,11 @@ README.md
   - Crea tabla `customers`, trigger `updated_at`, constraints y politicas RLS.
   - Agrega `orders.customer_id` + FK a `customers`.
   - Migra clientes desde `orders.customer_name/customer_phone`.
+- `database/2026-03-07_enforce_canonical_statuses.sql`:
+  - Normaliza estados legacy en `orders.order_status`, `orders.payment_status` y `payments.payment_status`.
+  - Endurece constraints para permitir solo valores canónicos:
+    - `order_status`: `NUEVO | CONFIRMADO | ENVIADO | ENTREGADO | CANCELADO`
+    - `payment_status`: `PENDIENTE | PARCIAL | PAGADO | FALLIDO | CANCELADO`
 
 ### RLS documentado (customers)
 
@@ -111,17 +117,13 @@ Politicas creadas por migracion:
 
 Nota: en este repo no hay migraciones de RLS para `orders`, `order_items`, `products` y `categories`; deben existir en Supabase para aislamiento por usuario/rol segun estrategia de negocio.
 
-## Compatibilidades y decisiones tecnicas relevantes
+## Decisiones tecnicas relevantes
 
-- `order-service.js` maneja compatibilidad entre esquemas:
-  - Si falta columna `customer_id`, reintenta sin ella.
-  - Si fallan constraints de estados, mapea a valores legacy (`submitted`, `pending`, etc.).
-  - Si sigue fallando, inserta sin columnas de estado para usar defaults DB.
-- `orders-service.js` tolera ausencia de `order_number` (fallback por error `42703`).
-- UI soporta etiquetas de estado en tres variantes:
-  - Espanol (`NUEVO`, `PENDIENTE`...)
-  - Ingles mayuscula (`NEW`, `PENDING`...)
-  - Legacy minuscula (`submitted`, `pending`...)
+- `order-service.js` y `orders-service.js` operan contra el esquema canónico (sin fallbacks legacy).
+- La UI usa estados alineados con el contrato final:
+  - `order_status`: `NUEVO`, `CONFIRMADO`, `ENVIADO`, `ENTREGADO`, `CANCELADO`
+  - `payment_status`: `PENDIENTE`, `PARCIAL`, `PAGADO`, `FALLIDO`, `CANCELADO`
+- Los subtotales/totales se respetan como responsabilidad de triggers DB.
 
 ## Configuracion actual (hardcodeada)
 
@@ -159,7 +161,7 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 ## Riesgos actuales y deuda tecnica
 
 1. Configuracion sensible hardcodeada en frontend.
-2. Inconsistencia potencial de estados entre DB y UI (compatibilidad legacy).
+2. Falta de adopcion de vistas/materialized views para reporting de dashboards.
 3. Falta de testing automatizado (unitario/integracion/e2e).
 4. Sin pipeline de lint/format/quality gates.
 5. Sin documentacion de politicas RLS completas para todas las tablas operativas.
@@ -168,7 +170,7 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 ## Backlog recomendado (prioridad)
 
 1. Config runtime y rotacion de claves/proyectos por ambiente.
-2. Unificar enum de estados en DB + migracion de datos legacy.
+2. Migrar consultas de analitica/dashboard hacia `v_order_summary`, `v_order_payment_summary`, `v_sales_by_day` y/o `mv_sales_by_product`.
 3. Definir y versionar migraciones/RLS completas (`orders`, `order_items`, `products`, `categories`).
 4. Agregar manejo de errores de red/reintentos en checkout y cambios de estado.
 5. Instrumentar analitica operativa (conversion checkout, tiempos por estado).
