@@ -4,7 +4,7 @@ import {
   signInWithGoogleOAuth,
   signOutSession,
   subscribeAuthChange
-} from "../../src/services/auth-service.js";
+} from "./services/auth-service.js";
 
 function sanitizeInternalPath(value, fallback = "/pages/home.html") {
   const raw = String(value || "").trim();

@@ -5,7 +5,7 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 ## Resumen ejecutivo
 
 - Estado actual: funcional para operacion diaria (catalogo, carrito, checkout, pedidos, clientes, productos, PWA basica).
-- Version de app en repo: `v1.0.41` (`public/version.json`, fecha `2026-03-07`).
+- Version de app en repo: `v1.0.42` (`public/version.json`, fecha `2026-03-07`).
 - Arquitectura: HTML + JS modular + Tailwind CDN + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Riesgo principal: configuracion hardcodeada de Supabase (sin estrategia formal multiambiente en frontend).
@@ -175,4 +175,5 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 4. Agregar manejo de errores de red/reintentos en checkout y cambios de estado.
 5. Instrumentar analitica operativa (conversion checkout, tiempos por estado).
 6. Introducir suite minima de tests + CI.
+
 

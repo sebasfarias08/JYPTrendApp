@@ -1,1 +1,1 @@
-export * from "../../src/services/catalog-service.js";
+export * from "./services/catalog-service.js";
