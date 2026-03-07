@@ -1,0 +1,18 @@
+schema_name,table_name,constraint_name,constraint_type,columns
+public,cash_movements,cash_movements_pkey,p,id
+public,categories,categories_pkey,p,id
+public,customers,customers_pkey,p,id
+public,inventory_movements,inventory_movements_pkey,p,id
+public,order_items,order_items_pkey,p,id
+public,orders,orders_pkey,p,id
+public,payment_allocations,payment_allocations_unique_payment_order,u,"payment_id, order_id"
+public,payment_allocations,payment_allocations_pkey,p,id
+public,payments,payments_pkey,p,id
+public,points_of_sale,points_of_sale_pkey,p,id
+public,product_variants,product_variants_pkey,p,id
+public,products,products_pkey,p,id
+public,profiles,profiles_pkey,p,id
+public,purchase_order_items,purchase_order_items_pkey,p,id
+public,purchase_orders,purchase_orders_pkey,p,id
+public,suppliers,suppliers_pkey,p,id
+public,warehouses,warehouses_pkey,p,id

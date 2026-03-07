@@ -1,0 +1,7 @@
+schema_name,view_name
+public,v_inventory_stock_by_product
+public,v_inventory_stock_by_variant
+public,v_order_payment_summary
+public,v_order_summary
+public,v_sales_by_day
+public,v_sales_by_product

@@ -1,0 +1,7 @@
+table_name
+v_inventory_stock_by_product
+v_inventory_stock_by_variant
+v_order_payment_summary
+v_order_summary
+v_sales_by_day
+v_sales_by_product

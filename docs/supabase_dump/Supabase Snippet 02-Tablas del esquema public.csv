@@ -1,0 +1,17 @@
+schema_name,table_name
+public,cash_movements
+public,categories
+public,customers
+public,inventory_movements
+public,order_items
+public,orders
+public,payment_allocations
+public,payments
+public,points_of_sale
+public,product_variants
+public,products
+public,profiles
+public,purchase_order_items
+public,purchase_orders
+public,suppliers
+public,warehouses

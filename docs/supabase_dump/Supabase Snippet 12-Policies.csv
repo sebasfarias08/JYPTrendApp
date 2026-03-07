@@ -1,0 +1,118 @@
+schema_name,table_name,policy_name,permissive,roles,cmd,using_expression,with_check_expression
+public,cash_movements,cash_movements_delete_own,PERMISSIVE,{authenticated},DELETE,(auth.uid() = user_id),null
+public,cash_movements,cash_movements_insert_own,PERMISSIVE,{authenticated},INSERT,null,(auth.uid() = user_id)
+public,cash_movements,cash_movements_select_own,PERMISSIVE,{authenticated},SELECT,(auth.uid() = user_id),null
+public,cash_movements,cash_movements_update_own,PERMISSIVE,{authenticated},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
+public,categories,categories_admin_write,PERMISSIVE,{authenticated},ALL,"(EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))","(EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))"
+public,categories,public read categories,PERMISSIVE,"{anon,authenticated}",SELECT,(active = true),null
+public,customers,customers_delete_own,PERMISSIVE,{public},DELETE,(auth.uid() = user_id),null
+public,customers,customers_insert_own,PERMISSIVE,{public},INSERT,null,(auth.uid() = user_id)
+public,customers,customers_select_own,PERMISSIVE,{public},SELECT,(auth.uid() = user_id),null
+public,customers,customers_update_own,PERMISSIVE,{public},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
+public,inventory_movements,inventory_movements_delete_own,PERMISSIVE,{authenticated},DELETE,(auth.uid() = user_id),null
+public,inventory_movements,inventory_movements_insert_own,PERMISSIVE,{authenticated},INSERT,null,(auth.uid() = user_id)
+public,inventory_movements,inventory_movements_select_own,PERMISSIVE,{authenticated},SELECT,(auth.uid() = user_id),null
+public,inventory_movements,inventory_movements_update_own,PERMISSIVE,{authenticated},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
+public,order_items,order_items_insert_own,PERMISSIVE,{authenticated},INSERT,null,"(EXISTS ( SELECT 1
+   FROM orders o
+  WHERE ((o.id = order_items.order_id) AND (o.user_id = auth.uid()))))"
+public,order_items,order_items_select_own,PERMISSIVE,{authenticated},SELECT,"(EXISTS ( SELECT 1
+   FROM orders o
+  WHERE ((o.id = order_items.order_id) AND (o.user_id = auth.uid()))))",null
+public,order_items,order_items_update_own,PERMISSIVE,{authenticated},UPDATE,"(EXISTS ( SELECT 1
+   FROM orders o
+  WHERE ((o.id = order_items.order_id) AND (o.user_id = auth.uid()))))","(EXISTS ( SELECT 1
+   FROM orders o
+  WHERE ((o.id = order_items.order_id) AND (o.user_id = auth.uid()))))"
+public,orders,orders_insert_own,PERMISSIVE,{authenticated},INSERT,null,(auth.uid() = user_id)
+public,orders,orders_select_own,PERMISSIVE,{authenticated},SELECT,(auth.uid() = user_id),null
+public,orders,orders_update_own,PERMISSIVE,{authenticated},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
+public,payment_allocations,payment_allocations_delete_admin_only,PERMISSIVE,{authenticated},DELETE,"(EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))",null
+public,payment_allocations,payment_allocations_insert_own_or_admin,PERMISSIVE,{authenticated},INSERT,null,"((auth.uid() = user_id) OR (EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))"
+public,payment_allocations,payment_allocations_select_own_or_admin,PERMISSIVE,{authenticated},SELECT,"((auth.uid() = user_id) OR (EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))",null
+public,payment_allocations,payment_allocations_update_own_or_admin,PERMISSIVE,{authenticated},UPDATE,"((auth.uid() = user_id) OR (EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))","((auth.uid() = user_id) OR (EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))"
+public,payments,payments_delete_own,PERMISSIVE,{authenticated},DELETE,(auth.uid() = user_id),null
+public,payments,payments_insert_own,PERMISSIVE,{authenticated},INSERT,null,(auth.uid() = user_id)
+public,payments,payments_select_own,PERMISSIVE,{authenticated},SELECT,(auth.uid() = user_id),null
+public,payments,payments_update_own,PERMISSIVE,{authenticated},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
+public,points_of_sale,points_of_sale_delete_own,PERMISSIVE,{authenticated},DELETE,(auth.uid() = user_id),null
+public,points_of_sale,points_of_sale_insert_own,PERMISSIVE,{authenticated},INSERT,null,(auth.uid() = user_id)
+public,points_of_sale,points_of_sale_select_own,PERMISSIVE,{authenticated},SELECT,(auth.uid() = user_id),null
+public,points_of_sale,points_of_sale_update_own,PERMISSIVE,{authenticated},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
+public,product_variants,product_variants_admin_write,PERMISSIVE,{authenticated},ALL,"(EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))","(EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))"
+public,product_variants,product_variants_public_read_active,PERMISSIVE,"{anon,authenticated}",SELECT,(active = true),null
+public,products,products_admin_write,PERMISSIVE,{authenticated},ALL,"(EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))","(EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))"
+public,products,products_select_auth,PERMISSIVE,{authenticated},SELECT,true,null
+public,products,public read products,PERMISSIVE,"{anon,authenticated}",SELECT,(active = true),null
+public,profiles,profiles_delete_admin_only,PERMISSIVE,{authenticated},DELETE,"(EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))",null
+public,profiles,profiles_insert_self_or_admin,PERMISSIVE,{authenticated},INSERT,null,"((auth.uid() = id) OR (EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))"
+public,profiles,profiles_select_self_or_admin,PERMISSIVE,{authenticated},SELECT,"((auth.uid() = id) OR (EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))",null
+public,profiles,profiles_update_self_or_admin,PERMISSIVE,{authenticated},UPDATE,"((auth.uid() = id) OR (EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))","((auth.uid() = id) OR (EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))"
+public,purchase_order_items,purchase_order_items_delete_own,PERMISSIVE,{authenticated},DELETE,"(EXISTS ( SELECT 1
+   FROM purchase_orders po
+  WHERE ((po.id = purchase_order_items.purchase_order_id) AND (po.user_id = auth.uid()))))",null
+public,purchase_order_items,purchase_order_items_insert_own,PERMISSIVE,{authenticated},INSERT,null,"(EXISTS ( SELECT 1
+   FROM purchase_orders po
+  WHERE ((po.id = purchase_order_items.purchase_order_id) AND (po.user_id = auth.uid()))))"
+public,purchase_order_items,purchase_order_items_select_own,PERMISSIVE,{authenticated},SELECT,"(EXISTS ( SELECT 1
+   FROM purchase_orders po
+  WHERE ((po.id = purchase_order_items.purchase_order_id) AND (po.user_id = auth.uid()))))",null
+public,purchase_order_items,purchase_order_items_update_own,PERMISSIVE,{authenticated},UPDATE,"(EXISTS ( SELECT 1
+   FROM purchase_orders po
+  WHERE ((po.id = purchase_order_items.purchase_order_id) AND (po.user_id = auth.uid()))))","(EXISTS ( SELECT 1
+   FROM purchase_orders po
+  WHERE ((po.id = purchase_order_items.purchase_order_id) AND (po.user_id = auth.uid()))))"
+public,purchase_orders,purchase_orders_delete_own,PERMISSIVE,{authenticated},DELETE,(auth.uid() = user_id),null
+public,purchase_orders,purchase_orders_insert_own,PERMISSIVE,{authenticated},INSERT,null,(auth.uid() = user_id)
+public,purchase_orders,purchase_orders_select_own,PERMISSIVE,{authenticated},SELECT,(auth.uid() = user_id),null
+public,purchase_orders,purchase_orders_update_own,PERMISSIVE,{authenticated},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
+public,suppliers,suppliers_delete_own,PERMISSIVE,{authenticated},DELETE,(auth.uid() = user_id),null
+public,suppliers,suppliers_insert_own,PERMISSIVE,{authenticated},INSERT,null,(auth.uid() = user_id)
+public,suppliers,suppliers_select_own,PERMISSIVE,{authenticated},SELECT,(auth.uid() = user_id),null
+public,suppliers,suppliers_update_own,PERMISSIVE,{authenticated},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
+public,warehouses,warehouses_delete_admin_only,PERMISSIVE,{authenticated},DELETE,"(EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))",null
+public,warehouses,warehouses_insert_own_or_admin,PERMISSIVE,{authenticated},INSERT,null,"((auth.uid() = user_id) OR (EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))"
+public,warehouses,warehouses_select_own_or_admin,PERMISSIVE,{authenticated},SELECT,"((auth.uid() = user_id) OR (EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))",null
+public,warehouses,warehouses_update_own_or_admin,PERMISSIVE,{authenticated},UPDATE,"((auth.uid() = user_id) OR (EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))","((auth.uid() = user_id) OR (EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))"

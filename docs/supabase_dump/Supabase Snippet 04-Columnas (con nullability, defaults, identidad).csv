@@ -1,0 +1,250 @@
+table_schema,table_name,ordinal_position,column_name,data_type,udt_name,is_nullable,column_default,is_identity,identity_generation
+public,cash_movements,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,cash_movements,2,user_id,uuid,uuid,NO,null,NO,null
+public,cash_movements,3,point_of_sale_id,uuid,uuid,NO,null,NO,null
+public,cash_movements,4,movement_type,text,text,NO,null,NO,null
+public,cash_movements,5,payment_method,text,text,NO,null,NO,null
+public,cash_movements,6,amount,numeric,numeric,NO,null,NO,null
+public,cash_movements,7,currency_code,text,text,NO,'ARS'::text,NO,null
+public,cash_movements,8,order_id,uuid,uuid,YES,null,NO,null
+public,cash_movements,9,payment_id,uuid,uuid,YES,null,NO,null
+public,cash_movements,10,reference_type,text,text,YES,null,NO,null
+public,cash_movements,11,reference_id,uuid,uuid,YES,null,NO,null
+public,cash_movements,12,notes,text,text,YES,null,NO,null
+public,cash_movements,13,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,cash_movements,14,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,categories,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,categories,2,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,categories,3,name,text,text,YES,null,NO,null
+public,categories,4,slug,text,text,YES,null,NO,null
+public,categories,5,order,smallint,int2,YES,null,NO,null
+public,categories,6,active,boolean,bool,YES,null,NO,null
+public,categories,7,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,customers,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,customers,2,user_id,uuid,uuid,NO,null,NO,null
+public,customers,3,full_name,text,text,NO,null,NO,null
+public,customers,4,phone,text,text,YES,null,NO,null
+public,customers,5,email,text,text,YES,null,NO,null
+public,customers,6,notes,text,text,YES,null,NO,null
+public,customers,7,is_active,boolean,bool,NO,true,NO,null
+public,customers,8,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,customers,9,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,inventory_movements,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,inventory_movements,2,user_id,uuid,uuid,NO,null,NO,null
+public,inventory_movements,3,product_id,uuid,uuid,NO,null,NO,null
+public,inventory_movements,4,point_of_sale_id,uuid,uuid,YES,null,NO,null
+public,inventory_movements,5,movement_type,text,text,NO,null,NO,null
+public,inventory_movements,6,qty,numeric,numeric,NO,null,NO,null
+public,inventory_movements,7,unit_cost,numeric,numeric,YES,null,NO,null
+public,inventory_movements,8,reference_type,text,text,YES,null,NO,null
+public,inventory_movements,9,reference_id,uuid,uuid,YES,null,NO,null
+public,inventory_movements,10,notes,text,text,YES,null,NO,null
+public,inventory_movements,11,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,inventory_movements,12,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,inventory_movements,13,variant_id,uuid,uuid,YES,null,NO,null
+public,inventory_movements,14,warehouse_id,uuid,uuid,YES,null,NO,null
+public,order_items,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,order_items,2,order_id,uuid,uuid,NO,null,NO,null
+public,order_items,3,product_id,uuid,uuid,NO,null,NO,null
+public,order_items,4,qty,integer,int4,NO,1,NO,null
+public,order_items,5,unit_price,numeric,numeric,NO,0,NO,null
+public,order_items,6,subtotal,numeric,numeric,NO,0,NO,null
+public,order_items,7,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,order_items,8,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,order_items,9,variant_id,uuid,uuid,YES,null,NO,null
+public,order_items,10,product_name_snapshot,text,text,YES,null,NO,null
+public,order_items,11,variant_name_snapshot,text,text,YES,null,NO,null
+public,order_items,12,sku_snapshot,text,text,YES,null,NO,null
+public,order_items,13,discount_amount,numeric,numeric,NO,0,NO,null
+public,order_items,14,tax_amount,numeric,numeric,NO,0,NO,null
+public,order_items,15,cost_price_snapshot,numeric,numeric,NO,0,NO,null
+public,order_items,16,position,integer,int4,YES,null,NO,null
+public,orders,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,orders,2,user_id,uuid,uuid,NO,null,NO,null
+public,orders,3,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,orders,4,status,text,text,NO,'draft'::text,NO,null
+public,orders,5,customer_name,text,text,YES,null,NO,null
+public,orders,6,customer_phone,text,text,YES,null,NO,null
+public,orders,7,notes,text,text,YES,null,NO,null
+public,orders,8,total,numeric,numeric,NO,0,NO,null
+public,orders,9,order_status,text,text,NO,'NUEVO'::text,NO,null
+public,orders,10,payment_status,text,text,NO,'PENDIENTE'::text,NO,null
+public,orders,11,order_number,bigint,int8,NO,nextval('orders_order_number_seq'::regclass),NO,null
+public,orders,12,customer_id,uuid,uuid,YES,null,NO,null
+public,orders,13,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,orders,14,point_of_sale_id,uuid,uuid,YES,null,NO,null
+public,orders,15,currency_code,text,text,NO,'ARS'::text,NO,null
+public,orders,16,exchange_rate,numeric,numeric,NO,1,NO,null
+public,orders,17,subtotal,numeric,numeric,NO,0,NO,null
+public,orders,18,discount_amount,numeric,numeric,NO,0,NO,null
+public,orders,19,shipping_amount,numeric,numeric,NO,0,NO,null
+public,orders,20,tax_amount,numeric,numeric,NO,0,NO,null
+public,orders,21,grand_total,numeric,numeric,NO,0,NO,null
+public,orders,22,delivery_method,text,text,YES,null,NO,null
+public,orders,23,delivery_address,text,text,YES,null,NO,null
+public,orders,24,scheduled_delivery_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,orders,25,confirmed_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,orders,26,cancelled_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,orders,27,closed_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,orders,28,customer_name_snapshot,text,text,YES,null,NO,null
+public,orders,29,customer_phone_snapshot,text,text,YES,null,NO,null
+public,orders,30,customer_email_snapshot,text,text,YES,null,NO,null
+public,orders,31,customer_address_snapshot,text,text,YES,null,NO,null
+public,orders,32,warehouse_id,uuid,uuid,YES,null,NO,null
+public,payment_allocations,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,payment_allocations,2,user_id,uuid,uuid,NO,null,NO,null
+public,payment_allocations,3,payment_id,uuid,uuid,NO,null,NO,null
+public,payment_allocations,4,order_id,uuid,uuid,NO,null,NO,null
+public,payment_allocations,5,amount,numeric,numeric,NO,null,NO,null
+public,payment_allocations,6,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,payment_allocations,7,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,payments,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,payments,2,order_id,uuid,uuid,NO,null,NO,null
+public,payments,3,customer_id,uuid,uuid,YES,null,NO,null
+public,payments,4,user_id,uuid,uuid,NO,null,NO,null
+public,payments,5,amount,numeric,numeric,NO,null,NO,null
+public,payments,6,currency_code,text,text,NO,'ARS'::text,NO,null
+public,payments,7,payment_method,text,text,NO,null,NO,null
+public,payments,8,payment_status,text,text,NO,'PENDIENTE'::text,NO,null
+public,payments,9,payment_date,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,payments,10,reference_number,text,text,YES,null,NO,null
+public,payments,11,external_reference,text,text,YES,null,NO,null
+public,payments,12,notes,text,text,YES,null,NO,null
+public,payments,13,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,payments,14,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,points_of_sale,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,points_of_sale,2,user_id,uuid,uuid,NO,null,NO,null
+public,points_of_sale,3,name,text,text,NO,null,NO,null
+public,points_of_sale,4,code,text,text,YES,null,NO,null
+public,points_of_sale,5,description,text,text,YES,null,NO,null
+public,points_of_sale,6,active,boolean,bool,NO,true,NO,null
+public,points_of_sale,7,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,points_of_sale,8,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,product_variants,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,product_variants,2,product_id,uuid,uuid,NO,null,NO,null
+public,product_variants,3,user_id,uuid,uuid,NO,null,NO,null
+public,product_variants,4,sku,text,text,YES,null,NO,null
+public,product_variants,5,barcode,text,text,YES,null,NO,null
+public,product_variants,6,variant_name,text,text,NO,null,NO,null
+public,product_variants,7,option1_name,text,text,YES,null,NO,null
+public,product_variants,8,option1_value,text,text,YES,null,NO,null
+public,product_variants,9,option2_name,text,text,YES,null,NO,null
+public,product_variants,10,option2_value,text,text,YES,null,NO,null
+public,product_variants,11,option3_name,text,text,YES,null,NO,null
+public,product_variants,12,option3_value,text,text,YES,null,NO,null
+public,product_variants,13,cost_price,numeric,numeric,NO,0,NO,null
+public,product_variants,14,sale_price,numeric,numeric,NO,0,NO,null
+public,product_variants,15,currency_code,text,text,NO,'ARS'::text,NO,null
+public,product_variants,16,weight,numeric,numeric,YES,null,NO,null
+public,product_variants,17,active,boolean,bool,NO,true,NO,null
+public,product_variants,18,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,product_variants,19,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,products,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,products,2,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,products,3,name,text,text,YES,null,NO,null
+public,products,4,description,text,text,YES,null,NO,null
+public,products,5,price,numeric,numeric,NO,0,NO,null
+public,products,6,category_id,uuid,uuid,YES,null,NO,null
+public,products,7,image_path,text,text,YES,null,NO,null
+public,products,8,active,boolean,bool,YES,null,NO,null
+public,products,9,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,profiles,1,id,uuid,uuid,NO,null,NO,null
+public,profiles,2,email,text,text,YES,null,NO,null
+public,profiles,3,full_name,text,text,YES,null,NO,null
+public,profiles,4,role,text,text,NO,'seller'::text,NO,null
+public,profiles,5,is_active,boolean,bool,NO,true,NO,null
+public,profiles,6,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,profiles,7,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,purchase_order_items,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,purchase_order_items,2,purchase_order_id,uuid,uuid,NO,null,NO,null
+public,purchase_order_items,3,product_id,uuid,uuid,NO,null,NO,null
+public,purchase_order_items,4,qty,integer,int4,NO,1,NO,null
+public,purchase_order_items,5,unit_cost,numeric,numeric,NO,0,NO,null
+public,purchase_order_items,6,subtotal,numeric,numeric,NO,0,NO,null
+public,purchase_order_items,7,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,purchase_order_items,8,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,purchase_order_items,9,variant_id,uuid,uuid,YES,null,NO,null
+public,purchase_order_items,10,product_name_snapshot,text,text,YES,null,NO,null
+public,purchase_order_items,11,variant_name_snapshot,text,text,YES,null,NO,null
+public,purchase_order_items,12,sku_snapshot,text,text,YES,null,NO,null
+public,purchase_orders,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,purchase_orders,2,user_id,uuid,uuid,NO,null,NO,null
+public,purchase_orders,3,supplier_id,uuid,uuid,NO,null,NO,null
+public,purchase_orders,4,point_of_sale_id,uuid,uuid,YES,null,NO,null
+public,purchase_orders,5,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,purchase_orders,6,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,purchase_orders,7,expected_date,date,date,YES,null,NO,null
+public,purchase_orders,8,received_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,purchase_orders,9,status,text,text,NO,'DRAFT'::text,NO,null
+public,purchase_orders,10,notes,text,text,YES,null,NO,null
+public,purchase_orders,11,currency_code,text,text,NO,'ARS'::text,NO,null
+public,purchase_orders,12,exchange_rate,numeric,numeric,NO,1,NO,null
+public,purchase_orders,13,subtotal,numeric,numeric,NO,0,NO,null
+public,purchase_orders,14,discount_amount,numeric,numeric,NO,0,NO,null
+public,purchase_orders,15,shipping_amount,numeric,numeric,NO,0,NO,null
+public,purchase_orders,16,tax_amount,numeric,numeric,NO,0,NO,null
+public,purchase_orders,17,total,numeric,numeric,NO,0,NO,null
+public,suppliers,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,suppliers,2,user_id,uuid,uuid,NO,null,NO,null
+public,suppliers,3,name,text,text,NO,null,NO,null
+public,suppliers,4,phone,text,text,YES,null,NO,null
+public,suppliers,5,email,text,text,YES,null,NO,null
+public,suppliers,6,contact_name,text,text,YES,null,NO,null
+public,suppliers,7,notes,text,text,YES,null,NO,null
+public,suppliers,8,is_active,boolean,bool,NO,true,NO,null
+public,suppliers,9,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,suppliers,10,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,v_inventory_stock_by_product,1,user_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_product,2,product_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_product,3,warehouse_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_product,4,point_of_sale_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_product,5,stock_qty,numeric,numeric,YES,null,NO,null
+public,v_inventory_stock_by_variant,1,user_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_variant,2,product_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_variant,3,variant_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_variant,4,warehouse_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_variant,5,point_of_sale_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_variant,6,stock_qty,numeric,numeric,YES,null,NO,null
+public,v_order_payment_summary,1,order_id,uuid,uuid,YES,null,NO,null
+public,v_order_payment_summary,2,user_id,uuid,uuid,YES,null,NO,null
+public,v_order_payment_summary,3,order_number,bigint,int8,YES,null,NO,null
+public,v_order_payment_summary,4,order_total,numeric,numeric,YES,null,NO,null
+public,v_order_payment_summary,5,allocated_paid_amount,numeric,numeric,YES,null,NO,null
+public,v_order_payment_summary,6,pending_amount,numeric,numeric,YES,null,NO,null
+public,v_order_summary,1,id,uuid,uuid,YES,null,NO,null
+public,v_order_summary,2,user_id,uuid,uuid,YES,null,NO,null
+public,v_order_summary,3,order_number,bigint,int8,YES,null,NO,null
+public,v_order_summary,4,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,v_order_summary,5,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,v_order_summary,6,customer_id,uuid,uuid,YES,null,NO,null
+public,v_order_summary,7,customer_name,text,text,YES,null,NO,null
+public,v_order_summary,8,order_status,text,text,YES,null,NO,null
+public,v_order_summary,9,payment_status,text,text,YES,null,NO,null
+public,v_order_summary,10,currency_code,text,text,YES,null,NO,null
+public,v_order_summary,11,subtotal,numeric,numeric,YES,null,NO,null
+public,v_order_summary,12,discount_amount,numeric,numeric,YES,null,NO,null
+public,v_order_summary,13,shipping_amount,numeric,numeric,YES,null,NO,null
+public,v_order_summary,14,tax_amount,numeric,numeric,YES,null,NO,null
+public,v_order_summary,15,grand_total,numeric,numeric,YES,null,NO,null
+public,v_order_summary,16,total,numeric,numeric,YES,null,NO,null
+public,v_order_summary,17,point_of_sale_id,uuid,uuid,YES,null,NO,null
+public,v_order_summary,18,warehouse_id,uuid,uuid,YES,null,NO,null
+public,v_sales_by_day,1,user_id,uuid,uuid,YES,null,NO,null
+public,v_sales_by_day,2,sales_day,timestamp with time zone,timestamptz,YES,null,NO,null
+public,v_sales_by_day,3,orders_count,bigint,int8,YES,null,NO,null
+public,v_sales_by_day,4,total_sales,numeric,numeric,YES,null,NO,null
+public,v_sales_by_product,1,user_id,uuid,uuid,YES,null,NO,null
+public,v_sales_by_product,2,product_id,uuid,uuid,YES,null,NO,null
+public,v_sales_by_product,3,variant_id,uuid,uuid,YES,null,NO,null
+public,v_sales_by_product,4,product_name,text,text,YES,null,NO,null
+public,v_sales_by_product,5,variant_name_snapshot,text,text,YES,null,NO,null
+public,v_sales_by_product,6,qty_sold,bigint,int8,YES,null,NO,null
+public,v_sales_by_product,7,gross_sales,numeric,numeric,YES,null,NO,null
+public,warehouses,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,warehouses,2,user_id,uuid,uuid,NO,null,NO,null
+public,warehouses,3,name,text,text,NO,null,NO,null
+public,warehouses,4,code,text,text,YES,null,NO,null
+public,warehouses,5,description,text,text,YES,null,NO,null
+public,warehouses,6,is_active,boolean,bool,NO,true,NO,null
+public,warehouses,7,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,warehouses,8,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null

@@ -1,0 +1,17 @@
+schema_name,table_name,rls_enabled,rls_forced
+public,cash_movements,true,false
+public,categories,true,false
+public,customers,true,false
+public,inventory_movements,true,false
+public,order_items,true,false
+public,orders,true,false
+public,payment_allocations,true,false
+public,payments,true,false
+public,points_of_sale,true,false
+public,product_variants,true,false
+public,products,true,false
+public,profiles,true,false
+public,purchase_order_items,true,false
+public,purchase_orders,true,false
+public,suppliers,true,false
+public,warehouses,true,false
