@@ -59,10 +59,13 @@
   <script type="module">
     import { requireAuth } from "/js/auth.js";
     import { initAppShell } from "/js/app-shell.js";
-    import { getMyOrders, getPendingPaymentsCount } from "/js/orders-service.js";
+    import * as ordersService from "/js/orders-service.js";
     import { statusLabel } from "/js/order-status.js";
     import { orderStatusBadgeClass, paymentStatusBadgeClass } from "/js/status-ui.js";
     import { showToast } from "/js/toast.js";
+
+    const getMyOrders = ordersService.getMyOrders;
+    const getPendingPaymentsCount = ordersService.getPendingPaymentsCount;
 
     const session = await requireAuth();
     if (!session) throw new Error("Redirect login");
@@ -142,7 +145,9 @@
       const revenueToday = todayOrders.reduce((sum, o) => sum + Number(o.total ?? 0), 0);
       const avgTicket = todayOrders.length ? (revenueToday / todayOrders.length) : 0;
       const pendingDeliveries = openOrders.length;
-      const pendingPayments = await getPendingPaymentsCount();
+      const pendingPayments = typeof getPendingPaymentsCount === "function"
+        ? await getPendingPaymentsCount()
+        : orders.filter((o) => !["PAGADO", "CANCELADO"].includes(String(o.payment_status ?? ""))).length;
 
       kpiOrdersTodayEl.textContent = String(todayOrders.length);
       kpiRevenueTodayEl.textContent = `$ ${fmtMoney(revenueToday)}`;

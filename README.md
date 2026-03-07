@@ -1,11 +1,11 @@
-ï»¿# JYPTrendApp
+# JYPTrendApp
 
 App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `public/` que consume Supabase (Auth, Postgres y Storage) sin build step.
 
 ## Resumen ejecutivo
 
 - Estado actual: funcional para operacion diaria (catalogo, carrito, checkout, pedidos, clientes, productos, PWA basica).
-- Version de app en repo: `v1.0.40` (`public/version.json`, fecha `2026-03-07`).
+- Version de app en repo: `v1.0.41` (`public/version.json`, fecha `2026-03-07`).
 - Arquitectura: HTML + JS modular + Tailwind CDN + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Riesgo principal: configuracion hardcodeada de Supabase (sin estrategia formal multiambiente en frontend).
@@ -102,7 +102,7 @@ README.md
   - Migra clientes desde `orders.customer_name/customer_phone`.
 - `database/2026-03-07_enforce_canonical_statuses.sql`:
   - Normaliza estados legacy en `orders.order_status`, `orders.payment_status` y `payments.payment_status`.
-  - Endurece constraints para permitir solo valores canÃ³nicos:
+  - Endurece constraints para permitir solo valores canónicos:
     - `order_status`: `NUEVO | CONFIRMADO | ENVIADO | ENTREGADO | CANCELADO`
     - `payment_status`: `PENDIENTE | PARCIAL | PAGADO | FALLIDO | CANCELADO`
 
@@ -119,7 +119,7 @@ Nota: en este repo no hay migraciones de RLS para `orders`, `order_items`, `prod
 
 ## Decisiones tecnicas relevantes
 
-- `order-service.js` y `orders-service.js` operan contra el esquema canÃ³nico (sin fallbacks legacy).
+- `order-service.js` y `orders-service.js` operan contra el esquema canónico (sin fallbacks legacy).
 - La UI usa estados alineados con el contrato final:
   - `order_status`: `NUEVO`, `CONFIRMADO`, `ENVIADO`, `ENTREGADO`, `CANCELADO`
   - `payment_status`: `PENDIENTE`, `PARCIAL`, `PAGADO`, `FALLIDO`, `CANCELADO`
@@ -175,3 +175,4 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 4. Agregar manejo de errores de red/reintentos en checkout y cambios de estado.
 5. Instrumentar analitica operativa (conversion checkout, tiempos por estado).
 6. Introducir suite minima de tests + CI.
+
