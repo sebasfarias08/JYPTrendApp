@@ -41,6 +41,11 @@ function redirectToLogin() {
   location.href = `${DEFAULT_LOGIN_PATH}?next=${next}`;
 }
 
+function isSessionMissingError(error) {
+  const message = String(error?.message ?? "");
+  return error?.name === "AuthSessionMissingError" || message.includes("Auth session missing");
+}
+
 export function clearAuthCache() {
   cachedProfile = null;
   cachedProfileUserId = null;
@@ -69,17 +74,25 @@ export async function getSession() {
   return data?.session ?? null;
 }
 
-export async function getCurrentUser() {
+export async function getCurrentUser(session = null) {
+  const sessionUser = session?.user ?? null;
+  if (sessionUser?.id) return sessionUser;
+
+  const currentSession = await getSession();
+  if (!currentSession?.user?.id) return null;
+
   const { data, error } = await fetchUser();
   if (error) {
-    console.error("getCurrentUser error:", error);
+    if (!isSessionMissingError(error)) {
+      console.error("getCurrentUser error:", error);
+    }
     return null;
   }
   return data?.user ?? null;
 }
 
-export async function getCurrentProfile(forceReload = false) {
-  const user = await getCurrentUser();
+export async function getCurrentProfile(forceReload = false, session = null) {
+  const user = await getCurrentUser(session);
   if (!user?.id) {
     clearAuthCache();
     return null;
@@ -116,7 +129,7 @@ export async function requireAuth() {
     return null;
   }
 
-  const profile = await getCurrentProfile();
+  const profile = await getCurrentProfile(false, session);
   if (!profile || profile.is_active === false) {
     await signOut();
     redirectToLogin();
