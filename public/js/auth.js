@@ -1,10 +1,16 @@
 // public/js/auth.js
 import {
+  fetchCurrentProfile,
   fetchSession,
+  fetchUser,
   signInWithGoogleOAuth,
   signOutSession,
   subscribeAuthChange
 } from "./services/auth-service.js";
+
+const DEFAULT_LOGIN_PATH = "/pages/login.html";
+let cachedProfile = null;
+let cachedProfileUserId = null;
 
 function sanitizeInternalPath(value, fallback = "/pages/home.html") {
   const raw = String(value || "").trim();
@@ -30,18 +36,31 @@ function readAuthNext() {
   }
 }
 
+function redirectToLogin() {
+  const next = encodeURIComponent(location.pathname + location.search);
+  location.href = `${DEFAULT_LOGIN_PATH}?next=${next}`;
+}
+
+export function clearAuthCache() {
+  cachedProfile = null;
+  cachedProfileUserId = null;
+}
+
 export async function signInWithGoogle() {
   const next = readAuthNext();
   const redirectTo = `${location.origin}/pages/auth-callback.html${next ? `?next=${encodeURIComponent(next)}` : ""}`;
-  
-  const { error } = await signInWithGoogleOAuth(redirectTo);
 
-  if (error) console.error("Google sign-in error:", error);
+  const { error } = await signInWithGoogleOAuth(redirectTo);
+  if (error) {
+    console.error("Google sign-in error:", error);
+    throw error;
+  }
 }
 
 export async function signOut() {
   const { error } = await signOutSession();
   if (error) console.error("Sign out error:", error);
+  clearAuthCache();
 }
 
 export async function getSession() {
@@ -50,18 +69,76 @@ export async function getSession() {
   return data?.session ?? null;
 }
 
-export function onAuthChange(callback) {
-  return subscribeAuthChange(callback);
+export async function getCurrentUser() {
+  const { data, error } = await fetchUser();
+  if (error) {
+    console.error("getCurrentUser error:", error);
+    return null;
+  }
+  return data?.user ?? null;
 }
 
-// Guard para páginas protegidas
+export async function getCurrentProfile(forceReload = false) {
+  const user = await getCurrentUser();
+  if (!user?.id) {
+    clearAuthCache();
+    return null;
+  }
+
+  if (!forceReload && cachedProfile && cachedProfileUserId === user.id) {
+    return cachedProfile;
+  }
+
+  const { data, error } = await fetchCurrentProfile();
+  if (error) {
+    console.error("getCurrentProfile error:", error);
+    clearAuthCache();
+    return null;
+  }
+
+  cachedProfile = data ?? null;
+  cachedProfileUserId = user.id;
+  return cachedProfile;
+}
+
+export function onAuthChange(callback) {
+  return subscribeAuthChange((session) => {
+    if (!session) clearAuthCache();
+    callback(session);
+  });
+}
+
+// Guard para paginas protegidas
 export async function requireAuth() {
   const session = await getSession();
   if (!session) {
-    // guardamos a dónde quería ir
-    const next = encodeURIComponent(location.pathname + location.search);
-    location.href = `/pages/login.html?next=${next}`;
+    redirectToLogin();
     return null;
   }
-  return session;
+
+  const profile = await getCurrentProfile();
+  if (!profile || profile.is_active === false) {
+    await signOut();
+    redirectToLogin();
+    return null;
+  }
+
+  // Backward-compatible return: existing pages can still use session.user.id
+  return { ...session, session, profile };
+}
+
+export async function requireRole(roles = []) {
+  const authState = await requireAuth();
+  if (!authState) return null;
+
+  const allowed = Array.isArray(roles) ? roles : [roles];
+  if (!allowed.length) return authState;
+
+  const role = authState.profile?.role ?? "";
+  if (!allowed.includes(role)) {
+    location.replace("/pages/home.html");
+    return null;
+  }
+
+  return authState;
 }

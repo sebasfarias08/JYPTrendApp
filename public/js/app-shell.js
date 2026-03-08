@@ -1,4 +1,6 @@
 // public/js/app-shell.js
+import { getCurrentProfile, getCurrentUser, signOut } from "./auth.js";
+
 const TAB_LINKS = {
   home: "/pages/home.html",
   botellas: "/index.html?tab=botellas",
@@ -7,17 +9,37 @@ const TAB_LINKS = {
   outlet: "/index.html?tab=outlet"
 };
 
-const MENU_ITEMS = [
-  { label: "Home", href: "/pages/home.html", icon: "home" },
-  { label: "Catalogo", href: "/index.html?tab=perfumes", icon: "list" },
-  { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history" },
-  { label: "Clientes", href: "/pages/clientes.html", icon: "users" },
-  { label: "Productos", href: "/pages/productos.html", icon: "inventory" },
-  { label: "Parametros", href: null, icon: "settings" },
-  { label: "Inventario", href: null, icon: "inventory" },
-  { label: "About", href: "/pages/about.html", icon: "info" },
-  { label: "Salir", href: null, icon: "logout", action: "logout" }
-];
+const MENU_ITEMS_BY_ROLE = {
+  admin: [
+    { label: "Home", href: "/pages/home.html", icon: "home" },
+    { label: "Catalogo", href: "/index.html?tab=perfumes", icon: "list" },
+    { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history" },
+    { label: "Clientes", href: "/pages/clientes.html", icon: "users" },
+    { label: "Productos", href: "/pages/productos.html", icon: "inventory" },
+    { label: "Parametros", href: null, icon: "settings" },
+    { label: "Inventario", href: null, icon: "inventory" },
+    { label: "About", href: "/pages/about.html", icon: "info" },
+    { label: "Salir", href: null, icon: "logout", action: "logout" }
+  ],
+  seller: [
+    { label: "Home", href: "/pages/home.html", icon: "home" },
+    { label: "Catalogo", href: "/index.html?tab=perfumes", icon: "list" },
+    { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history" },
+    { label: "Clientes", href: "/pages/clientes.html", icon: "users" },
+    { label: "About", href: "/pages/about.html", icon: "info" },
+    { label: "Salir", href: null, icon: "logout", action: "logout" }
+  ],
+  viewer: [
+    { label: "Home", href: "/pages/home.html", icon: "home" },
+    { label: "Catalogo", href: "/index.html?tab=perfumes", icon: "list" },
+    { label: "About", href: "/pages/about.html", icon: "info" },
+    { label: "Salir", href: null, icon: "logout", action: "logout" }
+  ]
+};
+
+function getRoleMenuItems(role) {
+  return MENU_ITEMS_BY_ROLE[role] ?? MENU_ITEMS_BY_ROLE.viewer;
+}
 
 function iconSvg(name) {
   const icons = {
@@ -48,18 +70,17 @@ function renderIcon(name, sizeClass = "w-5 h-5") {
   return `<span class="flex items-center justify-center"><svg viewBox="0 0 24 24" class="${sizeClass} stroke-[1.8]" fill="none" stroke="currentColor" aria-hidden="true">${iconSvg(name)}</svg></span>`;
 }
 
-function getUserEmail() {
-  try {
-    const keys = Object.keys(localStorage).filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
-    for (const key of keys) {
-      const raw = localStorage.getItem(key);
-      if (!raw) continue;
-      const parsed = JSON.parse(raw);
-      const email = parsed?.currentSession?.user?.email || parsed?.user?.email;
-      if (email) return email;
-    }
-  } catch {}
-  return "usuario@jypventas";
+async function loadCurrentIdentity() {
+  const [user, profile] = await Promise.all([
+    getCurrentUser(),
+    getCurrentProfile()
+  ]);
+  return {
+    user,
+    profile,
+    email: profile?.email || user?.email || "usuario@jypventas",
+    role: profile?.role || "viewer"
+  };
 }
 
 function resolveActiveTab() {
@@ -157,7 +178,7 @@ function renderShell({ title }) {
   `;
 }
 
-function createMenuDrawer() {
+function createMenuDrawer({ userEmail, role }) {
   let overlay = document.getElementById("appShellMenuOverlay");
   if (overlay) return overlay;
 
@@ -181,7 +202,7 @@ function createMenuDrawer() {
     <div class="border-t divider px-4 py-3">
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 rounded-full bg-primary text-inverse text-sm font-semibold inline-flex items-center justify-center">S</div>
-        <div class="text-sm text-muted truncate">${getUserEmail()}</div>
+        <div class="text-sm text-muted truncate">${userEmail}</div>
       </div>
     </div>
   `;
@@ -190,8 +211,10 @@ function createMenuDrawer() {
   document.body.appendChild(overlay);
 
   const list = panel.querySelector("#appShellMenuList");
-  MENU_ITEMS.forEach((item, index) => {
-    if (index === 3 || index === 7) {
+  const menuItems = getRoleMenuItems(role);
+
+  menuItems.forEach((item) => {
+    if (item.label === "Clientes" || item.label === "About") {
       const divider = document.createElement("div");
       divider.className = "my-2 border-t divider";
       list.appendChild(divider);
@@ -213,7 +236,6 @@ function createMenuDrawer() {
       btn.addEventListener("click", async () => {
         if (item.action === "logout") {
           try {
-            const { signOut } = await import("/js/auth.js");
             await signOut();
           } catch (e) {
             console.error("Logout error:", e);
@@ -271,7 +293,16 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
   const searchWrap = document.getElementById("appShellSearchWrap");
   const searchInput = document.getElementById("appShellSearchInput");
 
-  const menuOverlay = createMenuDrawer();
+  let menuOverlay = null;
+
+  loadCurrentIdentity()
+    .then(({ email, role }) => {
+      menuOverlay = createMenuDrawer({ userEmail: email, role });
+    })
+    .catch((error) => {
+      console.error("App shell identity error:", error);
+      menuOverlay = createMenuDrawer({ userEmail: "usuario@jypventas", role: "viewer" });
+    });
 
   if (btnAdd) {
     btnAdd.setAttribute("aria-label", "Ver pedido");
@@ -283,6 +314,7 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
   }
 
   btnMenu?.addEventListener("click", () => {
+    if (!menuOverlay) return;
     menuOverlay.classList.remove("hidden");
   });
 

@@ -14,7 +14,7 @@
   <header id="appShellTop"></header>
 
   <main class="flex-1 overflow-y-auto p-4 pb-[calc(env(safe-area-inset-bottom)+7rem)]">
-    <div class="card p-4">Ingresando...</div>
+    <div id="authStatus" class="card p-4">Ingresando...</div>
   </main>
 
   <nav id="appShellBottom"></nav>
@@ -53,25 +53,42 @@
       location.replace(url);
     };
 
+    const statusEl = document.getElementById("authStatus");
+    statusEl.textContent = "Validando sesion...";
+
+    async function waitForSession(maxMs = 10000, stepMs = 400) {
+      const deadline = Date.now() + maxMs;
+      while (Date.now() < deadline) {
+        const s = await getSession();
+        if (s) return s;
+        await new Promise((resolve) => setTimeout(resolve, stepMs));
+      }
+      return null;
+    }
+
+    let authSubscription = null;
+    const authListener = onAuthChange((session) => {
+      if (session) {
+        authSubscription?.unsubscribe();
+        navigateOnce(target);
+      }
+    });
+    authSubscription = authListener?.data?.subscription ?? null;
+
     const currentSession = await getSession();
     if (currentSession) {
+      authSubscription?.unsubscribe();
       navigateOnce(target);
     } else {
-      const { data: sub } = onAuthChange((session) => {
-        if (session) {
-          sub.subscription.unsubscribe();
-          navigateOnce(target);
-        }
-      });
-
       fallbackTimer = setTimeout(async () => {
-        const retrySession = await getSession();
+        const retrySession = await waitForSession(3000, 300);
+        authSubscription?.unsubscribe();
         if (retrySession) {
           navigateOnce(target);
           return;
         }
         navigateOnce(`/pages/login.html?next=${encodeURIComponent(target)}`);
-      }, 10000);
+      }, 7000);
     }
   </script>
 </body>

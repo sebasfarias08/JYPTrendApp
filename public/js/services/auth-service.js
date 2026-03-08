@@ -19,6 +19,13 @@ export async function fetchUser() {
   return supabase.auth.getUser();
 }
 
+export async function fetchCurrentProfile() {
+  return supabase
+    .from("profiles")
+    .select("*")
+    .single();
+}
+
 export function subscribeAuthChange(callback) {
   return supabase.auth.onAuthStateChange((_event, session) => {
     callback(session ?? null);
