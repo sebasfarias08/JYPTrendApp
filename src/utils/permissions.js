@@ -41,3 +41,8 @@ export function canViewReports(role) {
   const normalized = normalizeRole(role);
   return normalized === ROLES.ADMIN || normalized === ROLES.SELLER;
 }
+
+export function canAccessCatalogRoute(pathname) {
+  const path = String(pathname || "").toLowerCase();
+  return path === "/" || path === "/index.html" || path === "/pages/producto.html";
+}

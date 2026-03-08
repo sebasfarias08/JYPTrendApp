@@ -7,7 +7,7 @@ import {
   signOutSession,
   subscribeAuthChange
 } from "./services/auth-service.js";
-import { normalizeRole, ROLES } from "./utils/permissions.js";
+import { canAccessCatalogRoute, normalizeRole, ROLES } from "./utils/permissions.js";
 
 const DEFAULT_LOGIN_PATH = "/pages/login.html";
 let cachedProfile = null;
@@ -158,6 +158,12 @@ export async function requireAuth() {
   if (!profile || profile.is_active === false) {
     await signOut();
     redirectToLogin();
+    return null;
+  }
+
+  const role = normalizeRole(profile.role);
+  if (role === ROLES.VIEWER && !canAccessCatalogRoute(location.pathname)) {
+    location.replace("/index.html?tab=perfumes");
     return null;
   }
 

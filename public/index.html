@@ -40,6 +40,7 @@
     import { getImageUrl } from "/js/image.js";
     import { addToCart, getCart } from "/js/cart.js";
     import { initAppShell } from "/js/app-shell.js";
+    import { normalizeRole, ROLES } from "/js/utils/permissions.js";
 
     let searchInputEl = null;
     const listEl = document.getElementById("list");
@@ -59,7 +60,7 @@
     let pendingReg = null;
     const tabFromUrl = new URLSearchParams(location.search).get("tab");
     if (!tabFromUrl) {
-      location.replace("/pages/home.html");
+      location.replace("/index.html?tab=perfumes");
       await new Promise(() => {});
     }
     if (tabFromUrl && TABS[tabFromUrl]) {
@@ -232,7 +233,8 @@
         event.preventDefault();
         const value = btn.getAttribute("data-shell-tab") || "";
         if (value === "home") {
-          location.href = "/pages/home.html";
+          const role = normalizeRole(document.body.dataset.role || ROLES.VIEWER);
+          location.href = role === ROLES.VIEWER ? "/index.html?tab=perfumes" : "/pages/home.html";
           return;
         }
         selectedTab = value;
