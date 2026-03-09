@@ -25,27 +25,6 @@ function buildFormUrl({ id = "", mode = "" } = {}) {
   return `/pages/producto-form.html${qs ? `?${qs}` : ""}`;
 }
 
-function resolveVariantId(row) {
-  return row?.variant_id ?? row?.product_variant_id ?? row?.id ?? null;
-}
-
-function resolveVariantStockQty(row) {
-  const candidates = [
-    row?.stock,
-    row?.stock_qty,
-    row?.quantity,
-    row?.qty,
-    row?.current_stock
-  ];
-
-  for (const raw of candidates) {
-    const n = Number(raw);
-    if (Number.isFinite(n)) return n;
-  }
-
-  return 0;
-}
-
 function variantPriceSummary(activeVariants) {
   const prices = activeVariants
     .map((v) => Number(v.sale_price))
@@ -121,7 +100,7 @@ export function initProductsPage() {
         <article class="card p-3">
           <div class="mb-2 text-xs text-muted">
             Variantes activas: <span class="font-semibold">${activeVariants.length}</span>
-            ${labels.length ? ` · ${labels.join(" · ")}` : ""}
+            ${labels.length ? ` | ${labels.join(" | ")}` : ""}
           </div>
           <div class="flex items-start gap-3">
             <img
@@ -184,9 +163,9 @@ export function initProductsPage() {
     rows = products;
     stockByVariantId.clear();
     for (const row of stockRows ?? []) {
-      const variantId = resolveVariantId(row);
+      const variantId = row?.variant_id ?? null;
       if (!variantId) continue;
-      stockByVariantId.set(variantId, resolveVariantStockQty(row));
+      stockByVariantId.set(variantId, Number(row?.stock_qty ?? 0));
     }
 
     renderList();
