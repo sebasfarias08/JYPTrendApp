@@ -54,12 +54,6 @@ function paymentStatusButtonClass(status) {
   }
 }
 
-function nextStatus(list, current) {
-  const idx = list.indexOf(current);
-  if (idx < 0) return list[0];
-  return list[(idx + 1) % list.length];
-}
-
 function getCustomerModel(order) {
   const customerRow = order.customers || {};
   const name = order.customer_name_snapshot || order.customer_name || customerRow.full_name || "Cliente sin nombre";
@@ -193,7 +187,7 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
         <article class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
           <div class="flex items-center justify-between gap-2">
             <h2 class="text-sm font-semibold text-slate-900">Order Summary</h2>
-            <span class="text-xs text-slate-500 text-right">${escapeHtml(orderRef)} • ${escapeHtml(dateFmt.format(createdAt))}</span>
+            <span class="text-xs text-slate-500 text-right">${escapeHtml(orderRef)} &bull; ${escapeHtml(dateFmt.format(createdAt))}</span>
           </div>
           <div>${itemsHtml}</div>
         </article>
@@ -227,13 +221,23 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
         </article>
 
         <div class="grid grid-cols-2 gap-3 pt-1 pb-2">
-          <button id="btnOrderStatus" type="button" aria-label="Cambiar estado del pedido" class="h-12 rounded-xl text-white text-sm font-semibold inline-flex items-center justify-center gap-2 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${orderStatusButtonClass(order.order_status)}">
-            <span>Status Order: ${escapeHtml(statusLabel(order.order_status || "NUEVO"))}</span>
-          </button>
+          <div class="space-y-2">
+            <button id="btnOrderStatus" type="button" aria-label="Cambiar estado del pedido" class="w-full h-12 rounded-xl text-white text-sm font-semibold inline-flex items-center justify-center gap-2 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${orderStatusButtonClass(order.order_status)}">
+              <span>Status Order: ${escapeHtml(statusLabel(order.order_status || "NUEVO"))}</span>
+            </button>
+            <select id="orderStatusMenu" class="hidden input text-sm w-full">
+              ${ORDER_STATUS.map((status) => `<option value="${status}" ${status === order.order_status ? "selected" : ""}>${escapeHtml(statusLabel(status))}</option>`).join("")}
+            </select>
+          </div>
 
-          <button id="btnPaymentStatus" type="button" aria-label="Cambiar estado de pago" class="h-12 rounded-xl text-white text-sm font-semibold inline-flex items-center justify-center gap-2 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${paymentStatusButtonClass(order.payment_status)}">
-            <span>Payment: ${escapeHtml(statusLabel(order.payment_status || "PENDIENTE"))}</span>
-          </button>
+          <div class="space-y-2">
+            <button id="btnPaymentStatus" type="button" aria-label="Cambiar estado de pago" class="w-full h-12 rounded-xl text-white text-sm font-semibold inline-flex items-center justify-center gap-2 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${paymentStatusButtonClass(order.payment_status)}">
+              <span>Payment: ${escapeHtml(statusLabel(order.payment_status || "PENDIENTE"))}</span>
+            </button>
+            <select id="paymentStatusMenu" class="hidden input text-sm w-full">
+              ${PAYMENT_STATUS.map((status) => `<option value="${status}" ${status === order.payment_status ? "selected" : ""}>${escapeHtml(statusLabel(status))}</option>`).join("")}
+            </select>
+          </div>
         </div>
       </section>
     `;
@@ -241,6 +245,8 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
     const btnBack = document.getElementById("btnBack");
     const btnOrderStatus = document.getElementById("btnOrderStatus");
     const btnPaymentStatus = document.getElementById("btnPaymentStatus");
+    const orderStatusMenu = document.getElementById("orderStatusMenu");
+    const paymentStatusMenu = document.getElementById("paymentStatusMenu");
 
     btnBack?.addEventListener("click", () => {
       if (window.history.length > 1) {
@@ -250,11 +256,25 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
       location.href = "/pages/pedidos.html";
     });
 
-    btnOrderStatus?.addEventListener("click", async () => {
-      const current = String(order.order_status || "NUEVO");
-      const next = nextStatus(ORDER_STATUS, current);
+    btnOrderStatus?.addEventListener("click", () => {
+      orderStatusMenu?.classList.toggle("hidden");
+      paymentStatusMenu?.classList.add("hidden");
+    });
+
+    btnPaymentStatus?.addEventListener("click", () => {
+      paymentStatusMenu?.classList.toggle("hidden");
+      orderStatusMenu?.classList.add("hidden");
+    });
+
+    orderStatusMenu?.addEventListener("change", async () => {
+      const next = String(orderStatusMenu.value || order.order_status || "NUEVO");
+      if (next === order.order_status) {
+        orderStatusMenu.classList.add("hidden");
+        return;
+      }
 
       btnOrderStatus.disabled = true;
+      orderStatusMenu.disabled = true;
       try {
         await updateOrderStatus(order.id, next);
         order.order_status = next;
@@ -264,14 +284,19 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
         console.error(error);
         showToast("No se pudo actualizar el estado del pedido", { type: "error", duration: 2000 });
         btnOrderStatus.disabled = false;
+        orderStatusMenu.disabled = false;
       }
     });
 
-    btnPaymentStatus?.addEventListener("click", async () => {
-      const current = String(order.payment_status || "PENDIENTE");
-      const next = nextStatus(PAYMENT_STATUS, current);
+    paymentStatusMenu?.addEventListener("change", async () => {
+      const next = String(paymentStatusMenu.value || order.payment_status || "PENDIENTE");
+      if (next === order.payment_status) {
+        paymentStatusMenu.classList.add("hidden");
+        return;
+      }
 
       btnPaymentStatus.disabled = true;
+      paymentStatusMenu.disabled = true;
       try {
         await updatePaymentStatus(order.id, next);
         order.payment_status = next;
@@ -281,6 +306,7 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
         console.error(error);
         showToast("No se pudo actualizar el estado de pago", { type: "error", duration: 2000 });
         btnPaymentStatus.disabled = false;
+        paymentStatusMenu.disabled = false;
       }
     });
   }
@@ -295,4 +321,3 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
 
   renderOrderDetail(order);
 }
-

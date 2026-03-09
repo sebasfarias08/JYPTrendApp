@@ -1,11 +1,11 @@
-﻿# JYPTrendApp
+# JYPTrendApp
 
 App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `public/` que consume Supabase (Auth, Postgres y Storage) sin build step.
 
 ## Resumen ejecutivo
 
 - Estado actual: funcional para operacion diaria (catalogo, carrito, checkout, pedidos, clientes, productos, PWA basica).
-- Version de app en repo: `v1.0.50` (`public/version.json`, fecha `2026-03-09`).
+- Version de app en repo: `v1.0.51` (`public/version.json`, fecha `2026-03-09`).
 - Arquitectura: HTML + JS modular + Tailwind CDN + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Fuente de verdad backend: `docs/supabase-architecture-final.md`.
@@ -155,3 +155,4 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 2. Consolidar y remover wrappers/archivos legacy no usados (`public/js/supabase-client.js`) cuando sea seguro.
 3. Expandir uso de views para dashboards y reportes.
 4. Agregar tests de servicios Supabase criticos (auth, pedidos, stock).
+
