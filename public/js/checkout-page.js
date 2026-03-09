@@ -317,6 +317,7 @@ export function initCheckoutPage(session) {
     render();
     showToast(`Pedido enviado (${formatOrderRef({ id: res.order_id, order_number: res.order_number })})`, { type: "success", duration: 3200 });
     setSubmitState(false);
+    location.href = "/pages/pedidos.html";
   }
 
   btnSubmit?.addEventListener("click", submitOrder);

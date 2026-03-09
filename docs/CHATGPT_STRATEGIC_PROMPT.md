@@ -1,4 +1,4 @@
-﻿# Prompt maestro para ChatGPT (estrategia de JYPTrendApp)
+# Prompt maestro para ChatGPT (estrategia de JYPTrendApp)
 
 Usa este prompt completo en un chat nuevo para que ChatGPT entienda el proyecto y te ayude desde la parte estrategica.
 
@@ -16,7 +16,7 @@ Contexto del proyecto:
   - Catalogo por categorias/tabs.
   - Detalle de producto con compartir/copia/descarga.
   - Carrito en localStorage.
-  - Checkout con cliente obligatorio.
+  - Reserva con cliente obligatorio.
   - ABM de clientes.
   - ABM de productos.
   - Historial y detalle de pedidos con cambio de estado de pedido/pago.
@@ -80,3 +80,4 @@ Entregame la respuesta en español, con formato claro y orientado a ejecución.
 - Si quieres foco comercial, agrega al prompt: `Prioriza conversion, ticket promedio y retencion de clientes B2B`.
 - Si quieres foco tecnico, agrega: `Prioriza seguridad, calidad de datos y reduccion de deuda tecnica`.
 - Si quieres foco operativo, agrega: `Prioriza velocidad de vendedor en calle y tolerancia a mala conectividad`.
+
