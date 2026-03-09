@@ -1,14 +1,14 @@
-# JYPTrendApp
+﻿# JYPTrendApp
 
 App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `public/` que consume Supabase (Auth, Postgres y Storage) sin build step.
 
 ## Resumen ejecutivo
 
 - Estado actual: funcional para operacion diaria (catalogo, carrito, checkout, pedidos, clientes, productos, PWA basica).
-- Version de app en repo: `v1.0.49` (`public/version.json`, fecha `2026-03-09`).
+- Version de app en repo: `v1.0.50` (`public/version.json`, fecha `2026-03-09`).
 - Arquitectura: HTML + JS modular + Tailwind CDN + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
-- Riesgo principal: configuracion hardcodeada de Supabase (sin estrategia formal multiambiente en frontend).
+- Fuente de verdad backend: `docs/supabase-architecture-final.md`.
 
 ## Stack y arquitectura
 
@@ -18,135 +18,118 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
   - Tailwind Play CDN (`public/js/vendor/tailwindcss-playcdn.js`).
   - JavaScript ES Modules sin empaquetador.
 - Backend:
-  - Supabase Postgres: tablas `products`, `categories`, `orders`, `order_items`, `customers`.
-  - Supabase Auth: login Google OAuth PKCE.
-  - Supabase Storage: bucket publico `catalog` para imagenes.
+  - Supabase Postgres (tablas + views + RLS).
+  - Supabase Auth (Google OAuth PKCE).
+  - Supabase Storage bucket publico `catalog` para imagenes.
 - Offline/PWA:
   - `manifest.webmanifest`.
-  - Service Worker `public/sw.js` (cache estatico + runtime).
+  - Service Worker `public/sw.js`.
   - Registro/upgrade controlado en `public/js/sw-register.js`.
 - Persistencia local:
   - Carrito en `localStorage` (`jyp_cart_v1`).
   - `auth_next` para redireccion post-login.
 
-## Estructura del repo
+## Estructura clave del frontend
 
 ```text
-database/
-  2026-02-19_add_order_number.sql
-  2026-02-20_customers_abm.sql
-  2026-03-07_enforce_canonical_statuses.sql
 public/
-  _headers
   index.html
-  manifest.webmanifest
   sw.js
   version.json
-  assets/icons/*
-  css/theme.css
-  js/*.js
+  js/
+    app-shell.js
+    auth.js
+    lib/
+      supabase-client.js
+    services/
+      auth-service.js
+      catalog-service.js
+      customers-service.js
+      order-service.js
+      orders-service.js
+      product-service.js
+      stock-service.js
+      storage-service.js
+    utils/
+      permissions.js
   pages/*.html
-README.md
 ```
 
-## Funcionalidad implementada
+Nota: existe `public/js/supabase-client.js` por compatibilidad legacy, pero el cliente activo y recomendado es `public/js/lib/supabase-client.js`.
 
-- Autenticacion:
-  - Login Google (`/pages/login.html`) y callback (`/pages/auth-callback.html`).
-  - Guard de sesion con `requireAuth()` en paginas privadas.
-- Catalogo:
-  - Listado por tabs (`botellas`, `perfumes`, `importados`, `outlet`) en `/index.html`.
-  - Busqueda por nombre.
-  - Agregado rapido al carrito.
-- Producto:
-  - Detalle (`/pages/producto.html`), compartir, copiar link, descargar imagen.
-  - Edicion rapida en modal.
-- Checkout:
-  - Gestion de cantidades y total.
-  - Cliente obligatorio (selector buscable, alta rapida de cliente).
-  - Creacion de pedido con items.
-- Pedidos:
-  - Listado con filtros (`/pages/pedidos.html`) por estado y busqueda.
-  - Detalle (`/pages/pedido-detalle.html`) con cambio de estado de pedido y pago.
-- Clientes (ABM):
-  - Listado, busqueda, baja/reactivacion.
-  - Alta/edicion con validaciones y mensajes de constraints.
-- Productos (ABM):
-  - Listado, busqueda, baja/reactivacion.
-  - Alta/edicion con categorias.
-- Home:
-  - KPIs simples diarios y pedidos recientes abiertos.
-- About:
-  - Diagnostico de version local SW vs version de servidor.
-  - Check de update y refresh forzado.
+## Integracion Supabase (estado actual)
 
-## Modelo de datos y migraciones
+- Cliente Supabase unico:
+  - `public/js/lib/supabase-client.js`
+- Consultas centralizadas:
+  - `public/js/services/*.js`
+- Autenticacion y perfil:
+  - `public/js/services/auth-service.js` consulta `profiles`.
+  - `public/js/auth.js` expone guardas de sesion y perfil.
+- Autorizacion por rol (fuente de verdad: `profiles.role`):
+  - `public/js/utils/permissions.js`
+  - Roles validos: `admin`, `seller`, `viewer`.
+  - Rol desconocido -> fallback seguro `viewer`.
 
-### Tablas usadas por frontend
+## Permisos de UI por rol
 
-- `products`: `id`, `name`, `description`, `price`, `image_path`, `active`, `category_id`, `created_at`.
-- `categories`: `id`, `name`, `slug`.
-- `orders`: `id`, `order_number`, `user_id`, `customer_id`, `order_status`, `payment_status`, `customer_name`, `customer_phone`, `notes`, `total`, `created_at`.
-- `order_items`: `order_id`, `product_id`, `qty`, `unit_price`, `subtotal`.
-- `customers`: `id`, `user_id`, `full_name`, `phone`, `email`, `notes`, `is_active`, `created_at`, `updated_at`.
+- `admin`:
+  - acceso completo a menu y operaciones.
+- `seller`:
+  - operaciones comerciales (pedidos/pagos) sin funciones admin.
+- `viewer`:
+  - acceso restringido a catalogo (sin creacion de pedidos ni gestion).
 
-### SQL incluido en repo
+Las reglas se centralizan en helpers reutilizables:
+- `canManageUsers`
+- `canManageInventory`
+- `canCreateOrders`
+- `canRegisterPayments`
+- `canViewAdminPanel`
+- `canViewReports`
 
-- `database/2026-02-19_add_order_number.sql`:
-  - Agrega `orders.order_number`.
-  - Crea secuencia y unique index.
-  - Backfill para pedidos existentes.
-- `database/2026-02-20_customers_abm.sql`:
-  - Crea tabla `customers`, trigger `updated_at`, constraints y politicas RLS.
-  - Agrega `orders.customer_id` + FK a `customers`.
-  - Migra clientes desde `orders.customer_name/customer_phone`.
-- `database/2026-03-07_enforce_canonical_statuses.sql`:
-  - Normaliza estados legacy en `orders.order_status`, `orders.payment_status` y `payments.payment_status`.
-  - Endurece constraints para permitir solo valores can�nicos:
-    - `order_status`: `NUEVO | CONFIRMADO | ENVIADO | ENTREGADO | CANCELADO`
-    - `payment_status`: `PENDIENTE | PARCIAL | PAGADO | FALLIDO | CANCELADO`
+## Catalogo y stock real
 
-### RLS documentado (customers)
+- El catalogo no usa un campo de stock inventado en `products`.
+- Fuente de verdad de stock: `inventory_movements` via views.
+- Implementado en frontend:
+  - `public/js/services/stock-service.js` consulta `v_inventory_stock_by_product` y `v_inventory_stock_by_variant`.
+  - `public/js/services/catalog-service.js` enriquece productos con `stock_qty` real.
+  - `public/index.html` muestra stock y deshabilita agregar al carrito si no hay stock.
 
-Politicas creadas por migracion:
+## Modelo de datos relevante para frontend
 
-- `customers_select_own` -> `auth.uid() = user_id`
-- `customers_insert_own` -> `with check auth.uid() = user_id`
-- `customers_update_own` -> `using/with check auth.uid() = user_id`
-- `customers_delete_own` -> `auth.uid() = user_id`
+Tablas principales usadas:
+- `products`, `product_variants`, `categories`
+- `orders`, `order_items`
+- `customers`
+- `payments`, `payment_allocations`
+- `inventory_movements`
+- `profiles`
 
-Nota: en este repo no hay migraciones de RLS para `orders`, `order_items`, `products` y `categories`; deben existir en Supabase para aislamiento por usuario/rol segun estrategia de negocio.
+Views principales usadas/recomendadas:
+- `v_inventory_stock_by_product`
+- `v_inventory_stock_by_variant`
+- `v_order_summary`
+- `v_order_payment_summary`
+- `v_sales_by_day`
+- `v_sales_by_product`
+- `mv_sales_by_product` (materialized)
 
-## Decisiones tecnicas relevantes
+## SQL y migraciones en repo
 
-- `order-service.js` y `orders-service.js` operan contra el esquema can�nico (sin fallbacks legacy).
-- La UI usa estados alineados con el contrato final:
-  - `order_status`: `NUEVO`, `CONFIRMADO`, `ENVIADO`, `ENTREGADO`, `CANCELADO`
-  - `payment_status`: `PENDIENTE`, `PARCIAL`, `PAGADO`, `FALLIDO`, `CANCELADO`
-- Los subtotales/totales se respetan como responsabilidad de triggers DB.
+- `database/2026-02-19_add_order_number.sql`
+- `database/2026-02-20_customers_abm.sql`
+- `database/2026-03-07_enforce_canonical_statuses.sql`
+- `database/2026-03-07_fix_profiles_rls_recursion.sql`
 
-## Configuracion actual (hardcodeada)
+## Reglas de backend a respetar
 
-- `public/js/supabase-client.js`:
-  - `SUPABASE_URL`
-  - `SUPABASE_ANON_KEY`
-- `public/js/image.js`:
-  - `SUPABASE_PROJECT_ID`
-
-Recomendado: centralizar a `public/config.js` generado en deploy o inyectar via Pages Functions/Workers.
-
-## PWA y cache
-
-- `public/sw.js` usa:
-  - `CACHE_STATIC` versionado por `APP_VERSION`.
-  - `CACHE_RUNTIME` para html/imagenes/fetch runtime.
-- Mecanismo de update:
-  - Banner en shell cuando hay SW esperando.
-  - `SKIP_WAITING` al confirmar.
-  - Reload al tomar control (`controllerchange`).
-- Archivos de control:
-  - `public/version.json` para chequeo visual de version.
-  - `public/_headers` evita cache agresivo en `sw.js` y `manifest`.
+- No inventar tablas/columnas/relaciones/estados fuera de `docs/supabase-architecture-final.md`.
+- Usar `profiles.role` como capa de autorizacion.
+- Para reporting, priorizar views.
+- Para stock, usar `inventory_movements` o views de stock.
+- Respetar triggers de DB para subtotales/totales.
 
 ## Como ejecutar local
 
@@ -158,20 +141,17 @@ npx serve public
 
 o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 
-## Riesgos actuales y deuda tecnica
+## Riesgos / deuda tecnica
 
-1. Configuracion sensible hardcodeada en frontend.
-2. Falta de adopcion de vistas/materialized views para reporting de dashboards.
-3. Falta de testing automatizado (unitario/integracion/e2e).
-4. Sin pipeline de lint/format/quality gates.
-5. Sin documentacion de politicas RLS completas para todas las tablas operativas.
-6. Uso de Tailwind Play CDN en produccion (costo/performance y falta de purga).
+1. Configuracion de Supabase aun expuesta en frontend (anon key/public URL).
+2. Uso de Tailwind Play CDN en produccion.
+3. Cobertura de testing automatizado baja o inexistente.
+4. Falta CI con quality gates.
+5. Documentar y versionar todas las politicas RLS operativas en SQL del repo.
 
-## Backlog recomendado (prioridad)
+## Backlog recomendado
 
-1. Config runtime y rotacion de claves/proyectos por ambiente.
-2. Migrar consultas de analitica/dashboard hacia `v_order_summary`, `v_order_payment_summary`, `v_sales_by_day` y/o `mv_sales_by_product`.
-3. Definir y versionar migraciones/RLS completas (`orders`, `order_items`, `products`, `categories`).
-4. Agregar manejo de errores de red/reintentos en checkout y cambios de estado.
-5. Instrumentar analitica operativa (conversion checkout, tiempos por estado).
-6. Introducir suite minima de tests + CI.
+1. Migrar Tailwind CDN a build pipeline (CLI/PostCSS).
+2. Consolidar y remover wrappers/archivos legacy no usados (`public/js/supabase-client.js`) cuando sea seguro.
+3. Expandir uso de views para dashboards y reportes.
+4. Agregar tests de servicios Supabase criticos (auth, pedidos, stock).
