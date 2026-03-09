@@ -34,6 +34,21 @@ function summarizeError(err) {
   return msg;
 }
 
+function normalizeVariantDraft(v) {
+  return {
+    id: v?.id || null,
+    variant_name: String(v?.variant_name ?? "").trim(),
+    sku: String(v?.sku ?? "").trim(),
+    barcode: String(v?.barcode ?? "").trim(),
+    sale_price: v?.sale_price === "" || v?.sale_price == null ? "" : Number(v.sale_price),
+    active: v?.active !== false
+  };
+}
+
+function hasVariantData(v) {
+  return Boolean(v.variant_name || v.sku || v.barcode || v.sale_price !== "");
+}
+
 export function initProductFormPage() {
   const titleEl = document.getElementById("productFormTitle");
   const formEl = document.getElementById("productForm");
@@ -97,7 +112,7 @@ export function initProductFormPage() {
             <input class="input" data-variant-field="barcode" data-variant-index="${index}" value="${escapeHtml(v.barcode || "")}" />
           </div>
           <div>
-            <label class="text-xs text-muted block mb-1">Precio venta</label>
+            <label class="text-xs text-muted block mb-1">Precio venta variante</label>
             <input type="number" min="0" step="1" class="input" data-variant-field="sale_price" data-variant-index="${index}" value="${v.sale_price ?? ""}" />
           </div>
         </div>
@@ -119,7 +134,7 @@ export function initProductFormPage() {
     });
 
     variantsListEl.querySelectorAll("[data-variant-field]").forEach((input) => {
-      input.addEventListener("input", () => {
+      const sync = () => {
         const idx = Number(input.getAttribute("data-variant-index"));
         const field = input.getAttribute("data-variant-field");
         if (!Number.isInteger(idx) || !field || !variants[idx]) return;
@@ -130,15 +145,11 @@ export function initProductFormPage() {
         }
 
         variants[idx][field] = input.value;
-      });
+      };
 
+      input.addEventListener("input", sync);
       if (input.type === "checkbox") {
-        input.addEventListener("change", () => {
-          const idx = Number(input.getAttribute("data-variant-index"));
-          const field = input.getAttribute("data-variant-field");
-          if (!Number.isInteger(idx) || !field || !variants[idx]) return;
-          variants[idx][field] = Boolean(input.checked);
-        });
+        input.addEventListener("change", sync);
       }
     });
   }
@@ -159,15 +170,38 @@ export function initProductFormPage() {
     categoryEl.value = row.category_id || "";
     imagePathEl.value = row.image_path || "";
     descriptionEl.value = row.description || "";
-    variants = (Array.isArray(row.product_variants) ? row.product_variants : []).map((v) => ({
-      id: v.id,
-      variant_name: v.variant_name || "",
-      sku: v.sku || "",
-      barcode: v.barcode || "",
-      sale_price: v.sale_price ?? "",
-      active: v.active !== false
-    }));
+    variants = (Array.isArray(row.product_variants) ? row.product_variants : []).map((v) => normalizeVariantDraft(v));
     renderVariants();
+  }
+
+  function validateVariants() {
+    const normalized = variants.map(normalizeVariantDraft);
+    const withData = normalized.filter(hasVariantData);
+
+    for (const v of withData) {
+      if (!v.variant_name) {
+        showToast("Cada variante debe tener nombre.", { type: "warning" });
+        return null;
+      }
+      if (v.sale_price !== "" && (!Number.isFinite(Number(v.sale_price)) || Number(v.sale_price) < 0)) {
+        showToast("El precio de variante debe ser un numero mayor o igual a 0.", { type: "warning" });
+        return null;
+      }
+    }
+
+    const skus = withData
+      .map((v) => String(v.sku || "").trim().toLowerCase())
+      .filter(Boolean);
+    const skuSet = new Set();
+    for (const sku of skus) {
+      if (skuSet.has(sku)) {
+        showToast("No puede haber SKUs duplicados en el mismo producto.", { type: "warning" });
+        return null;
+      }
+      skuSet.add(sku);
+    }
+
+    return withData;
   }
 
   formEl.addEventListener("submit", async (event) => {
@@ -189,10 +223,13 @@ export function initProductFormPage() {
     }
 
     if (!Number.isFinite(payload.price) || payload.price < 0) {
-      showToast("El precio debe ser un numero mayor o igual a 0.", { type: "warning" });
+      showToast("El precio base debe ser un numero mayor o igual a 0.", { type: "warning" });
       priceEl.focus();
       return;
     }
+
+    const validatedVariants = validateVariants();
+    if (!validatedVariants) return;
 
     saving = true;
     btnSaveEl.disabled = true;
@@ -213,7 +250,7 @@ export function initProductFormPage() {
 
     const productId = isEdit ? id : res?.data?.id;
     if (productId) {
-      const variantsResult = await upsertVariants(productId, variants);
+      const variantsResult = await upsertVariants(productId, validatedVariants);
       if (!variantsResult?.ok) {
         showToast(summarizeError(variantsResult?.error), { type: "error", duration: 3000 });
         return;

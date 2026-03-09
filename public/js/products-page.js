@@ -1,4 +1,5 @@
 import { getProductsForAdmin, setProductActive } from "./product-service.js";
+import { getStockByVariant } from "./services/stock-service.js";
 import { getImageUrl } from "./image.js";
 import { showToast } from "./toast.js";
 
@@ -24,6 +25,40 @@ function buildFormUrl({ id = "", mode = "" } = {}) {
   return `/pages/producto-form.html${qs ? `?${qs}` : ""}`;
 }
 
+function resolveVariantId(row) {
+  return row?.variant_id ?? row?.product_variant_id ?? row?.id ?? null;
+}
+
+function resolveVariantStockQty(row) {
+  const candidates = [
+    row?.stock,
+    row?.stock_qty,
+    row?.quantity,
+    row?.qty,
+    row?.current_stock
+  ];
+
+  for (const raw of candidates) {
+    const n = Number(raw);
+    if (Number.isFinite(n)) return n;
+  }
+
+  return 0;
+}
+
+function variantPriceSummary(activeVariants) {
+  const prices = activeVariants
+    .map((v) => Number(v.sale_price))
+    .filter((n) => Number.isFinite(n));
+
+  if (!prices.length) return "Sin precio de variante";
+
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  if (min === max) return `$ ${formatArs(min)}`;
+  return `$ ${formatArs(min)} - $ ${formatArs(max)}`;
+}
+
 export function initProductsPage() {
   const listEl = document.getElementById("productsList");
   const emptyEl = document.getElementById("productsEmpty");
@@ -33,6 +68,14 @@ export function initProductsPage() {
   const btnNewEl = document.getElementById("btnNewProduct");
 
   let rows = [];
+  const stockByVariantId = new Map();
+
+  function getProductVariantStock(product) {
+    const variants = Array.isArray(product.product_variants) ? product.product_variants : [];
+    return variants
+      .filter((v) => v.active !== false)
+      .reduce((sum, v) => sum + Number(stockByVariantId.get(v.id) ?? 0), 0);
+  }
 
   function renderList() {
     const q = (searchEl.value || "").trim().toLowerCase();
@@ -72,6 +115,7 @@ export function initProductsPage() {
       const labels = activeVariants
         .slice(0, 3)
         .map((v) => escapeHtml(v.variant_name || v.sku || "Variante"));
+      const stockTotal = getProductVariantStock(p);
 
       return `
         <article class="card p-3">
@@ -87,7 +131,9 @@ export function initProductsPage() {
             />
             <div class="min-w-0 flex-1">
               <div class="font-semibold break-words">${escapeHtml(p.name)}</div>
-              <div class="text-sm text-muted">$ ${formatArs(p.price)}</div>
+              <div class="text-sm text-muted">Precio base: $ ${formatArs(p.price)}</div>
+              <div class="text-sm text-muted">Precio variantes: ${variantPriceSummary(activeVariants)}</div>
+              <div class="text-sm text-muted">Stock variantes: ${stockTotal}</div>
               <div class="text-sm text-muted">${escapeHtml(p.categories?.name || "Sin categoria")}</div>
               ${p.image_path ? `<div class="text-xs text-subtle mt-1 break-all">${escapeHtml(p.image_path)}</div>` : ""}
               <div class="mt-2">
@@ -130,7 +176,19 @@ export function initProductsPage() {
   }
 
   async function loadRows() {
-    rows = await getProductsForAdmin({ includeInactive: true });
+    const [products, stockRows] = await Promise.all([
+      getProductsForAdmin({ includeInactive: true }),
+      getStockByVariant()
+    ]);
+
+    rows = products;
+    stockByVariantId.clear();
+    for (const row of stockRows ?? []) {
+      const variantId = resolveVariantId(row);
+      if (!variantId) continue;
+      stockByVariantId.set(variantId, resolveVariantStockQty(row));
+    }
+
     renderList();
   }
 
