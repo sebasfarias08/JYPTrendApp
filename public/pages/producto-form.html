@@ -41,6 +41,15 @@
           <textarea id="productDescription" class="input" placeholder="Descripcion corta del producto"></textarea>
         </div>
 
+        <div class="pt-2 border-t divider">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-semibold">Variantes</h3>
+            <button id="btnAddVariant" type="button" class="btn btn-secondary text-sm">Agregar variante</button>
+          </div>
+          <div id="variantsList" class="space-y-2"></div>
+          <p class="text-xs text-muted">Cada variante representa un SKU vendible.</p>
+        </div>
+
         <div class="flex gap-2">
           <button id="btnSaveProduct" type="submit" class="btn btn-primary flex-1">Guardar</button>
           <button id="btnCancelProduct" type="button" class="btn btn-secondary">Cancelar</button>

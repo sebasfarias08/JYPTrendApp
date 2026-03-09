@@ -2,6 +2,7 @@ import {
   createProduct,
   getProductById,
   getProductCategories,
+  upsertVariants,
   updateProductById
 } from "./product-service.js";
 import { showToast } from "./toast.js";
@@ -41,6 +42,8 @@ export function initProductFormPage() {
   const categoryEl = document.getElementById("productCategory");
   const imagePathEl = document.getElementById("productImagePath");
   const descriptionEl = document.getElementById("productDescription");
+  const variantsListEl = document.getElementById("variantsList");
+  const btnAddVariantEl = document.getElementById("btnAddVariant");
   const btnSaveEl = document.getElementById("btnSaveProduct");
   const btnCancelEl = document.getElementById("btnCancelProduct");
 
@@ -49,6 +52,7 @@ export function initProductFormPage() {
   const returnTo = safeReturnPath(params.get("returnTo"));
   const isEdit = Boolean(id);
   let categories = [];
+  let variants = [];
   let saving = false;
 
   function goBack() {
@@ -61,6 +65,82 @@ export function initProductFormPage() {
       ...categories.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`)
     ].join("");
     categoryEl.value = selected || "";
+  }
+
+  function renderVariants() {
+    variantsListEl.innerHTML = "";
+
+    if (!variants.length) {
+      variantsListEl.innerHTML = `<div class="text-xs text-muted">Sin variantes cargadas.</div>`;
+      return;
+    }
+
+    variants.forEach((v, index) => {
+      const item = document.createElement("div");
+      item.className = "card p-3 space-y-2";
+      item.innerHTML = `
+        <div class="flex items-center justify-between">
+          <div class="text-xs font-semibold">Variante ${index + 1}</div>
+          <button type="button" class="btn btn-secondary text-xs" data-remove-variant="${index}">Quitar</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs text-muted block mb-1">Nombre variante *</label>
+            <input class="input" data-variant-field="variant_name" data-variant-index="${index}" value="${escapeHtml(v.variant_name || "")}" />
+          </div>
+          <div>
+            <label class="text-xs text-muted block mb-1">SKU</label>
+            <input class="input" data-variant-field="sku" data-variant-index="${index}" value="${escapeHtml(v.sku || "")}" />
+          </div>
+          <div>
+            <label class="text-xs text-muted block mb-1">Barcode</label>
+            <input class="input" data-variant-field="barcode" data-variant-index="${index}" value="${escapeHtml(v.barcode || "")}" />
+          </div>
+          <div>
+            <label class="text-xs text-muted block mb-1">Precio venta</label>
+            <input type="number" min="0" step="1" class="input" data-variant-field="sale_price" data-variant-index="${index}" value="${v.sale_price ?? ""}" />
+          </div>
+        </div>
+        <label class="inline-flex items-center gap-2 text-xs text-muted">
+          <input type="checkbox" data-variant-field="active" data-variant-index="${index}" ${v.active === false ? "" : "checked"} />
+          Variante activa
+        </label>
+      `;
+      variantsListEl.appendChild(item);
+    });
+
+    variantsListEl.querySelectorAll("[data-remove-variant]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.getAttribute("data-remove-variant"));
+        if (!Number.isInteger(idx)) return;
+        variants.splice(idx, 1);
+        renderVariants();
+      });
+    });
+
+    variantsListEl.querySelectorAll("[data-variant-field]").forEach((input) => {
+      input.addEventListener("input", () => {
+        const idx = Number(input.getAttribute("data-variant-index"));
+        const field = input.getAttribute("data-variant-field");
+        if (!Number.isInteger(idx) || !field || !variants[idx]) return;
+
+        if (field === "active") {
+          variants[idx][field] = Boolean(input.checked);
+          return;
+        }
+
+        variants[idx][field] = input.value;
+      });
+
+      if (input.type === "checkbox") {
+        input.addEventListener("change", () => {
+          const idx = Number(input.getAttribute("data-variant-index"));
+          const field = input.getAttribute("data-variant-field");
+          if (!Number.isInteger(idx) || !field || !variants[idx]) return;
+          variants[idx][field] = Boolean(input.checked);
+        });
+      }
+    });
   }
 
   async function loadForEdit() {
@@ -79,6 +159,15 @@ export function initProductFormPage() {
     categoryEl.value = row.category_id || "";
     imagePathEl.value = row.image_path || "";
     descriptionEl.value = row.description || "";
+    variants = (Array.isArray(row.product_variants) ? row.product_variants : []).map((v) => ({
+      id: v.id,
+      variant_name: v.variant_name || "",
+      sku: v.sku || "",
+      barcode: v.barcode || "",
+      sale_price: v.sale_price ?? "",
+      active: v.active !== false
+    }));
+    renderVariants();
   }
 
   formEl.addEventListener("submit", async (event) => {
@@ -122,8 +211,29 @@ export function initProductFormPage() {
       return;
     }
 
+    const productId = isEdit ? id : res?.data?.id;
+    if (productId) {
+      const variantsResult = await upsertVariants(productId, variants);
+      if (!variantsResult?.ok) {
+        showToast(summarizeError(variantsResult?.error), { type: "error", duration: 3000 });
+        return;
+      }
+    }
+
     showToast(isEdit ? "Producto actualizado." : "Producto creado.", { type: "success", duration: 1200 });
     goBack();
+  });
+
+  btnAddVariantEl.addEventListener("click", () => {
+    variants.push({
+      id: null,
+      variant_name: "",
+      sku: "",
+      barcode: "",
+      sale_price: "",
+      active: true
+    });
+    renderVariants();
   });
 
   btnCancelEl.addEventListener("click", goBack);
@@ -131,6 +241,7 @@ export function initProductFormPage() {
   (async () => {
     categories = await getProductCategories();
     renderCategoryOptions("");
+    renderVariants();
     await loadForEdit();
   })();
 }
