@@ -1,3 +1,4 @@
+import { createDropdown } from "./components/dropdown.js";
 import { getImageUrl } from "./image.js";
 import { getOrderDetail, updateOrderStatus, updatePaymentStatus } from "./services/orders-service.js";
 import { ORDER_STATUS, PAYMENT_STATUS, statusLabel } from "./order-status.js";
@@ -20,40 +21,6 @@ function initials(value) {
   return parts.map((p) => p[0]?.toUpperCase() || "").join("") || "--";
 }
 
-function orderStatusButtonClass(status) {
-  switch (status) {
-    case "NUEVO":
-      return "bg-orange-500 hover:bg-orange-600 focus-visible:ring-orange-400";
-    case "CONFIRMADO":
-      return "bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-400";
-    case "ENVIADO":
-      return "bg-emerald-600 hover:bg-emerald-700 focus-visible:ring-emerald-400";
-    case "ENTREGADO":
-      return "bg-slate-600 hover:bg-slate-700 focus-visible:ring-slate-400";
-    case "CANCELADO":
-      return "bg-slate-500 hover:bg-slate-600 focus-visible:ring-slate-400";
-    default:
-      return "bg-slate-600 hover:bg-slate-700 focus-visible:ring-slate-400";
-  }
-}
-
-function paymentStatusButtonClass(status) {
-  switch (status) {
-    case "PENDIENTE":
-      return "bg-orange-500 hover:bg-orange-600 focus-visible:ring-orange-400";
-    case "PARCIAL":
-      return "bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-400";
-    case "PAGADO":
-      return "bg-emerald-600 hover:bg-emerald-700 focus-visible:ring-emerald-400";
-    case "FALLIDO":
-      return "bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-400";
-    case "CANCELADO":
-      return "bg-slate-500 hover:bg-slate-600 focus-visible:ring-slate-400";
-    default:
-      return "bg-slate-600 hover:bg-slate-700 focus-visible:ring-slate-400";
-  }
-}
-
 function getCustomerModel(order) {
   const customerRow = order.customers || {};
   const name = order.customer_name_snapshot || order.customer_name || customerRow.full_name || "Cliente sin nombre";
@@ -69,12 +36,74 @@ function itemLineCode(orderRef, item, index) {
   return `${orderRef}-${String(index + 1).padStart(2, "0")}`;
 }
 
-export async function initOrderDetailScreen({ containerId = "order-detail-container", orderId = null } = {}) {
+function buildMockOrder(id = "mock-order-1") {
+  return {
+    id,
+    order_number: 100006,
+    created_at: new Date().toISOString(),
+    order_status: "NUEVO",
+    payment_status: "PENDIENTE",
+    subtotal: 58200,
+    discount_amount: 1200,
+    shipping_amount: 2500,
+    tax_amount: 0,
+    grand_total: 59500,
+    total: 59500,
+    customer_name: "John Garcia",
+    customer_name_snapshot: "John Garcia",
+    customer_phone: "+54 9 11 1234 5678",
+    customer_phone_snapshot: "+54 9 11 1234 5678",
+    customer_email_snapshot: "john.garcia@example.com",
+    customer_address_snapshot: "Av. Corrientes 1234, CABA",
+    customers: {
+      full_name: "John Garcia",
+      phone: "+54 9 11 1234 5678",
+      email: "john.garcia@example.com"
+    },
+    order_items: [
+      {
+        id: "mock-item-1",
+        product_id: "mock-product-1",
+        variant_id: null,
+        qty: 2,
+        unit_price: 22000,
+        subtotal: 44000,
+        product_name_snapshot: "Blue Oxford Shirt",
+        variant_name_snapshot: "Size L",
+        sku_snapshot: "DXZ_10006",
+        products: {
+          id: "mock-product-1",
+          name: "Blue Oxford Shirt",
+          image_path: null
+        }
+      },
+      {
+        id: "mock-item-2",
+        product_id: "mock-product-2",
+        variant_id: null,
+        qty: 1,
+        unit_price: 14200,
+        subtotal: 14200,
+        product_name_snapshot: "Running Sneakers",
+        variant_name_snapshot: "Size 42",
+        sku_snapshot: "DXZ_10007",
+        products: {
+          id: "mock-product-2",
+          name: "Running Sneakers",
+          image_path: null
+        }
+      }
+    ]
+  };
+}
+
+export async function initOrderDetailScreen({ containerId = "order-detail-container", orderId = null, mock = false } = {}) {
   const root = document.getElementById(containerId);
   if (!root) return;
 
+  const isMock = Boolean(mock) || new URLSearchParams(location.search).get("mock") === "1";
   const id = orderId || new URLSearchParams(location.search).get("id");
-  if (!id) {
+  if (!id && !isMock) {
     root.innerHTML = `<div class="rounded-2xl bg-white shadow-sm p-4 text-sm text-red-600">Falta el parametro <code>id</code>.</div>`;
     return;
   }
@@ -93,7 +122,18 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
     minute: "2-digit"
   });
 
+  const dropdownInstances = [];
+
+  function destroyDropdowns() {
+    while (dropdownInstances.length) {
+      const instance = dropdownInstances.pop();
+      instance?.destroy?.();
+    }
+  }
+
   function renderOrderDetail(order) {
+    destroyDropdowns();
+
     const customer = getCustomerModel(order);
     const orderRef = formatOrderRef(order);
     const createdAt = order.created_at ? new Date(order.created_at) : new Date();
@@ -151,7 +191,7 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
 
         <article class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
           <div class="flex items-start justify-between">
-            <h2 class="text-sm font-semibold text-slate-900">Customer Info</h2>
+            <h2 class="text-sm font-semibold text-slate-900">Info Cliente</h2>
             <button type="button" aria-label="More customer actions" class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100">
               <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                 <circle cx="12" cy="5" r="1.5"></circle>
@@ -163,7 +203,6 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
 
           <div class="flex items-start gap-3">
             <div class="w-12 h-12 rounded-full bg-slate-200 text-slate-700 grid place-items-center font-semibold text-sm shrink-0">${escapeHtml(initials(customer.name))}</div>
-
             <div class="min-w-0 flex-1 space-y-1">
               <p class="text-sm font-semibold text-slate-900 truncate">${escapeHtml(customer.name)}</p>
               <p class="text-xs text-slate-500 truncate">${escapeHtml(customer.email)}</p>
@@ -186,69 +225,34 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
 
         <article class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
           <div class="flex items-center justify-between gap-2">
-            <h2 class="text-sm font-semibold text-slate-900">Order Summary</h2>
+            <h2 class="text-sm font-semibold text-slate-900">Resumen del Pedido</h2>
             <span class="text-xs text-slate-500 text-right">${escapeHtml(orderRef)} &bull; ${escapeHtml(dateFmt.format(createdAt))}</span>
           </div>
           <div>${itemsHtml}</div>
         </article>
 
         <article class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
-          <h2 class="text-sm font-semibold text-slate-900">Price Details</h2>
-
+          <h2 class="text-sm font-semibold text-slate-900">Detalles del Precio</h2>
           <div class="space-y-2 text-sm">
-            <div class="flex items-center justify-between text-slate-600">
-              <span>Order Amount</span>
-              <span>${currencyFmt.format(orderAmount)}</span>
-            </div>
-            <div class="flex items-center justify-between text-slate-600">
-              <span>Promo Code</span>
-              <span>${promoAmount > 0 ? `-${currencyFmt.format(promoAmount)}` : currencyFmt.format(0)}</span>
-            </div>
-            <div class="flex items-center justify-between text-slate-600">
-              <span>Delivery</span>
-              <span>${currencyFmt.format(deliveryAmount)}</span>
-            </div>
-            <div class="flex items-center justify-between text-slate-600">
-              <span>Tax</span>
-              <span>${currencyFmt.format(taxAmount)}</span>
-            </div>
+            <div class="flex items-center justify-between text-slate-600"><span>Monto Pedido</span><span>${currencyFmt.format(orderAmount)}</span></div>
+            <div class="flex items-center justify-between text-slate-600"><span>Descuento Promo</span><span>${promoAmount > 0 ? `-${currencyFmt.format(promoAmount)}` : currencyFmt.format(0)}</span></div>
+            <div class="flex items-center justify-between text-slate-600"><span>Envio</span><span>${currencyFmt.format(deliveryAmount)}</span></div>
+            <div class="flex items-center justify-between text-slate-600"><span>Impuesto</span><span>${currencyFmt.format(taxAmount)}</span></div>
           </div>
-
           <div class="border-t border-slate-200 pt-3 flex items-center justify-between">
-            <span class="text-base font-semibold text-slate-900">Total Amount</span>
+            <span class="text-base font-semibold text-slate-900">Total Pedido</span>
             <span class="text-lg font-bold text-slate-900">${currencyFmt.format(totalAmount)}</span>
           </div>
         </article>
 
         <div class="grid grid-cols-2 gap-3 pt-1 pb-2">
-          <div class="space-y-2">
-            <button id="btnOrderStatus" type="button" aria-label="Cambiar estado del pedido" class="w-full h-12 rounded-xl text-white text-sm font-semibold inline-flex items-center justify-center gap-2 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${orderStatusButtonClass(order.order_status)}">
-              <span>Status Order: ${escapeHtml(statusLabel(order.order_status || "NUEVO"))}</span>
-            </button>
-            <select id="orderStatusMenu" class="hidden input text-sm w-full">
-              ${ORDER_STATUS.map((status) => `<option value="${status}" ${status === order.order_status ? "selected" : ""}>${escapeHtml(statusLabel(status))}</option>`).join("")}
-            </select>
-          </div>
-
-          <div class="space-y-2">
-            <button id="btnPaymentStatus" type="button" aria-label="Cambiar estado de pago" class="w-full h-12 rounded-xl text-white text-sm font-semibold inline-flex items-center justify-center gap-2 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${paymentStatusButtonClass(order.payment_status)}">
-              <span>Payment: ${escapeHtml(statusLabel(order.payment_status || "PENDIENTE"))}</span>
-            </button>
-            <select id="paymentStatusMenu" class="hidden input text-sm w-full">
-              ${PAYMENT_STATUS.map((status) => `<option value="${status}" ${status === order.payment_status ? "selected" : ""}>${escapeHtml(statusLabel(status))}</option>`).join("")}
-            </select>
-          </div>
+          <div id="orderStatusDropdown"></div>
+          <div id="paymentStatusDropdown"></div>
         </div>
       </section>
     `;
 
-    const btnBack = document.getElementById("btnBack");
-    const btnOrderStatus = document.getElementById("btnOrderStatus");
-    const btnPaymentStatus = document.getElementById("btnPaymentStatus");
-    const orderStatusMenu = document.getElementById("orderStatusMenu");
-    const paymentStatusMenu = document.getElementById("paymentStatusMenu");
-
-    btnBack?.addEventListener("click", () => {
+    document.getElementById("btnBack")?.addEventListener("click", () => {
       if (window.history.length > 1) {
         window.history.back();
         return;
@@ -256,64 +260,66 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
       location.href = "/pages/pedidos.html";
     });
 
-    btnOrderStatus?.addEventListener("click", () => {
-      orderStatusMenu?.classList.toggle("hidden");
-      paymentStatusMenu?.classList.add("hidden");
-    });
+    const orderDropdown = createDropdown({
+      containerId: "orderStatusDropdown",
+      options: ORDER_STATUS.map((status) => ({ value: status, label: statusLabel(status) })),
+      selected: order.order_status || "NUEVO",
+      labelPrefix: "Estado",
+      onChange: async (next) => {
+        if (next === order.order_status) return;
 
-    btnPaymentStatus?.addEventListener("click", () => {
-      paymentStatusMenu?.classList.toggle("hidden");
-      orderStatusMenu?.classList.add("hidden");
-    });
+        if (isMock) {
+          order.order_status = next;
+          showToast(`Estado pedido (mock): ${statusLabel(next)}`, { type: "success", duration: 1200 });
+          renderOrderDetail(order);
+          return;
+        }
 
-    orderStatusMenu?.addEventListener("change", async () => {
-      const next = String(orderStatusMenu.value || order.order_status || "NUEVO");
-      if (next === order.order_status) {
-        orderStatusMenu.classList.add("hidden");
-        return;
-      }
-
-      btnOrderStatus.disabled = true;
-      orderStatusMenu.disabled = true;
-      try {
-        await updateOrderStatus(order.id, next);
-        order.order_status = next;
-        showToast(`Estado pedido: ${statusLabel(next)}`, { type: "success", duration: 1500 });
-        renderOrderDetail(order);
-      } catch (error) {
-        console.error(error);
-        showToast("No se pudo actualizar el estado del pedido", { type: "error", duration: 2000 });
-        btnOrderStatus.disabled = false;
-        orderStatusMenu.disabled = false;
+        try {
+          await updateOrderStatus(order.id, next);
+          order.order_status = next;
+          showToast(`Estado pedido: ${statusLabel(next)}`, { type: "success", duration: 1500 });
+          renderOrderDetail(order);
+        } catch (error) {
+          console.error(error);
+          showToast("No se pudo actualizar el estado del pedido", { type: "error", duration: 2000 });
+        }
       }
     });
 
-    paymentStatusMenu?.addEventListener("change", async () => {
-      const next = String(paymentStatusMenu.value || order.payment_status || "PENDIENTE");
-      if (next === order.payment_status) {
-        paymentStatusMenu.classList.add("hidden");
-        return;
-      }
+    const paymentDropdown = createDropdown({
+      containerId: "paymentStatusDropdown",
+      options: PAYMENT_STATUS.map((status) => ({ value: status, label: statusLabel(status) })),
+      selected: order.payment_status || "PENDIENTE",
+      labelPrefix: "Pago",
+      onChange: async (next) => {
+        if (next === order.payment_status) return;
 
-      btnPaymentStatus.disabled = true;
-      paymentStatusMenu.disabled = true;
-      try {
-        await updatePaymentStatus(order.id, next);
-        order.payment_status = next;
-        showToast(`Estado pago: ${statusLabel(next)}`, { type: "success", duration: 1500 });
-        renderOrderDetail(order);
-      } catch (error) {
-        console.error(error);
-        showToast("No se pudo actualizar el estado de pago", { type: "error", duration: 2000 });
-        btnPaymentStatus.disabled = false;
-        paymentStatusMenu.disabled = false;
+        if (isMock) {
+          order.payment_status = next;
+          showToast(`Estado pago (mock): ${statusLabel(next)}`, { type: "success", duration: 1200 });
+          renderOrderDetail(order);
+          return;
+        }
+
+        try {
+          await updatePaymentStatus(order.id, next);
+          order.payment_status = next;
+          showToast(`Estado pago: ${statusLabel(next)}`, { type: "success", duration: 1500 });
+          renderOrderDetail(order);
+        } catch (error) {
+          console.error(error);
+          showToast("No se pudo actualizar el estado de pago", { type: "error", duration: 2000 });
+        }
       }
     });
+
+    dropdownInstances.push(orderDropdown, paymentDropdown);
   }
 
   root.innerHTML = `<div class="rounded-2xl bg-white shadow-sm p-4 text-sm text-slate-500">Cargando detalle del pedido...</div>`;
 
-  const order = await getOrderDetail(id);
+  const order = isMock ? buildMockOrder(id || "mock-order-1") : await getOrderDetail(id);
   if (!order) {
     root.innerHTML = `<div class="rounded-2xl bg-white shadow-sm p-4 text-sm text-red-600">No se encontro el pedido solicitado.</div>`;
     return;

@@ -24,15 +24,20 @@
     import { initAppShell } from "/js/app-shell.js";
     import { initOrderDetailScreen } from "/js/order-detail.js";
 
-    const session = await requireAuth();
-    if (!session) throw new Error("Redirect login");
+    const params = new URLSearchParams(location.search);
+    const isMock = params.get("mock") === "1";
 
-    initAppShell({
-      title: "Detalle",
-      onRefresh: async () => location.reload()
-    });
+    if (!isMock) {
+      const session = await requireAuth();
+      if (!session) throw new Error("Redirect login");
 
-    await initOrderDetailScreen({ containerId: "order-detail-container" });
+      initAppShell({
+        title: "Detalle",
+        onRefresh: async () => location.reload()
+      });
+    }
+
+    await initOrderDetailScreen({ containerId: "order-detail-container", mock: isMock });
   </script>
 </body>
 </html>
