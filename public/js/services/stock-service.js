@@ -15,7 +15,7 @@ export async function getStockByProduct() {
 export async function getStockByVariant() {
   const { data, error } = await supabase
     .from("v_inventory_stock_by_variant")
-    .select("variant_id, stock_qty");
+    .select("*");
 
   if (error) {
     console.error("getStockByVariant error:", error);

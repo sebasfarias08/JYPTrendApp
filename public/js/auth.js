@@ -7,7 +7,6 @@ import {
   signOutSession,
   subscribeAuthChange
 } from "./services/auth-service.js";
-import { canAccessCatalogRoute, normalizeRole, ROLES } from "./utils/permissions.js";
 
 const DEFAULT_LOGIN_PATH = "/pages/login.html";
 let cachedProfile = null;
@@ -45,20 +44,6 @@ function redirectToLogin() {
 function isSessionMissingError(error) {
   const message = String(error?.message ?? "");
   return error?.name === "AuthSessionMissingError" || message.includes("Auth session missing");
-}
-
-function isProfilesPolicyRecursionError(error) {
-  return error?.code === "42P17" && String(error?.message ?? "").includes('relation "profiles"');
-}
-
-function buildFallbackViewerProfile(user) {
-  return {
-    id: user?.id ?? null,
-    email: user?.email ?? "",
-    full_name: user?.user_metadata?.full_name || user?.user_metadata?.name || "",
-    role: ROLES.VIEWER,
-    is_active: true
-  };
 }
 
 export function clearAuthCache() {
@@ -119,22 +104,12 @@ export async function getCurrentProfile(forceReload = false, session = null) {
 
   const { data, error } = await fetchCurrentProfile();
   if (error) {
-    if (isProfilesPolicyRecursionError(error)) {
-      const fallback = buildFallbackViewerProfile(user);
-      console.warn("profiles RLS recursion detected (42P17). Using fallback viewer profile until DB policy is fixed.");
-      cachedProfile = fallback;
-      cachedProfileUserId = user.id;
-      return fallback;
-    }
     console.error("getCurrentProfile error:", error);
     clearAuthCache();
     return null;
   }
 
   cachedProfile = data ?? null;
-  if (cachedProfile) {
-    cachedProfile.role = normalizeRole(cachedProfile.role);
-  }
   cachedProfileUserId = user.id;
   return cachedProfile;
 }
@@ -161,12 +136,6 @@ export async function requireAuth() {
     return null;
   }
 
-  const role = normalizeRole(profile.role);
-  if (role === ROLES.VIEWER && !canAccessCatalogRoute(location.pathname)) {
-    location.replace("/index.html?tab=perfumes");
-    return null;
-  }
-
   // Backward-compatible return: existing pages can still use session.user.id
   return { ...session, session, profile };
 }
@@ -175,10 +144,10 @@ export async function requireRole(roles = []) {
   const authState = await requireAuth();
   if (!authState) return null;
 
-  const allowed = (Array.isArray(roles) ? roles : [roles]).map((role) => normalizeRole(role));
+  const allowed = Array.isArray(roles) ? roles : [roles];
   if (!allowed.length) return authState;
 
-  const role = normalizeRole(authState.profile?.role);
+  const role = authState.profile?.role ?? "";
   if (!allowed.includes(role)) {
     location.replace("/pages/home.html");
     return null;

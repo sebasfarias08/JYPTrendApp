@@ -1,8 +1,8 @@
-# Project Context - JYPTrendApp
+﻿# Project Context - JYPTrendApp
 
 ## Purpose
 JYPTrendApp is a mobile-first sales web app for daily B2B operations.
-Main flow: catalog -> cart -> Reserva -> order tracking.
+Main flow: catalog -> cart -> checkout -> order tracking.
 
 ## Current status
 - Functional and in active use.
@@ -27,7 +27,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 - Catalog: `public/index.html`, `public/js/catalog-service.js`
 - Product detail/edit/share: `public/pages/producto.html`, `public/js/product-page.js`
 - Cart (localStorage): `public/js/cart.js`
-- Reserva: `public/pages/checkout.html`, `public/js/checkout-page.js`
+- Checkout: `public/pages/checkout.html`, `public/js/checkout-page.js`
 - Order creation: `public/js/order-service.js`
 - Orders list/detail: `public/pages/pedidos.html`, `public/pages/pedido-detalle.html`, `public/js/orders-service.js`
 - Customers ABM: `public/pages/clientes.html`, `public/pages/cliente-form.html`, `public/js/customers-service.js`
@@ -78,7 +78,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 1. Move runtime config out of hardcoded JS values.
 2. Standardize order/payment status enums in DB and UI.
 3. Document and validate full RLS strategy for all key tables.
-4. Add basic test coverage for Reserva/order creation paths.
+4. Add basic test coverage for checkout/order creation paths.
 5. Add CI checks (lint, smoke tests, deploy validation).
 
 ## Where to start reading code
@@ -89,5 +89,3 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 5. `public/js/order-service.js`
 6. `public/js/orders-service.js`
 7. `database/*.sql`
-
-

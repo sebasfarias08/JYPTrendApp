@@ -1,13 +1,5 @@
 // public/js/app-shell.js
 import { getCurrentProfile, getCurrentUser, signOut } from "./auth.js";
-import {
-  ROLES,
-  canCreateOrders,
-  canManageInventory,
-  canViewAdminPanel,
-  canViewReports,
-  normalizeRole
-} from "./utils/permissions.js";
 
 const TAB_LINKS = {
   home: "/pages/home.html",
@@ -17,24 +9,36 @@ const TAB_LINKS = {
   outlet: "/index.html?tab=outlet"
 };
 
-const MENU_ITEMS = [
-  { label: "Home", href: "/pages/home.html", icon: "home", visible: canViewReports },
-  { label: "Catalogo", href: "/index.html?tab=perfumes", icon: "list" },
-  { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history", visible: canViewReports },
-  { label: "Clientes", href: "/pages/clientes.html", icon: "users", visible: canCreateOrders },
-  { label: "Productos", href: "/pages/productos.html", icon: "inventory", visible: canManageInventory },
-  { label: "Parametros", href: null, icon: "settings", visible: canViewAdminPanel },
-  { label: "Inventario", href: null, icon: "inventory", visible: canManageInventory },
-  { label: "About", href: "/pages/about.html", icon: "info", visible: canViewReports },
-  { label: "Salir", href: null, icon: "logout", action: "logout" }
-];
+const MENU_ITEMS_BY_ROLE = {
+  admin: [
+    { label: "Home", href: "/pages/home.html", icon: "home" },
+    { label: "Catalogo", href: "/index.html?tab=perfumes", icon: "list" },
+    { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history" },
+    { label: "Clientes", href: "/pages/clientes.html", icon: "users" },
+    { label: "Productos", href: "/pages/productos.html", icon: "inventory" },
+    { label: "Parametros", href: null, icon: "settings" },
+    { label: "Inventario", href: null, icon: "inventory" },
+    { label: "About", href: "/pages/about.html", icon: "info" },
+    { label: "Salir", href: null, icon: "logout", action: "logout" }
+  ],
+  seller: [
+    { label: "Home", href: "/pages/home.html", icon: "home" },
+    { label: "Catalogo", href: "/index.html?tab=perfumes", icon: "list" },
+    { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history" },
+    { label: "Clientes", href: "/pages/clientes.html", icon: "users" },
+    { label: "About", href: "/pages/about.html", icon: "info" },
+    { label: "Salir", href: null, icon: "logout", action: "logout" }
+  ],
+  viewer: [
+    { label: "Home", href: "/pages/home.html", icon: "home" },
+    { label: "Catalogo", href: "/index.html?tab=perfumes", icon: "list" },
+    { label: "About", href: "/pages/about.html", icon: "info" },
+    { label: "Salir", href: null, icon: "logout", action: "logout" }
+  ]
+};
 
-function getMenuItemsByRole(role) {
-  const normalizedRole = normalizeRole(role);
-  return MENU_ITEMS.filter((item) => {
-    if (typeof item.visible !== "function") return true;
-    return item.visible(normalizedRole);
-  });
+function getRoleMenuItems(role) {
+  return MENU_ITEMS_BY_ROLE[role] ?? MENU_ITEMS_BY_ROLE.viewer;
 }
 
 function iconSvg(name) {
@@ -75,7 +79,7 @@ async function loadCurrentIdentity() {
     user,
     profile,
     email: profile?.email || user?.email || "usuario@jypventas",
-    role: normalizeRole(profile?.role || ROLES.VIEWER)
+    role: profile?.role || "viewer"
   };
 }
 
@@ -207,7 +211,7 @@ function createMenuDrawer({ userEmail, role }) {
   document.body.appendChild(overlay);
 
   const list = panel.querySelector("#appShellMenuList");
-  const menuItems = getMenuItemsByRole(role);
+  const menuItems = getRoleMenuItems(role);
 
   menuItems.forEach((item) => {
     if (item.label === "Clientes" || item.label === "About") {
@@ -293,30 +297,16 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
 
   loadCurrentIdentity()
     .then(({ email, role }) => {
-      document.body.dataset.role = role;
       menuOverlay = createMenuDrawer({ userEmail: email, role });
-      if (btnAdd) {
-        btnAdd.classList.toggle("hidden", !canCreateOrders(role));
-      }
-      if (normalizeRole(role) === ROLES.VIEWER) {
-        document.querySelectorAll('[data-shell-tab="home"]').forEach((el) => {
-          if (el.tagName === "A") el.href = "/index.html?tab=perfumes";
-        });
-      }
     })
     .catch((error) => {
       console.error("App shell identity error:", error);
-      menuOverlay = createMenuDrawer({ userEmail: "usuario@jypventas", role: ROLES.VIEWER });
-      document.body.dataset.role = ROLES.VIEWER;
-      if (btnAdd) {
-        btnAdd.classList.toggle("hidden", true);
-      }
+      menuOverlay = createMenuDrawer({ userEmail: "usuario@jypventas", role: "viewer" });
     });
 
   if (btnAdd) {
     btnAdd.setAttribute("aria-label", "Ver pedido");
     btnAdd.classList.add("relative");
-    btnAdd.classList.toggle("hidden", true);
     btnAdd.innerHTML = `
       ${renderIcon("cart", "w-6 h-6")}
       <span id="appShellCartCount" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-[10px] leading-[18px] text-inverse font-bold text-center">0</span>
@@ -334,8 +324,6 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
   });
 
   btnAdd?.addEventListener("click", () => {
-    const role = normalizeRole(document.body.dataset.role || ROLES.VIEWER);
-    if (!canCreateOrders(role)) return;
     location.href = "/pages/checkout.html";
   });
 

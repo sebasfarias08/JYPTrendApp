@@ -54,10 +54,10 @@ function render() {
           <div class="text-muted text-sm">$ ${formatArs(it.price)} c/u</div>
 
           <div class="mt-2 flex items-center gap-2">
-            <button data-dec="${it.product_id}" class="w-9 h-9 rounded-xl border border-slate-300 bg-white text-slate-700 inline-flex items-center justify-center text-lg leading-none">-</button>
+            <button data-dec="${it.product_id}" class="btn btn-secondary px-3 py-2">-</button>
             <input data-qty="${it.product_id}" value="${it.qty}"
-              class="input w-12 !min-h-9 text-center px-1 py-1" />
-            <button data-inc="${it.product_id}" class="w-9 h-9 rounded-xl border border-slate-300 bg-white text-slate-700 inline-flex items-center justify-center text-lg leading-none">+</button>
+              class="input w-16 text-center px-2 py-2" />
+            <button data-inc="${it.product_id}" class="btn btn-secondary px-3 py-2">+</button>
 
             <div class="ml-auto font-semibold">$ ${formatArs(Number(it.price) * Number(it.qty))}</div>
           </div>
@@ -99,20 +99,17 @@ export function initCheckoutPage(session) {
 
   const btnSubmit = document.getElementById("btnSubmit");
   const btnSubmitSticky = document.getElementById("btnSubmitSticky");
+  const customerSelectWrapEl = document.getElementById("customerSelect");
   const customerSelectTriggerEl = document.getElementById("customerSelectTrigger");
   const customerSelectPanelEl = document.getElementById("customerSelectPanel");
   const customerSelectLabelEl = document.getElementById("customerSelectLabel");
   const customerSearchEl = document.getElementById("customerSearch");
   const customerOptionsEl = document.getElementById("customerOptions");
   const customerRequiredWarningEl = document.getElementById("customerRequiredWarning");
-  const checkoutStickyBarEl = document.getElementById("checkoutStickyBar");
-  const customerSheetBackdropEl = document.getElementById("customerSheetBackdrop");
-  const customerSheetCloseEl = document.getElementById("customerSheetClose");
 
   let submitting = false;
   let customers = [];
   let selectedCustomerId = "";
-  let panelHideTimer = null;
 
   const NEW_CUSTOMER_VALUE = "__new_customer__";
 
@@ -131,37 +128,12 @@ export function initCheckoutPage(session) {
     location.href = `/pages/cliente-form.html?mode=new&returnTo=${encodeURIComponent(returnTo)}`;
   }
 
-  function setStickyBarVisible(visible) {
-    if (!checkoutStickyBarEl) return;
-    checkoutStickyBarEl.classList.toggle("hidden", !visible);
-  }
-
   function closeCustomerPanel() {
-    if (panelHideTimer) {
-      clearTimeout(panelHideTimer);
-      panelHideTimer = null;
-    }
-    if (customerSelectPanelEl) {
-      customerSelectPanelEl.classList.add("translate-y-full");
-      panelHideTimer = setTimeout(() => {
-        customerSelectPanelEl.classList.add("hidden");
-      }, 200);
-    }
-    customerSheetBackdropEl?.classList.add("hidden");
-    setStickyBarVisible(true);
+    customerSelectPanelEl?.classList.add("hidden");
   }
 
   function openCustomerPanel() {
-    if (panelHideTimer) {
-      clearTimeout(panelHideTimer);
-      panelHideTimer = null;
-    }
-    if (customerSelectPanelEl) {
-      customerSelectPanelEl.classList.remove("hidden");
-      requestAnimationFrame(() => customerSelectPanelEl.classList.remove("translate-y-full"));
-    }
-    customerSheetBackdropEl?.classList.remove("hidden");
-    setStickyBarVisible(false);
+    customerSelectPanelEl?.classList.remove("hidden");
     customerSearchEl?.focus();
   }
 
@@ -283,7 +255,7 @@ export function initCheckoutPage(session) {
       btn.disabled = isBusy;
       btn.classList.toggle("opacity-60", isBusy);
       btn.classList.toggle("cursor-not-allowed", isBusy);
-      btn.textContent = isBusy ? "Enviando..." : "Confirmar reserva";
+      btn.textContent = isBusy ? "Enviando..." : "Confirmar pedido";
     });
     if (!isBusy) setSubmitAvailability();
   }
@@ -345,7 +317,6 @@ export function initCheckoutPage(session) {
     render();
     showToast(`Pedido enviado (${formatOrderRef({ id: res.order_id, order_number: res.order_number })})`, { type: "success", duration: 3200 });
     setSubmitState(false);
-    location.href = "/pages/pedidos.html";
   }
 
   btnSubmit?.addEventListener("click", submitOrder);
@@ -358,18 +329,11 @@ export function initCheckoutPage(session) {
   customerSearchEl?.addEventListener("input", () => {
     renderCustomerOptions(customerSearchEl.value);
   });
-  customerSearchEl?.addEventListener("focus", () => {
-    setStickyBarVisible(false);
+
+  document.addEventListener("click", (event) => {
+    if (!customerSelectWrapEl) return;
+    if (!customerSelectWrapEl.contains(event.target)) closeCustomerPanel();
   });
-  customerSearchEl?.addEventListener("blur", () => {
-    // Small delay to allow option click handler to run before restoring.
-    setTimeout(() => {
-      const isPanelOpen = customerSelectPanelEl && !customerSelectPanelEl.classList.contains("hidden");
-      setStickyBarVisible(!isPanelOpen);
-    }, 100);
-  });
-  customerSheetCloseEl?.addEventListener("click", closeCustomerPanel);
-  customerSheetBackdropEl?.addEventListener("click", closeCustomerPanel);
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeCustomerPanel();
   });
@@ -380,5 +344,4 @@ export function initCheckoutPage(session) {
   });
 
   loadCustomers();
-  setStickyBarVisible(true);
 }

@@ -22,7 +22,7 @@
         </div>
 
         <div>
-          <label class="text-xs text-muted block mb-1" for="productPrice">Precio base del producto *</label>
+          <label class="text-xs text-muted block mb-1" for="productPrice">Precio *</label>
           <input id="productPrice" type="number" min="0" step="1" class="input" required />
         </div>
 
@@ -41,15 +41,6 @@
           <textarea id="productDescription" class="input" placeholder="Descripcion corta del producto"></textarea>
         </div>
 
-        <div class="pt-2 border-t divider">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-semibold">Variantes</h3>
-            <button id="btnAddVariant" type="button" class="btn btn-secondary text-sm">Agregar variante</button>
-          </div>
-          <div id="variantsList" class="space-y-2"></div>
-          <p class="text-xs text-muted">Cada variante representa un SKU vendible.</p>
-        </div>
-
         <div class="flex gap-2">
           <button id="btnSaveProduct" type="submit" class="btn btn-primary flex-1">Guardar</button>
           <button id="btnCancelProduct" type="button" class="btn btn-secondary">Cancelar</button>
@@ -61,11 +52,11 @@
   <nav id="appShellBottom"></nav>
 
   <script type="module">
-    import { requireRole } from "/js/auth.js";
+    import { requireAuth } from "/js/auth.js";
     import { initAppShell } from "/js/app-shell.js";
     import { initProductFormPage } from "/js/product-form-page.js";
 
-    const session = await requireRole(["admin"]);
+    const session = await requireAuth();
     if (!session) throw new Error("Redirect login");
 
     initAppShell({

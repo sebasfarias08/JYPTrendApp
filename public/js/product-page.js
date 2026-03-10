@@ -4,7 +4,6 @@ import { getImageUrl } from "./image.js";
 import { shareProduct, copyToClipboard, downloadImage } from "./share.js";
 import { addToCart } from "./cart.js";
 import { showToast } from "./toast.js";
-import { canManageInventory } from "./utils/permissions.js";
 
 function formatArs(value) {
   const n = Number(value ?? 0);
@@ -24,7 +23,7 @@ function setSrc(id, src, alt = "") {
   }
 }
 
-export async function initProductPage(role = "viewer") {
+export async function initProductPage() {
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
 
@@ -77,7 +76,6 @@ export async function initProductPage(role = "viewer") {
 
   function openEditModal() {
     if (!editModalEl) return;
-    if (!canManageInventory(role)) return;
     fillEditForm();
     editModalEl.classList.remove("hidden");
     editNameEl?.focus();
@@ -89,9 +87,6 @@ export async function initProductPage(role = "viewer") {
 
   renderProduct();
   closeEditModal();
-  if (btnEditProductEl) {
-    btnEditProductEl.classList.toggle("hidden", !canManageInventory(role));
-  }
 
   document.getElementById("btnAddCart")?.addEventListener("click", () => {
     addToCart(
