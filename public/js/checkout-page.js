@@ -54,10 +54,10 @@ function render() {
           <div class="text-muted text-sm">$ ${formatArs(it.price)} c/u</div>
 
           <div class="mt-2 flex items-center gap-2">
-            <button data-dec="${it.product_id}" class="btn btn-secondary px-3 py-2">-</button>
+            <button data-dec="${it.product_id}" class="w-9 h-9 rounded-xl border border-slate-300 bg-white text-slate-700 inline-flex items-center justify-center text-lg leading-none">-</button>
             <input data-qty="${it.product_id}" value="${it.qty}"
-              class="input w-16 text-center px-2 py-2" />
-            <button data-inc="${it.product_id}" class="btn btn-secondary px-3 py-2">+</button>
+              class="input w-12 !min-h-9 text-center px-1 py-1" />
+            <button data-inc="${it.product_id}" class="w-9 h-9 rounded-xl border border-slate-300 bg-white text-slate-700 inline-flex items-center justify-center text-lg leading-none">+</button>
 
             <div class="ml-auto font-semibold">$ ${formatArs(Number(it.price) * Number(it.qty))}</div>
           </div>
@@ -99,7 +99,6 @@ export function initCheckoutPage(session) {
 
   const btnSubmit = document.getElementById("btnSubmit");
   const btnSubmitSticky = document.getElementById("btnSubmitSticky");
-  const customerSelectWrapEl = document.getElementById("customerSelect");
   const customerSelectTriggerEl = document.getElementById("customerSelectTrigger");
   const customerSelectPanelEl = document.getElementById("customerSelectPanel");
   const customerSelectLabelEl = document.getElementById("customerSelectLabel");
@@ -107,10 +106,13 @@ export function initCheckoutPage(session) {
   const customerOptionsEl = document.getElementById("customerOptions");
   const customerRequiredWarningEl = document.getElementById("customerRequiredWarning");
   const checkoutStickyBarEl = document.getElementById("checkoutStickyBar");
+  const customerSheetBackdropEl = document.getElementById("customerSheetBackdrop");
+  const customerSheetCloseEl = document.getElementById("customerSheetClose");
 
   let submitting = false;
   let customers = [];
   let selectedCustomerId = "";
+  let panelHideTimer = null;
 
   const NEW_CUSTOMER_VALUE = "__new_customer__";
 
@@ -135,12 +137,30 @@ export function initCheckoutPage(session) {
   }
 
   function closeCustomerPanel() {
-    customerSelectPanelEl?.classList.add("hidden");
+    if (panelHideTimer) {
+      clearTimeout(panelHideTimer);
+      panelHideTimer = null;
+    }
+    if (customerSelectPanelEl) {
+      customerSelectPanelEl.classList.add("translate-y-full");
+      panelHideTimer = setTimeout(() => {
+        customerSelectPanelEl.classList.add("hidden");
+      }, 200);
+    }
+    customerSheetBackdropEl?.classList.add("hidden");
     setStickyBarVisible(true);
   }
 
   function openCustomerPanel() {
-    customerSelectPanelEl?.classList.remove("hidden");
+    if (panelHideTimer) {
+      clearTimeout(panelHideTimer);
+      panelHideTimer = null;
+    }
+    if (customerSelectPanelEl) {
+      customerSelectPanelEl.classList.remove("hidden");
+      requestAnimationFrame(() => customerSelectPanelEl.classList.remove("translate-y-full"));
+    }
+    customerSheetBackdropEl?.classList.remove("hidden");
     setStickyBarVisible(false);
     customerSearchEl?.focus();
   }
@@ -263,7 +283,7 @@ export function initCheckoutPage(session) {
       btn.disabled = isBusy;
       btn.classList.toggle("opacity-60", isBusy);
       btn.classList.toggle("cursor-not-allowed", isBusy);
-      btn.textContent = isBusy ? "Enviando..." : "Confirmar pedido";
+      btn.textContent = isBusy ? "Enviando..." : "Confirmar reserva";
     });
     if (!isBusy) setSubmitAvailability();
   }
@@ -348,11 +368,8 @@ export function initCheckoutPage(session) {
       setStickyBarVisible(!isPanelOpen);
     }, 100);
   });
-
-  document.addEventListener("click", (event) => {
-    if (!customerSelectWrapEl) return;
-    if (!customerSelectWrapEl.contains(event.target)) closeCustomerPanel();
-  });
+  customerSheetCloseEl?.addEventListener("click", closeCustomerPanel);
+  customerSheetBackdropEl?.addEventListener("click", closeCustomerPanel);
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeCustomerPanel();
   });
