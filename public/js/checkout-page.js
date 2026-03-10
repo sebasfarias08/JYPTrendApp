@@ -102,6 +102,7 @@ export function initCheckoutPage(session) {
   const customerSelectWrapEl = document.getElementById("customerSelect");
   const customerSelectTriggerEl = document.getElementById("customerSelectTrigger");
   const customerSelectPanelEl = document.getElementById("customerSelectPanel");
+  const customerSelectCloseEl = document.getElementById("customerSelectClose");
   const customerSelectLabelEl = document.getElementById("customerSelectLabel");
   const customerSearchEl = document.getElementById("customerSearch");
   const customerOptionsEl = document.getElementById("customerOptions");
@@ -190,7 +191,7 @@ export function initCheckoutPage(session) {
         const active = c.id === selectedCustomerId;
         const cls = active ? "chip chip-active" : "hover-surface-2";
         return `
-          <button type="button" data-customer-id="${c.id}" class="w-full text-left px-3 py-2 rounded-lg ${cls}">
+          <button type="button" data-customer-id="${c.id}" class="w-full text-left px-4 py-3 rounded-xl ${cls}">
             ${escapeHtml(c.full_name)}${c.phone ? ` - ${escapeHtml(c.phone)}` : ""}
           </button>
         `;
@@ -200,7 +201,7 @@ export function initCheckoutPage(session) {
     customerOptionsEl.innerHTML = `
       ${optionsHtml}
       <div class="border-t divider mt-1 pt-1">
-        <button type="button" data-customer-id="${NEW_CUSTOMER_VALUE}" class="w-full text-left px-3 py-2 rounded-lg text-primary hover-surface-2">
+        <button type="button" data-customer-id="${NEW_CUSTOMER_VALUE}" class="w-full text-left px-4 py-3 rounded-xl text-primary hover-surface-2">
           + Cliente nuevo
         </button>
       </div>
@@ -235,7 +236,7 @@ export function initCheckoutPage(session) {
       customerOptionsEl.innerHTML = `
         <div class="px-3 py-2 text-sm text-muted">No hay clientes disponibles</div>
         <div class="border-t divider mt-1 pt-1">
-          <button type="button" data-customer-id="${NEW_CUSTOMER_VALUE}" class="w-full text-left px-3 py-2 rounded-lg text-primary hover-surface-2">
+          <button type="button" data-customer-id="${NEW_CUSTOMER_VALUE}" class="w-full text-left px-4 py-3 rounded-xl text-primary hover-surface-2">
             + Cliente nuevo
           </button>
         </div>
@@ -349,9 +350,13 @@ export function initCheckoutPage(session) {
     }, 100);
   });
 
+  customerSelectCloseEl?.addEventListener("click", closeCustomerPanel);
+
   document.addEventListener("click", (event) => {
     if (!customerSelectWrapEl) return;
-    if (!customerSelectWrapEl.contains(event.target)) closeCustomerPanel();
+    const insideTrigger = customerSelectWrapEl.contains(event.target);
+    const insidePanel = customerSelectPanelEl?.contains(event.target);
+    if (!insideTrigger && !insidePanel) closeCustomerPanel();
   });
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeCustomerPanel();
