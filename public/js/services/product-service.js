@@ -1,5 +1,20 @@
 import { supabase } from "../lib/supabase-client.js";
 
+function mapVariant(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    product_id: row.product_id ?? null,
+    sku: row.sku ?? "",
+    barcode: row.barcode ?? "",
+    variant_name: row.variant_name ?? "",
+    sale_price: row.sale_price == null ? null : Number(row.sale_price),
+    active: row.active !== false,
+    created_at: row.created_at ?? null,
+    updated_at: row.updated_at ?? null
+  };
+}
+
 function mapProduct(row) {
   if (!row) return null;
   return {
@@ -11,6 +26,9 @@ function mapProduct(row) {
     active: row.active !== false,
     category_id: row.category_id ?? row.categories?.id ?? null,
     categories: row.categories ?? null,
+    product_variants: Array.isArray(row.product_variants)
+      ? row.product_variants.map(mapVariant).filter(Boolean)
+      : [],
     created_at: row.created_at ?? null
   };
 }
@@ -31,6 +49,17 @@ export async function getProductById(id, { includeInactive = false } = {}) {
         id,
         name,
         slug
+      ),
+      product_variants (
+        id,
+        product_id,
+        sku,
+        barcode,
+        variant_name,
+        sale_price,
+        active,
+        created_at,
+        updated_at
       )
     `)
     .eq("id", id);
@@ -63,6 +92,17 @@ export async function getProductsForAdmin({ includeInactive = true, search = "" 
         id,
         name,
         slug
+      ),
+      product_variants (
+        id,
+        product_id,
+        sku,
+        barcode,
+        variant_name,
+        sale_price,
+        active,
+        created_at,
+        updated_at
       )
     `)
     .order("created_at", { ascending: false });
@@ -152,4 +192,90 @@ export async function setProductActive(id, active) {
 
   const updated = await getProductById(id, { includeInactive: true });
   return { ok: true, data: updated };
+}
+
+export async function upsertVariants(productId, variants = []) {
+  const clean = (Array.isArray(variants) ? variants : [])
+    .map((v) => ({
+      id: v?.id || null,
+      product_id: productId,
+      variant_name: String(v?.variant_name ?? "").trim(),
+      sku: String(v?.sku ?? "").trim() || null,
+      barcode: String(v?.barcode ?? "").trim() || null,
+      sale_price: v?.sale_price == null || v?.sale_price === "" ? null : Number(v.sale_price),
+      active: v?.active !== false
+    }))
+    .filter((v) => v.variant_name);
+
+  const submittedIds = clean.map((v) => v.id).filter(Boolean);
+
+  const { data: existing, error: existingError } = await supabase
+    .from("product_variants")
+    .select("id")
+    .eq("product_id", productId);
+
+  if (existingError) {
+    console.error("upsertVariants existing error:", existingError);
+    return { ok: false, error: existingError };
+  }
+
+  const toDeactivate = (existing ?? [])
+    .map((v) => v.id)
+    .filter((id) => !submittedIds.includes(id));
+
+  if (toDeactivate.length) {
+    const { error: deactivateError } = await supabase
+      .from("product_variants")
+      .update({ active: false })
+      .in("id", toDeactivate);
+
+    if (deactivateError) {
+      console.error("upsertVariants deactivate error:", deactivateError);
+      return { ok: false, error: deactivateError };
+    }
+  }
+
+  const toInsert = clean
+    .filter((v) => !v.id)
+    .map((v) => ({
+      product_id: v.product_id,
+      variant_name: v.variant_name,
+      sku: v.sku,
+      barcode: v.barcode,
+      sale_price: v.sale_price,
+      active: v.active
+    }));
+
+  if (toInsert.length) {
+    const { error: insertError } = await supabase
+      .from("product_variants")
+      .insert(toInsert);
+
+    if (insertError) {
+      console.error("upsertVariants insert error:", insertError);
+      return { ok: false, error: insertError };
+    }
+  }
+
+  const toUpdate = clean.filter((v) => v.id);
+  for (const row of toUpdate) {
+    const { error: updateError } = await supabase
+      .from("product_variants")
+      .update({
+        variant_name: row.variant_name,
+        sku: row.sku,
+        barcode: row.barcode,
+        sale_price: row.sale_price,
+        active: row.active
+      })
+      .eq("id", row.id)
+      .eq("product_id", productId);
+
+    if (updateError) {
+      console.error("upsertVariants update error:", updateError);
+      return { ok: false, error: updateError };
+    }
+  }
+
+  return { ok: true };
 }

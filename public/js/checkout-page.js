@@ -106,6 +106,7 @@ export function initCheckoutPage(session) {
   const customerSearchEl = document.getElementById("customerSearch");
   const customerOptionsEl = document.getElementById("customerOptions");
   const customerRequiredWarningEl = document.getElementById("customerRequiredWarning");
+  const checkoutStickyBarEl = document.getElementById("checkoutStickyBar");
 
   let submitting = false;
   let customers = [];
@@ -128,12 +129,19 @@ export function initCheckoutPage(session) {
     location.href = `/pages/cliente-form.html?mode=new&returnTo=${encodeURIComponent(returnTo)}`;
   }
 
+  function setStickyBarVisible(visible) {
+    if (!checkoutStickyBarEl) return;
+    checkoutStickyBarEl.classList.toggle("hidden", !visible);
+  }
+
   function closeCustomerPanel() {
     customerSelectPanelEl?.classList.add("hidden");
+    setStickyBarVisible(true);
   }
 
   function openCustomerPanel() {
     customerSelectPanelEl?.classList.remove("hidden");
+    setStickyBarVisible(false);
     customerSearchEl?.focus();
   }
 
@@ -317,6 +325,7 @@ export function initCheckoutPage(session) {
     render();
     showToast(`Pedido enviado (${formatOrderRef({ id: res.order_id, order_number: res.order_number })})`, { type: "success", duration: 3200 });
     setSubmitState(false);
+    location.href = "/pages/pedidos.html";
   }
 
   btnSubmit?.addEventListener("click", submitOrder);
@@ -328,6 +337,16 @@ export function initCheckoutPage(session) {
   });
   customerSearchEl?.addEventListener("input", () => {
     renderCustomerOptions(customerSearchEl.value);
+  });
+  customerSearchEl?.addEventListener("focus", () => {
+    setStickyBarVisible(false);
+  });
+  customerSearchEl?.addEventListener("blur", () => {
+    // Small delay to allow option click handler to run before restoring.
+    setTimeout(() => {
+      const isPanelOpen = customerSelectPanelEl && !customerSelectPanelEl.classList.contains("hidden");
+      setStickyBarVisible(!isPanelOpen);
+    }, 100);
   });
 
   document.addEventListener("click", (event) => {
@@ -344,4 +363,5 @@ export function initCheckoutPage(session) {
   });
 
   loadCustomers();
+  setStickyBarVisible(true);
 }

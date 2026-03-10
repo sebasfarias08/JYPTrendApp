@@ -1,5 +1,5 @@
 /* public/sw.js */
-const APP_VERSION = "v1.0.44";
+const APP_VERSION = "v1.0.54";
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 
@@ -159,3 +159,8 @@ self.addEventListener("message", (event) => {
     self.skipWaiting();
   }
 });
+
+
+
+
+
