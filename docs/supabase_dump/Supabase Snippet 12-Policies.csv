@@ -28,9 +28,12 @@ public,order_items,order_items_update_own,PERMISSIVE,{authenticated},UPDATE,"(EX
   WHERE ((o.id = order_items.order_id) AND (o.user_id = auth.uid()))))","(EXISTS ( SELECT 1
    FROM orders o
   WHERE ((o.id = order_items.order_id) AND (o.user_id = auth.uid()))))"
+public,orders,admin delete orders,PERMISSIVE,{public},DELETE,(get_user_role() = 'admin'::text),null
 public,orders,orders_insert_own,PERMISSIVE,{authenticated},INSERT,null,(auth.uid() = user_id)
 public,orders,orders_select_own,PERMISSIVE,{authenticated},SELECT,(auth.uid() = user_id),null
 public,orders,orders_update_own,PERMISSIVE,{authenticated},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
+public,orders,seller create orders,PERMISSIVE,{public},INSERT,null,"(get_user_role() = ANY (ARRAY['admin'::text, 'seller'::text]))"
+public,orders,viewer read orders,PERMISSIVE,{public},SELECT,"(get_user_role() = ANY (ARRAY['admin'::text, 'seller'::text, 'viewer'::text]))",null
 public,payment_allocations,payment_allocations_delete_admin_only,PERMISSIVE,{authenticated},DELETE,"(EXISTS ( SELECT 1
    FROM profiles p
   WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))",null
@@ -66,20 +69,9 @@ public,products,products_admin_write,PERMISSIVE,{authenticated},ALL,"(EXISTS ( S
   WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))"
 public,products,products_select_auth,PERMISSIVE,{authenticated},SELECT,true,null
 public,products,public read products,PERMISSIVE,"{anon,authenticated}",SELECT,(active = true),null
-public,profiles,profiles_delete_admin_only,PERMISSIVE,{authenticated},DELETE,"(EXISTS ( SELECT 1
-   FROM profiles p
-  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))",null
-public,profiles,profiles_insert_self_or_admin,PERMISSIVE,{authenticated},INSERT,null,"((auth.uid() = id) OR (EXISTS ( SELECT 1
-   FROM profiles p
-  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))"
-public,profiles,profiles_select_self_or_admin,PERMISSIVE,{authenticated},SELECT,"((auth.uid() = id) OR (EXISTS ( SELECT 1
-   FROM profiles p
-  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))",null
-public,profiles,profiles_update_self_or_admin,PERMISSIVE,{authenticated},UPDATE,"((auth.uid() = id) OR (EXISTS ( SELECT 1
-   FROM profiles p
-  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))","((auth.uid() = id) OR (EXISTS ( SELECT 1
-   FROM profiles p
-  WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true)))))"
+public,profiles,profiles_insert_own,PERMISSIVE,{authenticated},INSERT,null,(id = auth.uid())
+public,profiles,profiles_select_own,PERMISSIVE,{authenticated},SELECT,(id = auth.uid()),null
+public,profiles,profiles_update_own,PERMISSIVE,{authenticated},UPDATE,(id = auth.uid()),(id = auth.uid())
 public,purchase_order_items,purchase_order_items_delete_own,PERMISSIVE,{authenticated},DELETE,"(EXISTS ( SELECT 1
    FROM purchase_orders po
   WHERE ((po.id = purchase_order_items.purchase_order_id) AND (po.user_id = auth.uid()))))",null

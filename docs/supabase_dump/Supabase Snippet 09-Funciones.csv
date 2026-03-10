@@ -1,4 +1,14 @@
 schema_name,function_name,args,returns,language,function_definition
+public,get_user_role,,text,sql,"CREATE OR REPLACE FUNCTION public.get_user_role()
+ RETURNS text
+ LANGUAGE sql
+ STABLE
+AS $function$
+  select role
+  from profiles
+  where id = auth.uid();
+$function$
+"
 public,handle_new_user_profile,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.handle_new_user_profile()
  RETURNS trigger
  LANGUAGE plpgsql
