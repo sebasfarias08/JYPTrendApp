@@ -1,7 +1,7 @@
 import { createDropdown } from "./components/dropdown.js";
 import { getImageUrl } from "./image.js";
 import { getOrderDetail, updateOrderStatus, updatePaymentStatus } from "./services/orders-service.js";
-import { ORDER_STATUS, PAYMENT_STATUS, statusLabel } from "./order-status.js";
+import { ORDER_STATUS, PAYMENT_STATUS, normalizeStatus, statusLabel } from "./order-status.js";
 import { formatOrderRef } from "./order-ref.js";
 import { showToast } from "./toast.js";
 
@@ -41,8 +41,8 @@ function buildMockOrder(id = "mock-order-1") {
     id,
     order_number: 100006,
     created_at: new Date().toISOString(),
-    order_status: "NUEVO",
-    payment_status: "PENDIENTE",
+    order_status: "Reservado",
+    payment_status: "Pendiente",
     subtotal: 58200,
     discount_amount: 1200,
     shipping_amount: 2500,
@@ -263,7 +263,7 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
     const orderDropdown = createDropdown({
       containerId: "orderStatusDropdown",
       options: ORDER_STATUS.map((status) => ({ value: status, label: statusLabel(status) })),
-      selected: order.order_status || "NUEVO",
+      selected: normalizeStatus(order.order_status || "Reservado"),
       labelPrefix: "Estado",
       onChange: async (next) => {
         if (next === order.order_status) return;
@@ -290,7 +290,7 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
     const paymentDropdown = createDropdown({
       containerId: "paymentStatusDropdown",
       options: PAYMENT_STATUS.map((status) => ({ value: status, label: statusLabel(status) })),
-      selected: order.payment_status || "PENDIENTE",
+      selected: normalizeStatus(order.payment_status || "Pendiente"),
       labelPrefix: "Pago",
       onChange: async (next) => {
         if (next === order.payment_status) return;

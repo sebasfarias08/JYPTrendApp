@@ -1,22 +1,25 @@
 // public/js/status-ui.js
+import { normalizeStatus } from "./order-status.js";
+
 export function orderStatusBadgeClass(status) {
+  const normalized = normalizeStatus(status);
   return {
-    NUEVO: "badge badge-neutral",
-    CONFIRMADO: "badge badge-primary",
-    ENVIADO: "badge badge-warning",
-    ENTREGADO: "badge badge-success",
-    CANCELADO: "badge badge-danger"
-  }[status] ?? "badge badge-neutral";
+    Reservado: "badge badge-neutral",
+    Preparado: "badge badge-primary",
+    Entregado: "badge badge-warning",
+    Finalizado: "badge badge-success",
+    Cancelado: "badge badge-danger"
+  }[normalized] ?? "badge badge-neutral";
 }
 
 export function paymentStatusBadgeClass(status) {
+  const normalized = normalizeStatus(status);
   return {
-    PENDIENTE: "badge badge-neutral",
-    PARCIAL: "badge badge-warning",
-    PAGADO: "badge badge-success",
-    FALLIDO: "badge badge-danger",
-    CANCELADO: "badge badge-danger"
-  }[status] ?? "badge badge-neutral";
+    Pendiente: "badge badge-neutral",
+    Parcial: "badge badge-warning",
+    Finalizado: "badge badge-success",
+    Cancelado: "badge badge-danger"
+  }[normalized] ?? "badge badge-neutral";
 }
 
 /* Chips de filtros */

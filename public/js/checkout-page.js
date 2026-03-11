@@ -301,8 +301,8 @@ export function initCheckoutPage(session) {
     const order = {
       user_id: session.user.id,
       customer_id: selectedCustomer.id,
-      order_status: "NUEVO",
-      payment_status: "PENDIENTE",
+      order_status: "Reservado",
+      payment_status: "Pendiente",
       customer_name: selectedCustomer.full_name,
       customer_phone: selectedCustomer.phone || null,
       notes: null,

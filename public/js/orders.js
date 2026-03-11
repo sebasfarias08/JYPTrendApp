@@ -1,6 +1,6 @@
 import { getImageUrl } from "./image.js";
 import { formatOrderRef, matchesOrderQuery } from "./order-ref.js";
-import { ORDER_STATUS } from "./order-status.js";
+import { ORDER_STATUS, normalizeStatus, statusLabel } from "./order-status.js";
 import { getMyOrders, getOrderDetail } from "./orders-service.js";
 
 function escapeHtml(str) {
@@ -13,25 +13,21 @@ function escapeHtml(str) {
 }
 
 function statusUiLabel(status) {
-  return {
-    NUEVO: "New Order",
-    CONFIRMADO: "Confirmed",
-    ENVIADO: "Shipped",
-    ENTREGADO: "Delivered",
-    CANCELADO: "Canceled"
-  }[status] ?? String(status || "Unknown");
+  return statusLabel(status) || "Unknown";
 }
 
 function statusBadgeClass(status) {
-  switch (status) {
-    case "NUEVO":
+  switch (normalizeStatus(status)) {
+    case "Reservado":
       return "bg-orange-50 text-orange-700 border border-orange-200";
-    case "CONFIRMADO":
+    case "Preparado":
       return "bg-blue-50 text-blue-700 border border-blue-200";
-    case "ENVIADO":
+    case "Entregado":
       return "bg-emerald-50 text-emerald-700 border border-emerald-200";
-    case "ENTREGADO":
+    case "Finalizado":
       return "bg-slate-100 text-slate-700 border border-slate-200";
+    case "Cancelado":
+      return "bg-red-50 text-red-700 border border-red-200";
     default:
       return "bg-slate-100 text-slate-700 border border-slate-200";
   }
@@ -62,7 +58,7 @@ function buildOrderCardModel(summaryRow, detailRow) {
     ref: formatOrderRef(summaryRow),
     createdAt: new Date(summaryRow.created_at),
     customer: String(summaryRow.customer_name || detailRow?.customer_name || "Sin cliente"),
-    status: String(summaryRow.order_status || "NUEVO"),
+    status: normalizeStatus(summaryRow.order_status || "Reservado"),
     qty: qty > 0 ? qty : 1,
     productName,
     imageUrl: imagePath ? getImageUrl(imagePath) : "",

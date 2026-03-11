@@ -60,7 +60,7 @@
     import { requireAuth } from "/js/auth.js";
     import { initAppShell } from "/js/app-shell.js";
     import * as ordersService from "/js/orders-service.js";
-    import { statusLabel } from "/js/order-status.js";
+    import { normalizeStatus, statusLabel } from "/js/order-status.js";
     import { orderStatusBadgeClass, paymentStatusBadgeClass } from "/js/status-ui.js";
     import { showToast } from "/js/toast.js";
 
@@ -100,7 +100,8 @@
     }
 
     function isDeliveryPending(status) {
-      return !["ENTREGADO", "CANCELADO"].includes(String(status ?? ""));
+      const normalized = normalizeStatus(status);
+      return !["Entregado", "Cancelado", "Finalizado"].includes(normalized);
     }
 
     function renderRecentOrders(rows) {
@@ -110,8 +111,8 @@
       }
 
       recentOrdersEl.innerHTML = rows.slice(0, 8).map((o) => {
-        const os = o.order_status ?? "NUEVO";
-        const ps = o.payment_status ?? "PENDIENTE";
+        const os = normalizeStatus(o.order_status ?? "Reservado");
+        const ps = normalizeStatus(o.payment_status ?? "Pendiente");
         const customer = (o.customer_name || "").trim() || "Sin cliente";
         const fecha = new Date(o.created_at).toLocaleString("es-AR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" });
         const safeCustomer = escapeHtml(customer);
@@ -147,7 +148,7 @@
       const pendingDeliveries = openOrders.length;
       const pendingPayments = typeof getPendingPaymentsCount === "function"
         ? await getPendingPaymentsCount()
-        : orders.filter((o) => !["PAGADO", "CANCELADO"].includes(String(o.payment_status ?? ""))).length;
+        : orders.filter((o) => !["Finalizado", "Cancelado"].includes(normalizeStatus(o.payment_status))).length;
 
       kpiOrdersTodayEl.textContent = String(todayOrders.length);
       kpiRevenueTodayEl.textContent = `$ ${fmtMoney(revenueToday)}`;
