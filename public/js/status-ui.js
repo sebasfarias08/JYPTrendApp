@@ -1,5 +1,7 @@
 // public/js/status-ui.js
-import { normalizeStatus } from "./order-status.js";
+import * as orderStatusModule from "./order-status.js";
+
+const normalizeStatus = orderStatusModule.normalizeStatus ?? ((status) => String(status ?? "").trim());
 
 export function orderStatusBadgeClass(status) {
   const normalized = normalizeStatus(status);

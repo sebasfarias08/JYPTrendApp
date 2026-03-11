@@ -6,7 +6,9 @@ public,inventory_movements,trg_inventory_movements_set_updated_at,CREATE TRIGGER
 public,order_items,trg_order_items_recalc_order,CREATE TRIGGER trg_order_items_recalc_order AFTER INSERT OR DELETE OR UPDATE ON public.order_items FOR EACH ROW EXECUTE FUNCTION set_order_totals()
 public,order_items,trg_order_items_set_subtotal,CREATE TRIGGER trg_order_items_set_subtotal BEFORE INSERT OR UPDATE ON public.order_items FOR EACH ROW EXECUTE FUNCTION order_items_set_subtotal()
 public,order_items,trg_order_items_set_updated_at,CREATE TRIGGER trg_order_items_set_updated_at BEFORE UPDATE ON public.order_items FOR EACH ROW EXECUTE FUNCTION set_updated_at()
+public,order_items,trg_order_items_sync_inventory,CREATE TRIGGER trg_order_items_sync_inventory AFTER INSERT OR DELETE OR UPDATE ON public.order_items FOR EACH ROW EXECUTE FUNCTION sync_inventory_from_order_item()
 public,orders,trg_orders_set_updated_at,CREATE TRIGGER trg_orders_set_updated_at BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION set_updated_at()
+public,orders,trg_orders_sync_inventory_status,"CREATE TRIGGER trg_orders_sync_inventory_status AFTER UPDATE OF order_status, point_of_sale_id, warehouse_id, user_id ON public.orders FOR EACH ROW EXECUTE FUNCTION sync_inventory_from_order_status()"
 public,payment_allocations,trg_payment_allocations_set_updated_at,CREATE TRIGGER trg_payment_allocations_set_updated_at BEFORE UPDATE ON public.payment_allocations FOR EACH ROW EXECUTE FUNCTION set_updated_at()
 public,payments,trg_payments_set_updated_at,CREATE TRIGGER trg_payments_set_updated_at BEFORE UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION set_updated_at()
 public,points_of_sale,trg_points_of_sale_set_updated_at,CREATE TRIGGER trg_points_of_sale_set_updated_at BEFORE UPDATE ON public.points_of_sale FOR EACH ROW EXECUTE FUNCTION set_updated_at()

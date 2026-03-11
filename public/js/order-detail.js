@@ -1,9 +1,14 @@
 import { createDropdown } from "./components/dropdown.js";
 import { getImageUrl } from "./image.js";
 import { getOrderDetail, updateOrderStatus, updatePaymentStatus } from "./services/orders-service.js";
-import { ORDER_STATUS, PAYMENT_STATUS, normalizeStatus, statusLabel } from "./order-status.js";
+import * as orderStatusModule from "./order-status.js";
 import { formatOrderRef } from "./order-ref.js";
 import { showToast } from "./toast.js";
+
+const ORDER_STATUS = orderStatusModule.ORDER_STATUS ?? ["Reservado", "Preparado", "Entregado", "Finalizado", "Cancelado"];
+const PAYMENT_STATUS = orderStatusModule.PAYMENT_STATUS ?? ["Pendiente", "Parcial", "Finalizado", "Cancelado"];
+const normalizeStatus = orderStatusModule.normalizeStatus ?? ((status) => String(status ?? "").trim());
+const statusLabel = orderStatusModule.statusLabel ?? ((status) => String(status ?? ""));
 
 function escapeHtml(str) {
   return String(str ?? "")

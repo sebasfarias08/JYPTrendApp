@@ -1,7 +1,11 @@
 import { getImageUrl } from "./image.js";
 import { formatOrderRef, matchesOrderQuery } from "./order-ref.js";
-import { ORDER_STATUS, normalizeStatus, statusLabel } from "./order-status.js";
+import * as orderStatusModule from "./order-status.js";
 import { getMyOrders, getOrderDetail } from "./orders-service.js";
+
+const ORDER_STATUS = orderStatusModule.ORDER_STATUS ?? ["Reservado", "Preparado", "Entregado", "Finalizado", "Cancelado"];
+const normalizeStatus = orderStatusModule.normalizeStatus ?? ((status) => String(status ?? "").trim());
+const statusLabel = orderStatusModule.statusLabel ?? ((status) => String(status ?? ""));
 
 function escapeHtml(str) {
   return String(str ?? "")

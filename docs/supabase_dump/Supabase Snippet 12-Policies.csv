@@ -17,23 +17,14 @@ public,inventory_movements,inventory_movements_delete_own,PERMISSIVE,{authentica
 public,inventory_movements,inventory_movements_insert_own,PERMISSIVE,{authenticated},INSERT,null,(auth.uid() = user_id)
 public,inventory_movements,inventory_movements_select_own,PERMISSIVE,{authenticated},SELECT,(auth.uid() = user_id),null
 public,inventory_movements,inventory_movements_update_own,PERMISSIVE,{authenticated},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
-public,order_items,order_items_insert_own,PERMISSIVE,{authenticated},INSERT,null,"(EXISTS ( SELECT 1
-   FROM orders o
-  WHERE ((o.id = order_items.order_id) AND (o.user_id = auth.uid()))))"
-public,order_items,order_items_select_own,PERMISSIVE,{authenticated},SELECT,"(EXISTS ( SELECT 1
-   FROM orders o
-  WHERE ((o.id = order_items.order_id) AND (o.user_id = auth.uid()))))",null
-public,order_items,order_items_update_own,PERMISSIVE,{authenticated},UPDATE,"(EXISTS ( SELECT 1
-   FROM orders o
-  WHERE ((o.id = order_items.order_id) AND (o.user_id = auth.uid()))))","(EXISTS ( SELECT 1
-   FROM orders o
-  WHERE ((o.id = order_items.order_id) AND (o.user_id = auth.uid()))))"
-public,orders,admin delete orders,PERMISSIVE,{public},DELETE,(get_user_role() = 'admin'::text),null
-public,orders,orders_insert_own,PERMISSIVE,{authenticated},INSERT,null,(auth.uid() = user_id)
-public,orders,orders_select_own,PERMISSIVE,{authenticated},SELECT,(auth.uid() = user_id),null
-public,orders,orders_update_own,PERMISSIVE,{authenticated},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
-public,orders,seller create orders,PERMISSIVE,{public},INSERT,null,"(get_user_role() = ANY (ARRAY['admin'::text, 'seller'::text]))"
-public,orders,viewer read orders,PERMISSIVE,{public},SELECT,"(get_user_role() = ANY (ARRAY['admin'::text, 'seller'::text, 'viewer'::text]))",null
+public,order_items,order_items_delete_all_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,order_items,order_items_insert_all_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,order_items,order_items_select_all_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,order_items,order_items_update_all_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,orders,orders_delete_admin_only,PERMISSIVE,{authenticated},DELETE,(get_user_role() = 'admin'::text),null
+public,orders,orders_insert_all_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,orders,orders_select_all_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,orders,orders_update_all_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
 public,payment_allocations,payment_allocations_delete_admin_only,PERMISSIVE,{authenticated},DELETE,"(EXISTS ( SELECT 1
    FROM profiles p
   WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))",null

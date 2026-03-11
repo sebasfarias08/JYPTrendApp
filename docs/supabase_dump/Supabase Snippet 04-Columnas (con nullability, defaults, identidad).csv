@@ -67,8 +67,8 @@ public,orders,5,customer_name,text,text,YES,null,NO,null
 public,orders,6,customer_phone,text,text,YES,null,NO,null
 public,orders,7,notes,text,text,YES,null,NO,null
 public,orders,8,total,numeric,numeric,NO,0,NO,null
-public,orders,9,order_status,text,text,NO,'NUEVO'::text,NO,null
-public,orders,10,payment_status,text,text,NO,'PENDIENTE'::text,NO,null
+public,orders,9,order_status,text,text,NO,'Reservado'::text,NO,null
+public,orders,10,payment_status,text,text,NO,'Pendiente'::text,NO,null
 public,orders,11,order_number,bigint,int8,NO,nextval('orders_order_number_seq'::regclass),NO,null
 public,orders,12,customer_id,uuid,uuid,YES,null,NO,null
 public,orders,13,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null

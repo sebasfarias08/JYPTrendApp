@@ -60,9 +60,11 @@
     import { requireAuth } from "/js/auth.js";
     import { initAppShell } from "/js/app-shell.js";
     import * as ordersService from "/js/orders-service.js";
-    import { normalizeStatus, statusLabel } from "/js/order-status.js";
+    import * as orderStatusModule from "/js/order-status.js";
     import { orderStatusBadgeClass, paymentStatusBadgeClass } from "/js/status-ui.js";
     import { showToast } from "/js/toast.js";
+    const normalizeStatus = orderStatusModule.normalizeStatus ?? ((status) => String(status ?? "").trim());
+    const statusLabel = orderStatusModule.statusLabel ?? ((status) => String(status ?? ""));
 
     const getMyOrders = ordersService.getMyOrders;
     const getPendingPaymentsCount = ordersService.getPendingPaymentsCount;

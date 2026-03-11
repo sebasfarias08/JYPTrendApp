@@ -11,6 +11,7 @@ public,customers,customers_user_full_name_uidx,"CREATE UNIQUE INDEX customers_us
 public,inventory_movements,idx_inventory_movements_point_of_sale,"CREATE INDEX idx_inventory_movements_point_of_sale ON public.inventory_movements USING btree (point_of_sale_id, created_at DESC)"
 public,inventory_movements,idx_inventory_movements_product_created_at,"CREATE INDEX idx_inventory_movements_product_created_at ON public.inventory_movements USING btree (product_id, created_at DESC)"
 public,inventory_movements,idx_inventory_movements_reference,"CREATE INDEX idx_inventory_movements_reference ON public.inventory_movements USING btree (reference_type, reference_id)"
+public,inventory_movements,idx_inventory_movements_reference_type_reference_id,"CREATE INDEX idx_inventory_movements_reference_type_reference_id ON public.inventory_movements USING btree (reference_type, reference_id)"
 public,inventory_movements,idx_inventory_movements_user_created_at,"CREATE INDEX idx_inventory_movements_user_created_at ON public.inventory_movements USING btree (user_id, created_at DESC)"
 public,inventory_movements,idx_inventory_movements_variant_created_at,"CREATE INDEX idx_inventory_movements_variant_created_at ON public.inventory_movements USING btree (variant_id, created_at DESC)"
 public,inventory_movements,idx_inventory_movements_warehouse_created_at,"CREATE INDEX idx_inventory_movements_warehouse_created_at ON public.inventory_movements USING btree (warehouse_id, created_at DESC)"

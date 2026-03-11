@@ -178,3 +178,166 @@ begin
 end;
 $function$
 "
+public,sync_inventory_from_order_item,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.sync_inventory_from_order_item()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_order_id uuid;
+  v_item_id uuid;
+  v_order public.orders%rowtype;
+  v_product_id uuid;
+  v_variant_id uuid;
+  v_qty numeric;
+begin
+  v_order_id := coalesce(new.order_id, old.order_id);
+  v_item_id := coalesce(new.id, old.id);
+
+  select *
+    into v_order
+  from public.orders
+  where id = v_order_id;
+
+  if not found then
+    return coalesce(new, old);
+  end if;
+
+  v_product_id := coalesce(new.product_id, old.product_id);
+  v_variant_id := coalesce(new.variant_id, old.variant_id);
+  v_qty := coalesce(new.qty, old.qty);
+
+  if tg_op = 'DELETE' then
+    delete from public.inventory_movements
+    where reference_type = 'ORDER_ITEM_STOCK'
+      and reference_id = old.id;
+
+    return old;
+  end if;
+
+  if v_order.order_status = 'Cancelado' then
+    delete from public.inventory_movements
+    where reference_type = 'ORDER_ITEM_STOCK'
+      and reference_id = v_item_id;
+
+    return new;
+  end if;
+
+  insert into public.inventory_movements (
+    user_id,
+    product_id,
+    point_of_sale_id,
+    movement_type,
+    qty,
+    reference_type,
+    reference_id,
+    notes,
+    variant_id,
+    warehouse_id
+  )
+  values (
+    v_order.user_id,
+    v_product_id,
+    v_order.point_of_sale_id,
+    'SALE',
+    v_qty,
+    'ORDER_ITEM_STOCK',
+    v_item_id,
+    'Stock reservado automático desde order_items',
+    v_variant_id,
+    v_order.warehouse_id
+  )
+  on conflict do nothing;
+
+  update public.inventory_movements
+     set user_id = v_order.user_id,
+         product_id = v_product_id,
+         point_of_sale_id = v_order.point_of_sale_id,
+         movement_type = 'SALE',
+         qty = v_qty,
+         notes = 'Stock reservado automático desde order_items',
+         variant_id = v_variant_id,
+         warehouse_id = v_order.warehouse_id,
+         updated_at = now()
+   where reference_type = 'ORDER_ITEM_STOCK'
+     and reference_id = v_item_id;
+
+  return new;
+end;
+$function$
+"
+public,sync_inventory_from_order_status,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.sync_inventory_from_order_status()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if tg_op <> 'UPDATE' then
+    return new;
+  end if;
+
+  if new.order_status = old.order_status
+     and new.point_of_sale_id is not distinct from old.point_of_sale_id
+     and new.warehouse_id is not distinct from old.warehouse_id
+     and new.user_id is not distinct from old.user_id then
+    return new;
+  end if;
+
+  if new.order_status = 'Cancelado' then
+    delete from public.inventory_movements im
+    using public.order_items oi
+    where oi.order_id = new.id
+      and im.reference_type = 'ORDER_ITEM_STOCK'
+      and im.reference_id = oi.id;
+
+    return new;
+  end if;
+
+  insert into public.inventory_movements (
+    user_id,
+    product_id,
+    point_of_sale_id,
+    movement_type,
+    qty,
+    reference_type,
+    reference_id,
+    notes,
+    variant_id,
+    warehouse_id
+  )
+  select
+    new.user_id,
+    oi.product_id,
+    new.point_of_sale_id,
+    'SALE',
+    oi.qty,
+    'ORDER_ITEM_STOCK',
+    oi.id,
+    'Stock reservado automático desde order_items',
+    oi.variant_id,
+    new.warehouse_id
+  from public.order_items oi
+  where oi.order_id = new.id
+    and not exists (
+      select 1
+      from public.inventory_movements im
+      where im.reference_type = 'ORDER_ITEM_STOCK'
+        and im.reference_id = oi.id
+    );
+
+  update public.inventory_movements im
+     set user_id = new.user_id,
+         point_of_sale_id = new.point_of_sale_id,
+         warehouse_id = new.warehouse_id,
+         updated_at = now()
+  from public.order_items oi
+  where oi.order_id = new.id
+    and im.reference_type = 'ORDER_ITEM_STOCK'
+    and im.reference_id = oi.id;
+
+  return new;
+end;
+$function$
+"
