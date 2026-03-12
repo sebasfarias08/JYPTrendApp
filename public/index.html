@@ -27,7 +27,7 @@
 
   <main id="mainScroll" class="flex-1 overflow-y-auto pb-20">
     <div id="list" class="divide-y divider"></div>
-    <div id="emptyState" class="hidden p-4 text-sm text-muted">No hay productos para mostrar.</div>
+    <div id="emptyState" class="hidden p-4 text-sm text-muted">No hay variantes para mostrar.</div>
     <div id="statusLine" class="p-3 text-xs text-subtle"></div>
   </main>
 
@@ -122,15 +122,16 @@
         const img = p.image_path ? getImageUrl(String(p.image_path).trim().replace(/^\/+/, "")) : "";
         const stock = Number(p.stock_qty ?? 0);
         const hasStock = stock > 0;
+        const productHref = `/pages/producto.html?id=${encodeURIComponent(p.product_id || "")}`;
 
         return `
           <article class="px-3 py-2">
             <div class="flex items-center gap-3 card p-2.5">
-              <a href="/pages/producto.html?id=${encodeURIComponent(p.id)}" class="block shrink-0">
+              <a href="${productHref}" class="block shrink-0">
                 <img src="${img}" alt="${escapeHtml(p.name)}" class="w-[70px] h-[70px] rounded-lg border divider bg-surface-2 object-contain" />
               </a>
 
-              <a href="/pages/producto.html?id=${encodeURIComponent(p.id)}" class="min-w-0 flex-1">
+              <a href="${productHref}" class="min-w-0 flex-1">
                 <h2 class="font-semibold text-sm leading-5 line-clamp-2">${escapeHtml(p.name)}</h2>
                 <p class="text-xs text-muted mt-1">$ ${fmtMoney(p.price)}</p>
                 <p class="text-xs mt-1 ${hasStock ? "text-emerald-700" : "text-rose-700"}">
@@ -141,7 +142,8 @@
               <div class="w-14 flex flex-col items-end gap-2">
                 <button
                   type="button"
-                  data-add-id="${escapeHtml(p.id)}"
+                  data-add-product-id="${escapeHtml(p.product_id ?? "")}"
+                  data-add-variant-id="${escapeHtml(p.variant_id ?? "")}"
                   data-add-name="${escapeHtml(p.name)}"
                   data-add-price="${Number(p.price ?? 0)}"
                   data-add-image="${escapeHtml(p.image_path ?? "")}"
@@ -161,20 +163,21 @@
         `;
       }).join("");
 
-      listEl.querySelectorAll("[data-add-id]").forEach((btn) => {
+      listEl.querySelectorAll("[data-add-variant-id]").forEach((btn) => {
         btn.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
 
           addToCart({
-            id: btn.getAttribute("data-add-id"),
+            product_id: btn.getAttribute("data-add-product-id"),
+            variant_id: btn.getAttribute("data-add-variant-id"),
             name: btn.getAttribute("data-add-name"),
             price: Number(btn.getAttribute("data-add-price") || 0),
             image_path: btn.getAttribute("data-add-image") || ""
           }, 1);
 
           applyFilters();
-          statusLineEl.textContent = "Producto agregado al carrito.";
+          statusLineEl.textContent = "Variante agregada al carrito.";
         });
       });
     }
@@ -191,7 +194,7 @@
       });
 
       renderList(rows);
-      statusLineEl.textContent = `${rows.length} producto(s) en ${currentTabLabel()}.`;
+      statusLineEl.textContent = `${rows.length} variante(s) en ${currentTabLabel()}.`;
     }
 
     async function reloadProducts() {

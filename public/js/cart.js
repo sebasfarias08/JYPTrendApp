@@ -23,16 +23,25 @@ export function getCartCount() {
   return getCart().reduce((acc, it) => acc + (Number(it.qty) || 0), 0);
 }
 
+function itemKey(item) {
+  return String(item?.cart_key || item?.variant_id || item?.product_id || "");
+}
+
 export function addToCart(product, qty = 1) {
   const items = getCart();
-  const id = product.id;
+  const productId = String(product?.product_id || product?.id || "");
+  const variantId = product?.variant_id ? String(product.variant_id) : null;
+  const cartKey = String(product?.cart_key || variantId || productId);
+  if (!cartKey || !productId) return;
 
-  const found = items.find(x => x.product_id === id);
+  const found = items.find((x) => itemKey(x) === cartKey);
   if (found) {
     found.qty += qty;
   } else {
     items.push({
-      product_id: id,
+      cart_key: cartKey,
+      product_id: productId,
+      variant_id: variantId,
       name: product.name,
       price: Number(product.price || 0),
       image_path: product.image_path || "",
@@ -42,11 +51,13 @@ export function addToCart(product, qty = 1) {
   saveCart(items);
 }
 
-export function updateQty(product_id, qty) {
+export function updateQty(item_id, qty) {
   const items = getCart();
   const q = Number(qty);
+  const targetKey = String(item_id || "");
+  if (!targetKey) return;
 
-  const idx = items.findIndex(x => x.product_id === product_id);
+  const idx = items.findIndex((x) => itemKey(x) === targetKey);
   if (idx === -1) return;
 
   if (q <= 0) items.splice(idx, 1);
