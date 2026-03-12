@@ -26,6 +26,10 @@ function summarizeOrderError(error) {
   return "No pudimos enviar el pedido. Verifica conexion e intenta de nuevo.";
 }
 
+function resolveCartItemKey(item) {
+  return String(item?.cart_key || item?.variant_id || item?.product_id || "");
+}
+
 function render() {
   const listEl = document.getElementById("list");
   const totalEl = document.getElementById("total");
@@ -51,6 +55,7 @@ function render() {
 
   listEl.innerHTML = items.map((it) => {
     const img = it.image_path ? getImageUrl(String(it.image_path).trim().replace(/^\/+/, "")) : "";
+    const itemKey = resolveCartItemKey(it);
 
     return `
       <div class="card p-3 flex gap-3">
@@ -60,10 +65,10 @@ function render() {
           <div class="text-muted text-sm">$ ${formatArs(it.price)} c/u</div>
 
           <div class="mt-2 flex items-center gap-2">
-            <button data-dec="${it.product_id}" class="btn btn-secondary px-3 py-2">-</button>
-            <input data-qty="${it.product_id}" value="${it.qty}"
+            <button data-dec="${itemKey}" class="btn btn-secondary px-3 py-2">-</button>
+            <input data-qty="${itemKey}" value="${it.qty}"
               class="input w-16 text-center px-2 py-2" />
-            <button data-inc="${it.product_id}" class="btn btn-secondary px-3 py-2">+</button>
+            <button data-inc="${itemKey}" class="btn btn-secondary px-3 py-2">+</button>
 
             <div class="ml-auto font-semibold">$ ${formatArs(Number(it.price) * Number(it.qty))}</div>
           </div>
@@ -75,7 +80,7 @@ function render() {
   listEl.querySelectorAll("[data-inc]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-inc");
-      const it = getCart().find((x) => x.product_id === id);
+      const it = getCart().find((x) => resolveCartItemKey(x) === String(id || ""));
       updateQty(id, (it?.qty || 0) + 1);
       render();
     });
@@ -84,7 +89,7 @@ function render() {
   listEl.querySelectorAll("[data-dec]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-dec");
-      const it = getCart().find((x) => x.product_id === id);
+      const it = getCart().find((x) => resolveCartItemKey(x) === String(id || ""));
       updateQty(id, (it?.qty || 0) - 1);
       render();
     });

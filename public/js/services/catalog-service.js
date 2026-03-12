@@ -1,42 +1,65 @@
 import { supabase } from "../lib/supabase-client.js";
-import { getStockByProduct } from "./stock-service.js";
+import { getStockByVariant } from "./stock-service.js";
 
 export async function getProducts() {
-  const [productsResult, stockRows] = await Promise.all([
+  const [variantsResult, stockRows] = await Promise.all([
     supabase
-      .from("products")
+      .from("product_variants")
       .select(`
         id,
-        name,
-        price,
-        image_path,
-        categories (
+        product_id,
+        variant_name,
+        sale_price,
+        active,
+        products!inner (
+          id,
           name,
-          slug
+          image_path,
+          active,
+          categories (
+            name,
+            slug
+          )
         )
       `)
       .eq("active", true)
-      .order("created_at", { ascending: false }),
-    getStockByProduct()
+      .eq("products.active", true)
+      .order("product_id", { ascending: true }),
+    getStockByVariant()
   ]);
 
-  const { data, error } = productsResult;
+  const { data, error } = variantsResult;
   if (error) {
-    console.error("getProducts error:", error);
+    console.error("getProducts (variants) error:", error);
     return [];
   }
 
-  const stockByProductId = new Map();
+  const stockByVariantId = new Map();
   for (const row of stockRows ?? []) {
-    const productId = row?.product_id ?? null;
-    if (!productId) continue;
-    const current = Number(stockByProductId.get(productId) ?? 0);
+    const variantId = row?.variant_id ?? null;
+    if (!variantId) continue;
+    const current = Number(stockByVariantId.get(variantId) ?? 0);
     const qty = Number(row?.stock_qty ?? 0);
-    stockByProductId.set(productId, current + (Number.isFinite(qty) ? qty : 0));
+    stockByVariantId.set(variantId, current + (Number.isFinite(qty) ? qty : 0));
   }
 
-  return (data ?? []).map((p) => ({
-    ...p,
-    stock_qty: Number(stockByProductId.get(p.id) ?? 0)
-  }));
+  return (data ?? []).map((row) => {
+    const product = row?.products ?? {};
+    const productName = String(product?.name ?? "").trim();
+    const variantName = String(row?.variant_name ?? "").trim();
+    const mergedName = variantName ? `${productName} - ${variantName}` : productName;
+
+    return {
+      id: row.id,
+      variant_id: row.id,
+      product_id: row.product_id ?? product?.id ?? null,
+      name: mergedName,
+      product_name: productName,
+      variant_name: variantName,
+      price: Number(row?.sale_price ?? 0),
+      image_path: product?.image_path ?? "",
+      categories: product?.categories ?? null,
+      stock_qty: Number(stockByVariantId.get(row.id) ?? 0)
+    };
+  });
 }

@@ -32,7 +32,8 @@ export async function createOrderWithItems(order, cartItems) {
   // 2) Insert items. DB trigger calculates subtotals/totals.
   const items = cartItems.map((it) => ({
     order_id,
-    product_id: it.product_id,
+    product_id: it.product_id || it.id || null,
+    variant_id: it.variant_id || null,
     qty: Number(it.qty || 1),
     unit_price: Number(it.price || 0)
   }));
