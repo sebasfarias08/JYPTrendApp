@@ -156,6 +156,40 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 3. Expandir uso de views para dashboards y reportes.
 4. Agregar tests de servicios Supabase criticos (auth, pedidos, stock).
 
+## Limpieza de codigo (2026-03-11)
+
+- Resumen:
+  - Se limpio codigo no utilizado con enfoque conservador para no afectar el runtime actual (frontend estatico servido desde `public/`).
+  - Se removio codigo muerto confirmado dentro de archivos usados y se archivo en `old/`.
+  - Se movio el arbol `src/` a `old/src/` con sufijo `_old` por archivo, ya que no participa del grafo de ejecucion actual.
+
+- Archivos movidos a `old/`:
+  - Todo `src/**` fue movido a `old/src/**` conservando estructura y renombrando con sufijo `_old` antes de la extension.
+  - Ejemplos:
+    - `src/lib/supabase-client.js` -> `old/src/lib/supabase-client_old.js`
+    - `src/services/orders-service.js` -> `old/src/services/orders-service_old.js`
+    - `src/utils/permissions.js` -> `old/src/utils/permissions_old.js`
+
+- Codigo removido por no uso (intra-archivo):
+  - De `public/js/status-ui.js`: `chipClass`.
+    - Archivado en `old/public/js/status-ui_unused_code_old.js`.
+  - De `public/js/utils/permissions.js`: `canManageUsers`, `canRegisterPayments`.
+    - Archivado en `old/public/js/permissions-unused_code_old.js`.
+
+- Criterios usados para detectar no uso:
+  - Grafo de dependencias desde entrypoints reales (`public/index.html` y `public/pages/*.html` con `type=\"module\"`).
+  - Resolucion de imports ES Modules (directos y `export * from`).
+  - Verificacion de referencias textuales cruzadas en `public/` para simbolos exportados.
+  - Regla conservadora: si podia existir uso indirecto/legacy, se reporto como dudoso y no se movio automaticamente.
+
+- Casos conservadores no tocados:
+  - `public/js/supabase-client.js` aparece sin referencias directas en el grafo actual, pero se mantuvo por compatibilidad legacy declarada en este README.
+
+- Recomendaciones futuras:
+  - Agregar un chequeo automatico de imports/exports no usados en CI (eslint + plugin import).
+  - Definir una politica de deprecacion para wrappers legacy (`public/js/*` que solo re-exportan) con ventanas de retiro.
+  - Repetir limpieza en cada release menor para evitar acumulacion de codigo muerto.
+
 
 
 

@@ -23,10 +23,3 @@ export function paymentStatusBadgeClass(status) {
     Cancelado: "badge badge-danger"
   }[normalized] ?? "badge badge-neutral";
 }
-
-/* Chips de filtros */
-export function chipClass(active = false) {
-  return active
-    ? "chip chip-active text-sm font-semibold"
-    : "chip text-sm";
-}
