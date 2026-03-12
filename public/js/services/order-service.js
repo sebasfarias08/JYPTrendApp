@@ -1,66 +1,98 @@
 import { supabase } from "../lib/supabase-client.js";
+import { getStockByVariant } from "./stock-service.js";
+import { getSalesContext } from "./sales-context-service.js";
 
-async function getActiveWarehouseId(userId) {
-  if (!userId) return null;
-
-  const { data, error } = await supabase
-    .from("warehouses")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    console.error("getActiveWarehouseId error:", error);
-    return null;
+function resolveOrderContext(order, cartItems, fallbackContext) {
+  const explicitWarehouseId = order?.warehouse_id ?? null;
+  const explicitPointOfSaleId = order?.point_of_sale_id ?? null;
+  if (explicitWarehouseId && explicitPointOfSaleId) {
+    return {
+      warehouse_id: explicitWarehouseId,
+      point_of_sale_id: explicitPointOfSaleId
+    };
   }
 
-  return data?.id ?? null;
+  const itemWarehouseIds = Array.from(new Set((cartItems ?? []).map((it) => it?.warehouse_id).filter(Boolean)));
+  const itemPointOfSaleIds = Array.from(new Set((cartItems ?? []).map((it) => it?.point_of_sale_id).filter(Boolean)));
+
+  if (itemWarehouseIds.length > 1 || itemPointOfSaleIds.length > 1) {
+    return {
+      warehouse_id: null,
+      point_of_sale_id: null
+    };
+  }
+
+  return {
+    warehouse_id: itemWarehouseIds[0] ?? fallbackContext.warehouse_id ?? null,
+    point_of_sale_id: itemPointOfSaleIds[0] ?? fallbackContext.point_of_sale_id ?? null
+  };
 }
 
-async function getActivePointOfSaleId(userId) {
-  if (!userId) return null;
+async function validateCartStock(cartItems, context) {
+  const rows = await getStockByVariant({
+    warehouseId: context.warehouse_id,
+    pointOfSaleId: context.point_of_sale_id
+  });
 
-  const { data, error } = await supabase
-    .from("points_of_sale")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("active", true)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    console.error("getActivePointOfSaleId error:", error);
-    return null;
+  const availableByVariantId = new Map();
+  for (const row of rows ?? []) {
+    const variantId = row?.variant_id ?? null;
+    if (!variantId) continue;
+    availableByVariantId.set(String(variantId), Number(row?.stock_qty ?? 0));
   }
 
-  return data?.id ?? null;
+  const requestedByVariantId = new Map();
+  for (const item of cartItems ?? []) {
+    if (!item?.product_id || !item?.variant_id) {
+      return {
+        ok: false,
+        error: new Error("Missing product_id or variant_id in one or more order items.")
+      };
+    }
+
+    const variantId = String(item.variant_id);
+    const currentQty = Number(requestedByVariantId.get(variantId) ?? 0);
+    requestedByVariantId.set(variantId, currentQty + Number(item.qty || 0));
+  }
+
+  for (const [variantId, requestedQty] of requestedByVariantId.entries()) {
+    const availableQty = Number(availableByVariantId.get(variantId) ?? 0);
+    if (availableQty < requestedQty) {
+      return {
+        ok: false,
+        error: new Error(`Stock insuficiente para la variante. Disponible: ${availableQty}, solicitado: ${requestedQty}.`)
+      };
+    }
+  }
+
+  return { ok: true };
 }
 
 export async function createOrderWithItems(order, cartItems) {
   const userId = order?.user_id ?? null;
-  const [warehouseId, pointOfSaleId] = await Promise.all([
-    order?.warehouse_id ? Promise.resolve(order.warehouse_id) : getActiveWarehouseId(userId),
-    order?.point_of_sale_id ? Promise.resolve(order.point_of_sale_id) : getActivePointOfSaleId(userId)
-  ]);
+  const fallbackContext = await getSalesContext(userId);
+  const { warehouse_id: warehouseId, point_of_sale_id: pointOfSaleId } = resolveOrderContext(order, cartItems, fallbackContext);
 
   if (!warehouseId || !pointOfSaleId) {
     return {
       ok: false,
-      error: new Error("Missing warehouse_id or point_of_sale_id for order creation.")
+      error: new Error("Missing or inconsistent warehouse_id / point_of_sale_id for order creation.")
     };
   }
 
-  const invalidItem = (cartItems ?? []).find((it) => !it?.product_id);
+  const invalidItem = (cartItems ?? []).find((it) => !it?.product_id || !it?.variant_id);
   if (invalidItem) {
     return {
       ok: false,
-      error: new Error("Missing product_id in one or more order items.")
+      error: new Error("Missing product_id or variant_id in one or more order items.")
     };
   }
+
+  const stockValidation = await validateCartStock(cartItems, {
+    warehouse_id: warehouseId,
+    point_of_sale_id: pointOfSaleId
+  });
+  if (!stockValidation.ok) return stockValidation;
 
   const orderPayload = {
     ...order,
@@ -100,7 +132,7 @@ export async function createOrderWithItems(order, cartItems) {
   const items = cartItems.map((it) => ({
     order_id,
     product_id: it.product_id,
-    variant_id: it.variant_id || null,
+    variant_id: it.variant_id,
     qty: Number(it.qty || 1),
     unit_price: Number(it.price || 0)
   }));

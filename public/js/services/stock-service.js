@@ -12,10 +12,19 @@ export async function getStockByProduct() {
   return data ?? [];
 }
 
-export async function getStockByVariant() {
-  const { data, error } = await supabase
+export async function getStockByVariant({ warehouseId = null, pointOfSaleId = null } = {}) {
+  let query = supabase
     .from("v_inventory_stock_by_variant")
-    .select("variant_id, stock_qty");
+    .select("product_id, variant_id, warehouse_id, point_of_sale_id, stock_qty");
+
+  if (warehouseId) {
+    query = query.eq("warehouse_id", warehouseId);
+  }
+  if (pointOfSaleId) {
+    query = query.eq("point_of_sale_id", pointOfSaleId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("getStockByVariant error:", error);

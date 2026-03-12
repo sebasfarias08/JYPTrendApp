@@ -147,6 +147,8 @@
                   data-add-name="${escapeHtml(p.name)}"
                   data-add-price="${Number(p.price ?? 0)}"
                   data-add-image="${escapeHtml(p.image_path ?? "")}"
+                  data-add-warehouse-id="${escapeHtml(p.warehouse_id ?? "")}"
+                  data-add-point-of-sale-id="${escapeHtml(p.point_of_sale_id ?? "")}"
                   class="btn btn-primary w-11 h-11 rounded-full p-0 ${hasStock ? "" : "opacity-50 cursor-not-allowed"}"
                   ${hasStock ? "" : "disabled"}
                   aria-label="Agregar al carrito">
@@ -173,7 +175,9 @@
             variant_id: btn.getAttribute("data-add-variant-id"),
             name: btn.getAttribute("data-add-name"),
             price: Number(btn.getAttribute("data-add-price") || 0),
-            image_path: btn.getAttribute("data-add-image") || ""
+            image_path: btn.getAttribute("data-add-image") || "",
+            warehouse_id: btn.getAttribute("data-add-warehouse-id") || null,
+            point_of_sale_id: btn.getAttribute("data-add-point-of-sale-id") || null
           }, 1);
 
           applyFilters();

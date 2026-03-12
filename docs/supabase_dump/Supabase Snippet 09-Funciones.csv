@@ -345,3 +345,96 @@ begin
 end;
 $function$
 "
+public,validate_order_item_stock,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.validate_order_item_stock()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_order_new public.orders%rowtype;
+  v_available numeric(12,2);
+  v_needed numeric(12,2);
+begin
+  -- Orden destino
+  select *
+    into v_order_new
+    from public.orders
+   where id = new.order_id;
+
+  if v_order_new.id is null then
+    raise exception 'La orden no existe';
+  end if;
+
+  -- INSERT
+  if tg_op = 'INSERT' then
+    v_needed := new.qty;
+
+    select coalesce(sum(im.qty), 0)
+      into v_available
+      from public.inventory_movements im
+     where im.product_id = new.product_id
+       and im.variant_id is not distinct from new.variant_id
+       and im.warehouse_id is not distinct from v_order_new.warehouse_id
+       and im.point_of_sale_id is not distinct from v_order_new.point_of_sale_id;
+
+    if v_available < v_needed then
+      raise exception 'Stock insuficiente para el producto/variante. Disponible: %, solicitado: %',
+        v_available, v_needed;
+    end if;
+
+    return new;
+  end if;
+
+  -- UPDATE
+  if tg_op = 'UPDATE' then
+    -- mismo producto/variante/order: validar solo aumento
+    if old.product_id is not distinct from new.product_id
+       and old.variant_id is not distinct from new.variant_id
+       and old.order_id is not distinct from new.order_id then
+
+      v_needed := new.qty - old.qty;
+
+      if v_needed <= 0 then
+        return new;
+      end if;
+
+      select coalesce(sum(im.qty), 0)
+        into v_available
+        from public.inventory_movements im
+       where im.product_id = new.product_id
+         and im.variant_id is not distinct from new.variant_id
+         and im.warehouse_id is not distinct from v_order_new.warehouse_id
+         and im.point_of_sale_id is not distinct from v_order_new.point_of_sale_id;
+
+      if v_available < v_needed then
+        raise exception 'Stock insuficiente para aumentar la cantidad. Disponible adicional: %, solicitado adicional: %',
+          v_available, v_needed;
+      end if;
+
+      return new;
+    end if;
+
+    -- cambió producto / variante / orden: validar qty completa del nuevo destino
+    v_needed := new.qty;
+
+    select coalesce(sum(im.qty), 0)
+      into v_available
+      from public.inventory_movements im
+     where im.product_id = new.product_id
+       and im.variant_id is not distinct from new.variant_id
+       and im.warehouse_id is not distinct from v_order_new.warehouse_id
+       and im.point_of_sale_id is not distinct from v_order_new.point_of_sale_id;
+
+    if v_available < v_needed then
+      raise exception 'Stock insuficiente para el nuevo producto/variante. Disponible: %, solicitado: %',
+        v_available, v_needed;
+    end if;
+
+    return new;
+  end if;
+
+  return new;
+end;
+$function$
+"

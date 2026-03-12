@@ -27,7 +27,10 @@ function summarizeOrderError(error) {
 }
 
 function resolveCartItemKey(item) {
-  return String(item?.cart_key || item?.variant_id || item?.product_id || "");
+  return String(
+    item?.cart_key ||
+    [item?.variant_id || item?.product_id || "", item?.warehouse_id || "", item?.point_of_sale_id || ""].join("::")
+  );
 }
 
 function render() {

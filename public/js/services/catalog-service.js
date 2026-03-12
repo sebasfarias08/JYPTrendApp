@@ -1,7 +1,14 @@
 import { supabase } from "../lib/supabase-client.js";
 import { getStockByVariant } from "./stock-service.js";
+import { getSalesContext } from "./sales-context-service.js";
 
 export async function getProducts() {
+  const salesContext = await getSalesContext();
+  if (!salesContext.warehouse_id || !salesContext.point_of_sale_id) {
+    console.warn("getProducts missing sales context.");
+    return [];
+  }
+
   const [variantsResult, stockRows] = await Promise.all([
     supabase
       .from("product_variants")
@@ -25,7 +32,10 @@ export async function getProducts() {
       .eq("active", true)
       .eq("products.active", true)
       .order("variant_name", { ascending: true }),
-    getStockByVariant()
+    getStockByVariant({
+      warehouseId: salesContext.warehouse_id,
+      pointOfSaleId: salesContext.point_of_sale_id
+    })
   ]);
 
   const { data, error } = variantsResult;
@@ -60,7 +70,9 @@ export async function getProducts() {
       price: Number(row?.sale_price ?? 0),
       image_path: product?.image_path ?? "",
       categories: product?.categories ?? null,
-      stock_qty: stockQty
+      stock_qty: stockQty,
+      warehouse_id: salesContext.warehouse_id,
+      point_of_sale_id: salesContext.point_of_sale_id
     };
   });
 

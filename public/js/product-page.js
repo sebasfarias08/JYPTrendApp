@@ -5,6 +5,7 @@ import { shareProduct, copyToClipboard, downloadImage } from "./share.js";
 import { addToCart } from "./cart.js";
 import { showToast } from "./toast.js";
 import { canManageInventory } from "./utils/permissions.js";
+import { getSalesContext } from "./services/sales-context-service.js";
 
 function formatArs(value) {
   const n = Number(value ?? 0);
@@ -35,6 +36,7 @@ export async function initProductPage(role = "viewer") {
 
   showToast("Cargando producto...", { type: "info", duration: 900 });
   let p = await getProductById(id);
+  const salesContext = await getSalesContext();
 
   if (!p) {
     showToast("No se encontro el producto (o esta inactivo).", { type: "error" });
@@ -51,6 +53,13 @@ export async function initProductPage(role = "viewer") {
   const editPriceEl = document.getElementById("editPrice");
   const editDescriptionEl = document.getElementById("editDescription");
   const editImagePathEl = document.getElementById("editImagePath");
+  const btnAddCartEl = document.getElementById("btnAddCart");
+
+  function getSingleActiveVariant() {
+    const activeVariants = (p.product_variants ?? []).filter((variant) => variant?.active !== false);
+    if (activeVariants.length !== 1) return null;
+    return activeVariants[0];
+  }
 
   function currentShareMeta() {
     const shareUrl = `${location.origin}/pages/producto.html?id=${encodeURIComponent(p.id)}`;
@@ -92,13 +101,32 @@ export async function initProductPage(role = "viewer") {
   if (btnEditProductEl) {
     btnEditProductEl.classList.toggle("hidden", !canManageInventory(role));
   }
+  if (btnAddCartEl) {
+    const canAddFromDetail = Boolean(
+      getSingleActiveVariant() &&
+      salesContext?.warehouse_id &&
+      salesContext?.point_of_sale_id
+    );
+    btnAddCartEl.disabled = !canAddFromDetail;
+    btnAddCartEl.classList.toggle("opacity-60", !canAddFromDetail);
+    btnAddCartEl.classList.toggle("cursor-not-allowed", !canAddFromDetail);
+  }
 
-  document.getElementById("btnAddCart")?.addEventListener("click", () => {
+  btnAddCartEl?.addEventListener("click", () => {
+    const variant = getSingleActiveVariant();
+    if (!variant) {
+      showToast("Este producto debe agregarse desde el catalogo de variantes.", { type: "warning" });
+      return;
+    }
+
     addToCart(
       {
-        id: p.id,
+        product_id: p.id,
+        variant_id: variant.id,
+        warehouse_id: salesContext.warehouse_id,
+        point_of_sale_id: salesContext.point_of_sale_id,
         name: p.name,
-        price: p.price,
+        price: Number(variant.sale_price ?? p.price ?? 0),
         image_path: p.image_path
       },
       1

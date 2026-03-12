@@ -24,24 +24,33 @@ export function getCartCount() {
 }
 
 function itemKey(item) {
-  return String(item?.cart_key || item?.variant_id || item?.product_id || "");
+  return String(
+    item?.cart_key ||
+    [item?.variant_id || item?.product_id || "", item?.warehouse_id || "", item?.point_of_sale_id || ""].join("::")
+  );
 }
 
 export function addToCart(product, qty = 1) {
   const items = getCart();
   const productId = String(product?.product_id || product?.id || "");
   const variantId = product?.variant_id ? String(product.variant_id) : null;
-  const cartKey = String(product?.cart_key || variantId || productId);
+  const warehouseId = product?.warehouse_id ? String(product.warehouse_id) : null;
+  const pointOfSaleId = product?.point_of_sale_id ? String(product.point_of_sale_id) : null;
+  const cartKey = String(product?.cart_key || [variantId || productId, warehouseId || "", pointOfSaleId || ""].join("::"));
   if (!cartKey || !productId) return;
 
   const found = items.find((x) => itemKey(x) === cartKey);
   if (found) {
     found.qty += qty;
+    found.warehouse_id = warehouseId;
+    found.point_of_sale_id = pointOfSaleId;
   } else {
     items.push({
       cart_key: cartKey,
       product_id: productId,
       variant_id: variantId,
+      warehouse_id: warehouseId,
+      point_of_sale_id: pointOfSaleId,
       name: product.name,
       price: Number(product.price || 0),
       image_path: product.image_path || "",
