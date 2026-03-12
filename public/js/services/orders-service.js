@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase-client.js";
+import { fetchUser } from "./auth-service.js";
 
 export async function getMyOrders({ limit = 50 } = {}) {
   const { data, error } = await supabase
@@ -9,6 +10,31 @@ export async function getMyOrders({ limit = 50 } = {}) {
 
   if (error) {
     console.error("getMyOrders error:", error);
+    return [];
+  }
+  return data ?? [];
+}
+
+export async function getMyOpenOrders({ limit = 80 } = {}) {
+  const { data: userData, error: userErr } = await fetchUser();
+  if (userErr) {
+    console.error("getMyOpenOrders fetchUser error:", userErr);
+    return [];
+  }
+
+  const userId = userData?.user?.id;
+  if (!userId) return [];
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id, order_number, created_at, order_status, payment_status, total, customer_name, user_id")
+    .eq("user_id", userId)
+    .not("order_status", "in", "(Cancelado,Finalizado)")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("getMyOpenOrders error:", error);
     return [];
   }
   return data ?? [];

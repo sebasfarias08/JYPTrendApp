@@ -14,32 +14,13 @@
   <header id="appShellTop"></header>
 
   <main class="flex-1 overflow-y-auto p-4 space-y-4 pb-[calc(env(safe-area-inset-bottom)+7rem)]">
-    <section class="grid grid-cols-2 gap-3">
-      <article class="card p-3">
-        <div class="text-xs text-muted">Pedidos hoy</div>
-        <div id="kpiOrdersToday" class="text-2xl font-semibold mt-1">-</div>
-      </article>
-      <article class="card p-3">
-        <div class="text-xs text-muted">Facturado hoy</div>
-        <div id="kpiRevenueToday" class="text-2xl font-semibold mt-1">$ -</div>
-      </article>
-      <article class="card p-3">
-        <div class="text-xs text-muted">Ticket promedio</div>
-        <div id="kpiAvgTicket" class="text-2xl font-semibold mt-1">$ -</div>
-      </article>
-      <article class="card p-3">
-        <div class="text-xs text-muted">Cobros pendientes</div>
-        <div id="kpiPendingPayments" class="text-2xl font-semibold mt-1">-</div>
-      </article>
-    </section>
-
     <section class="card p-4 space-y-3">
       <h2 class="font-semibold">Atajos</h2>
       <div class="grid grid-cols-2 gap-2">
-        <a class="btn btn-primary text-center" href="/pages/checkout.html">Nuevo pedido</a>
+        <a class="btn btn-primary text-center" href="/index.html?tab=perfumes">Nueva Reserva</a>
         <a class="btn btn-secondary text-center" href="/pages/pedidos.html">Historial</a>
         <a class="btn btn-secondary text-center" href="/pages/clientes.html">Clientes</a>
-        <a class="btn btn-secondary text-center" href="/index.html?tab=perfumes">Catalogo</a>
+        <a class="btn btn-secondary text-center" href="/pages/checkout.html">Carrito</a>
       </div>
     </section>
 
@@ -66,8 +47,7 @@
     const normalizeStatus = orderStatusModule.normalizeStatus ?? ((status) => String(status ?? "").trim());
     const statusLabel = orderStatusModule.statusLabel ?? ((status) => String(status ?? ""));
 
-    const getMyOrders = ordersService.getMyOrders;
-    const getPendingPaymentsCount = ordersService.getPendingPaymentsCount;
+    const getMyOpenOrders = ordersService.getMyOpenOrders;
 
     const session = await requireAuth();
     if (!session) throw new Error("Redirect login");
@@ -77,10 +57,6 @@
       onRefresh: async () => loadDashboard()
     });
 
-    const kpiOrdersTodayEl = document.getElementById("kpiOrdersToday");
-    const kpiRevenueTodayEl = document.getElementById("kpiRevenueToday");
-    const kpiAvgTicketEl = document.getElementById("kpiAvgTicket");
-    const kpiPendingPaymentsEl = document.getElementById("kpiPendingPayments");
     const pendingDeliveriesEl = document.getElementById("pendingDeliveries");
     const recentOrdersEl = document.getElementById("recentOrders");
 
@@ -92,23 +68,9 @@
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
 
-    function isSameLocalDay(isoDate, ref = new Date()) {
-      const d = new Date(isoDate);
-      return (
-        d.getFullYear() === ref.getFullYear() &&
-        d.getMonth() === ref.getMonth() &&
-        d.getDate() === ref.getDate()
-      );
-    }
-
-    function isDeliveryPending(status) {
-      const normalized = normalizeStatus(status);
-      return !["Entregado", "Cancelado", "Finalizado"].includes(normalized);
-    }
-
     function renderRecentOrders(rows) {
       if (!rows.length) {
-        recentOrdersEl.innerHTML = `<p class="text-sm text-muted">Todavia no hay pedidos.</p>`;
+        recentOrdersEl.innerHTML = `<p class="text-sm text-muted">No hay pedidos activos para mostrar.</p>`;
         return;
       }
 
@@ -141,24 +103,9 @@
     async function loadDashboard() {
       showToast("Actualizando home...", { type: "info", duration: 1000 });
 
-      const orders = await getMyOrders({ limit: 200 });
-      const openOrders = orders.filter((o) => isDeliveryPending(o.order_status));
-      const todayOrders = orders.filter((o) => isSameLocalDay(o.created_at));
-
-      const revenueToday = todayOrders.reduce((sum, o) => sum + Number(o.total ?? 0), 0);
-      const avgTicket = todayOrders.length ? (revenueToday / todayOrders.length) : 0;
-      const pendingDeliveries = openOrders.length;
-      const pendingPayments = typeof getPendingPaymentsCount === "function"
-        ? await getPendingPaymentsCount()
-        : orders.filter((o) => !["Finalizado", "Cancelado"].includes(normalizeStatus(o.payment_status))).length;
-
-      kpiOrdersTodayEl.textContent = String(todayOrders.length);
-      kpiRevenueTodayEl.textContent = `$ ${fmtMoney(revenueToday)}`;
-      kpiAvgTicketEl.textContent = `$ ${fmtMoney(avgTicket)}`;
-      kpiPendingPaymentsEl.textContent = String(pendingPayments);
-      pendingDeliveriesEl.textContent = `Pendientes: ${pendingDeliveries}`;
-
-      renderRecentOrders(openOrders);
+      const orders = await getMyOpenOrders({ limit: 200 });
+      pendingDeliveriesEl.textContent = `Pendientes: ${orders.length}`;
+      renderRecentOrders(orders);
     }
 
     await loadDashboard();

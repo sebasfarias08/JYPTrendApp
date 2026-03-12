@@ -10,7 +10,7 @@ export async function createOrderWithItems(order, cartItems) {
 
   if (orderErr) {
     console.error("Insert order error:", orderErr);
-    return { ok: false };
+    return { ok: false, error: orderErr };
   }
 
   const order_id = orderRow.id;
@@ -45,7 +45,7 @@ export async function createOrderWithItems(order, cartItems) {
     console.error("Insert items error:", itemsErr);
     // rollback best-effort
     await supabase.from("orders").delete().eq("id", order_id);
-    return { ok: false };
+    return { ok: false, error: itemsErr };
   }
 
   let order_number = null;

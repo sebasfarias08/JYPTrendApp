@@ -20,6 +20,12 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
+function summarizeOrderError(error) {
+  const message = String(error?.message || error?.details || "").trim();
+  if (message) return message;
+  return "No pudimos enviar el pedido. Verifica conexion e intenta de nuevo.";
+}
+
 function render() {
   const listEl = document.getElementById("list");
   const totalEl = document.getElementById("total");
@@ -314,10 +320,11 @@ export function initCheckoutPage(session) {
       res = await createOrderWithItems(order, items);
     } catch (e) {
       console.error("createOrderWithItems error:", e);
+      res = { ok: false, error: e };
     }
 
     if (!res.ok) {
-      showToast("No pudimos enviar el pedido. Verifica conexion e intenta de nuevo.", { type: "error", duration: 3200 });
+      showToast(summarizeOrderError(res.error), { type: "error", duration: 4500 });
       setSubmitState(false);
       return;
     }

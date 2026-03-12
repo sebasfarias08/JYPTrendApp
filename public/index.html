@@ -38,7 +38,7 @@
     import { registerServiceWorker, applyUpdate } from "/js/sw-register.js";
     import { getProducts } from "/js/catalog-service.js";
     import { getImageUrl } from "/js/image.js";
-    import { addToCart, getCart } from "/js/cart.js";
+    import { addToCart } from "/js/cart.js";
     import { initAppShell } from "/js/app-shell.js";
     import { normalizeRole, ROLES } from "/js/utils/permissions.js";
 
@@ -89,11 +89,6 @@
         .replace(/\s+/g, "-");
     }
 
-    function qtyInCart(productId) {
-      const item = getCart().find((x) => x.product_id === productId);
-      return Number(item?.qty || 0);
-    }
-
     function currentTabLabel() {
       return TABS[selectedTab] ?? "Productos";
     }
@@ -125,7 +120,6 @@
       emptyStateEl.classList.add("hidden");
       listEl.innerHTML = rows.map((p) => {
         const img = p.image_path ? getImageUrl(String(p.image_path).trim().replace(/^\/+/, "")) : "";
-        const qty = qtyInCart(p.id);
         const stock = Number(p.stock_qty ?? 0);
         const hasStock = stock > 0;
 
@@ -145,7 +139,6 @@
               </a>
 
               <div class="w-14 flex flex-col items-end gap-2">
-                <span class="text-xs text-muted">${qty}</span>
                 <button
                   type="button"
                   data-add-id="${escapeHtml(p.id)}"
