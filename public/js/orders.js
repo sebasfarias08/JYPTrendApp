@@ -23,15 +23,15 @@ function statusUiLabel(status) {
 function statusBadgeClass(status) {
   switch (normalizeStatus(status)) {
     case "Reservado":
-      return "bg-orange-50 text-orange-700 border border-orange-200";
+      return "bg-amber-50 text-amber-700 border border-amber-200";
     case "Preparado":
-      return "bg-blue-50 text-blue-700 border border-blue-200";
+      return "bg-sky-50 text-sky-700 border border-sky-200";
     case "Entregado":
       return "bg-emerald-50 text-emerald-700 border border-emerald-200";
     case "Finalizado":
       return "bg-slate-100 text-slate-700 border border-slate-200";
     case "Cancelado":
-      return "bg-red-50 text-red-700 border border-red-200";
+      return "bg-rose-50 text-rose-700 border border-rose-200";
     default:
       return "bg-slate-100 text-slate-700 border border-slate-200";
   }
@@ -43,9 +43,9 @@ function orderDateGroupLabel(date) {
   const startGiven = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const diffDays = Math.round((startToday - startGiven) / 86400000);
 
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (diffDays === 0) return "Hoy";
+  if (diffDays === 1) return "Ayer";
+  return date.toLocaleDateString("es-AR", { day: "numeric", month: "short" });
 }
 
 function buildOrderCardModel(summaryRow, detailRow) {

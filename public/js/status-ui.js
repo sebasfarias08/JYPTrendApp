@@ -6,20 +6,20 @@ const normalizeStatus = orderStatusModule.normalizeStatus ?? ((status) => String
 export function orderStatusBadgeClass(status) {
   const normalized = normalizeStatus(status);
   return {
-    Reservado: "badge badge-neutral",
-    Preparado: "badge badge-primary",
-    Entregado: "badge badge-warning",
-    Finalizado: "badge badge-success",
-    Cancelado: "badge badge-danger"
-  }[normalized] ?? "badge badge-neutral";
+    Reservado: "bg-amber-50 text-amber-700 border border-amber-200",
+    Preparado: "bg-sky-50 text-sky-700 border border-sky-200",
+    Entregado: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    Finalizado: "bg-slate-100 text-slate-700 border border-slate-200",
+    Cancelado: "bg-rose-50 text-rose-700 border border-rose-200"
+  }[normalized] ?? "bg-slate-100 text-slate-700 border border-slate-200";
 }
 
 export function paymentStatusBadgeClass(status) {
   const normalized = normalizeStatus(status);
   return {
-    Pendiente: "badge badge-neutral",
-    Parcial: "badge badge-warning",
-    Finalizado: "badge badge-success",
-    Cancelado: "badge badge-danger"
-  }[normalized] ?? "badge badge-neutral";
+    Pendiente: "bg-yellow-50 text-yellow-700 border border-yellow-200",
+    Parcial: "bg-indigo-50 text-indigo-700 border border-indigo-200",
+    Finalizado: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    Cancelado: "bg-rose-50 text-rose-700 border border-rose-200"
+  }[normalized] ?? "bg-slate-100 text-slate-700 border border-slate-200";
 }

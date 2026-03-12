@@ -41,6 +41,38 @@ function itemLineCode(orderRef, item, index) {
   return `${orderRef}-${String(index + 1).padStart(2, "0")}`;
 }
 
+function orderStatusToneClass(status) {
+  switch (normalizeStatus(status)) {
+    case "Reservado":
+      return "bg-amber-50 text-amber-700 border border-amber-200";
+    case "Preparado":
+      return "bg-sky-50 text-sky-700 border border-sky-200";
+    case "Entregado":
+      return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+    case "Finalizado":
+      return "bg-slate-100 text-slate-700 border border-slate-200";
+    case "Cancelado":
+      return "bg-rose-50 text-rose-700 border border-rose-200";
+    default:
+      return "bg-slate-100 text-slate-700 border border-slate-200";
+  }
+}
+
+function paymentStatusToneClass(status) {
+  switch (normalizeStatus(status)) {
+    case "Pendiente":
+      return "bg-yellow-50 text-yellow-700 border border-yellow-200";
+    case "Parcial":
+      return "bg-indigo-50 text-indigo-700 border border-indigo-200";
+    case "Finalizado":
+      return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+    case "Cancelado":
+      return "bg-rose-50 text-rose-700 border border-rose-200";
+    default:
+      return "bg-slate-100 text-slate-700 border border-slate-200";
+  }
+}
+
 export async function initOrderDetailScreen({ containerId = "order-detail-container", orderId = null } = {}) {
   const root = document.getElementById(containerId);
   if (!root) return;
@@ -164,6 +196,11 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
               </p>
             </div>
           </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-1">
+            <div id="orderStatusDropdown"></div>
+            <div id="paymentStatusDropdown"></div>
+          </div>
         </article>
 
         <article class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
@@ -187,11 +224,6 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
             <span class="text-lg font-bold text-slate-900">${currencyFmt.format(totalAmount)}</span>
           </div>
         </article>
-
-        <div class="grid grid-cols-2 gap-3 pt-1 pb-2">
-          <div id="orderStatusDropdown"></div>
-          <div id="paymentStatusDropdown"></div>
-        </div>
       </section>
     `;
 
@@ -208,6 +240,9 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
       options: ORDER_STATUS.map((status) => ({ value: status, label: statusLabel(status) })),
       selected: normalizeStatus(order.order_status || "Reservado"),
       labelPrefix: "Estado",
+      triggerClassName: orderStatusToneClass(order.order_status || "Reservado"),
+      getLabelClassName: (value) => orderStatusToneClass(value),
+      getOptionClassName: (value, active) => active ? orderStatusToneClass(value) : "",
       onChange: async (next) => {
         if (next === order.order_status) return;
 
@@ -228,6 +263,9 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
       options: PAYMENT_STATUS.map((status) => ({ value: status, label: statusLabel(status) })),
       selected: normalizeStatus(order.payment_status || "Pendiente"),
       labelPrefix: "Pago",
+      triggerClassName: paymentStatusToneClass(order.payment_status || "Pendiente"),
+      getLabelClassName: (value) => paymentStatusToneClass(value),
+      getOptionClassName: (value, active) => active ? paymentStatusToneClass(value) : "",
       onChange: async (next) => {
         if (next === order.payment_status) return;
 

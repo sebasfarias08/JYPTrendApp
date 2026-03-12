@@ -68,43 +68,78 @@
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
 
+    function orderDateGroupLabel(date) {
+      const now = new Date();
+      const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startGiven = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const diffDays = Math.round((startToday - startGiven) / 86400000);
+
+      if (diffDays === 0) return "Hoy";
+      if (diffDays === 1) return "Ayer";
+      return date.toLocaleDateString("es-AR", { day: "numeric", month: "short" });
+    }
+
     function renderRecentOrders(rows) {
       if (!rows.length) {
         recentOrdersEl.innerHTML = `<p class="text-sm text-muted">No hay pedidos activos para mostrar.</p>`;
         return;
       }
 
-      recentOrdersEl.innerHTML = rows.slice(0, 8).map((o) => {
-        const os = normalizeStatus(o.order_status ?? "Reservado");
-        const ps = normalizeStatus(o.payment_status ?? "Pendiente");
-        const customer = (o.customer_name || "").trim() || "Sin cliente";
-        const fecha = new Date(o.created_at).toLocaleString("es-AR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" });
-        const safeCustomer = escapeHtml(customer);
-        const safeDate = escapeHtml(fecha);
+      const groups = new Map();
+      rows.slice(0, 8).forEach((order) => {
+        const createdAt = new Date(order.created_at);
+        const label = orderDateGroupLabel(createdAt);
+        if (!groups.has(label)) groups.set(label, []);
+        groups.get(label).push(order);
+      });
 
-        return `
-          <a href="/pages/pedido-detalle.html?id=${encodeURIComponent(o.id)}" class="block border divider rounded-xl p-3">
-            <div class="flex items-start justify-between gap-3">
-              <div class="min-w-0">
-                <div class="font-medium truncate">${safeCustomer}</div>
-                <div class="text-xs text-muted mt-1">${safeDate}</div>
-                <div class="mt-2 flex flex-wrap gap-1">
-                  <span class="px-2 py-1 rounded-lg text-xs ${orderStatusBadgeClass(os)}">${statusLabel(os)}</span>
-                  <span class="px-2 py-1 rounded-lg text-xs ${paymentStatusBadgeClass(ps)}">${statusLabel(ps)}</span>
+      const sections = [];
+      for (const [label, items] of groups.entries()) {
+        const cards = items.map((o) => {
+          const os = normalizeStatus(o.order_status ?? "Reservado");
+          const ps = normalizeStatus(o.payment_status ?? "Pendiente");
+          const customer = (o.customer_name || "").trim() || "Sin cliente";
+          const createdAt = new Date(o.created_at);
+          const timeText = createdAt.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+          const ref = o.order_number ? `#${o.order_number}` : "Pedido";
+
+          return `
+            <a href="/pages/pedido-detalle.html?id=${encodeURIComponent(o.id)}" class="block bg-white rounded-xl shadow-sm p-3">
+              <div class="flex items-start gap-3">
+                <div class="min-w-0 flex-1">
+                  <div class="font-semibold text-sm text-slate-900 truncate">${escapeHtml(customer)}</div>
+                  <div class="text-xs text-slate-500 mt-0.5">${escapeHtml(timeText)}</div>
+                  <div class="mt-2 flex flex-wrap gap-1">
+                    <span class="inline-flex px-2 py-1 rounded-full text-[11px] font-medium ${orderStatusBadgeClass(os)}">${escapeHtml(statusLabel(os))}</span>
+                    <span class="inline-flex px-2 py-1 rounded-full text-[11px] font-medium ${paymentStatusBadgeClass(ps)}">${escapeHtml(statusLabel(ps))}</span>
+                  </div>
+                </div>
+
+                <div class="text-right shrink-0">
+                  <div class="font-semibold text-sm text-slate-900">$ ${fmtMoney(o.total)}</div>
+                  <div class="text-xs text-slate-500 mt-2">${escapeHtml(ref)}</div>
                 </div>
               </div>
-              <div class="font-semibold">$ ${fmtMoney(o.total)}</div>
-            </div>
-          </a>
-        `;
-      }).join("");
+            </a>
+          `;
+        }).join("");
+
+        sections.push(`
+          <section class="space-y-2">
+            <h2 class="text-sm font-semibold text-slate-700">${escapeHtml(label)}</h2>
+            <div class="space-y-2">${cards}</div>
+          </section>
+        `);
+      }
+
+      recentOrdersEl.innerHTML = sections.join("");
     }
 
     async function loadDashboard() {
       showToast("Actualizando home...", { type: "info", duration: 1000 });
 
       const orders = await getMyOpenOrders({ limit: 200 });
-      pendingDeliveriesEl.textContent = `Pendientes: ${orders.length}`;
+      pendingDeliveriesEl.textContent = `Mis Pendientes: ${orders.length}`;
       renderRecentOrders(orders);
     }
 

@@ -3,7 +3,10 @@ export function createDropdown({
   options = [],
   selected = null,
   onChange = () => {},
-  labelPrefix = ""
+  labelPrefix = "",
+  triggerClassName = "",
+  getLabelClassName = () => "",
+  getOptionClassName = () => ""
 } = {}) {
   const host = typeof containerId === "string"
     ? document.getElementById(containerId)
@@ -40,7 +43,7 @@ export function createDropdown({
     <div class="relative w-full">
       <button
         type="button"
-        class="w-full h-12 rounded-xl px-3 bg-white border border-slate-200 shadow-sm text-sm text-slate-800 flex items-center justify-between gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        class="w-full h-12 rounded-xl px-3 bg-white border border-slate-200 shadow-sm text-sm text-slate-800 flex items-center justify-between gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${triggerClassName}"
         aria-haspopup="listbox"
         aria-expanded="false"
       >
@@ -88,10 +91,11 @@ export function createDropdown({
   function renderOptions() {
     menuEl.innerHTML = normalizedOptions.map((opt) => {
       const active = opt.value === currentValue;
+      const optionToneClass = getOptionClassName(opt.value, active);
       return `
         <button
           type="button"
-          class="w-full text-left px-3 py-2.5 text-sm transition-colors ${active ? "bg-gray-100 text-slate-900 font-medium" : "text-slate-700 hover:bg-gray-100"}"
+          class="w-full text-left px-3 py-2.5 text-sm transition-colors ${active ? "bg-gray-100 text-slate-900 font-medium" : "text-slate-700 hover:bg-gray-100"} ${optionToneClass}"
           role="option"
           aria-selected="${active ? "true" : "false"}"
           data-dd-value="${escapeHtml(opt.value)}"
@@ -117,6 +121,7 @@ export function createDropdown({
 
     currentValue = safe;
     labelEl.textContent = buildLabel(currentValue);
+    labelEl.className = `truncate ${getLabelClassName(currentValue)}`.trim();
     renderOptions();
 
     if (changed && emit) {
