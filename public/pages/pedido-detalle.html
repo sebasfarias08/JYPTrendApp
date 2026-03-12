@@ -23,21 +23,15 @@
     import { requireAuth } from "/js/auth.js";
     import { initAppShell } from "/js/app-shell.js";
     import { initOrderDetailScreen } from "/js/order-detail.js";
+    const session = await requireAuth();
+    if (!session) throw new Error("Redirect login");
 
-    const params = new URLSearchParams(location.search);
-    const isMock = params.get("mock") === "1";
+    initAppShell({
+      title: "Detalle",
+      onRefresh: async () => location.reload()
+    });
 
-    if (!isMock) {
-      const session = await requireAuth();
-      if (!session) throw new Error("Redirect login");
-
-      initAppShell({
-        title: "Detalle",
-        onRefresh: async () => location.reload()
-      });
-    }
-
-    await initOrderDetailScreen({ containerId: "order-detail-container", mock: isMock });
+    await initOrderDetailScreen({ containerId: "order-detail-container" });
   </script>
 </body>
 </html>

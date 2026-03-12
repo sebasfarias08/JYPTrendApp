@@ -1,5 +1,14 @@
-import { createCustomer, getCustomerById, updateCustomer } from "./customers-service.js";
+import {
+  createCustomer,
+  deactivateCustomer,
+  getCustomerById,
+  reactivateCustomer,
+  updateCustomer
+} from "./customers-service.js";
 import { showToast } from "./toast.js";
+import { canManageCustomers, normalizeRole, ROLES } from "./utils/permissions.js";
+
+const WHATSAPP_PHONE_REGEX = /^54\s+9\s+\d{2,4}\s+\d{6,8}$/;
 
 function safeReturnPath(value) {
   const raw = String(value || "").trim();
@@ -16,37 +25,95 @@ function safeReturnPath(value) {
 function summarizeError(err) {
   const msg = String(err?.message || err?.details || err || "").trim();
   if (!msg) return "No se pudo completar la operacion.";
-  if (msg.includes("customers_user_full_name_uidx")) return "Ya existe un cliente activo con ese nombre.";
+  if (msg.includes("customers_full_name_phone_uidx") || msg.includes("duplicate key value")) {
+    return "Usuario y telefono duplicados: no se puede guardar o actualizar.";
+  }
   if (msg.includes("customers_full_name_len_chk")) return "El nombre debe tener al menos 2 caracteres.";
   if (msg.includes("customers_email_format_chk")) return "El email tiene un formato invalido.";
   return msg;
 }
 
-export function initClientFormPage() {
+function normalizePhone(phone) {
+  return String(phone ?? "").trim().replace(/\s+/g, " ");
+}
+
+function validateWhatsappPhone(phone) {
+  const normalized = normalizePhone(phone);
+  if (!normalized) return { ok: true, value: "" };
+  if (!WHATSAPP_PHONE_REGEX.test(normalized)) {
+    return {
+      ok: false,
+      value: normalized,
+      error: "Telefono invalido. Usa formato: 54 9 codigo_area numero. Ej: 54 9 11 6054010."
+    };
+  }
+  return { ok: true, value: normalized };
+}
+
+function setReadOnly(inputs, readOnly) {
+  inputs.forEach((el) => {
+    if (!el) return;
+    el.readOnly = readOnly;
+    el.classList.toggle("bg-slate-50", readOnly);
+  });
+}
+
+export function initClientFormPage(session = null) {
   const titleEl = document.getElementById("clientFormTitle");
   const formEl = document.getElementById("clientForm");
   const nameEl = document.getElementById("clientName");
   const phoneEl = document.getElementById("clientPhone");
   const emailEl = document.getElementById("clientEmail");
+  const addressEl = document.getElementById("clientAddress");
   const notesEl = document.getElementById("clientNotes");
+  const formActionsEl = document.getElementById("clientFormActions");
+  const detailActionsEl = document.getElementById("clientDetailActions");
   const btnSaveEl = document.getElementById("btnSaveClient");
   const btnCancelEl = document.getElementById("btnCancelClient");
+  const btnEditEl = document.getElementById("btnEditClient");
+  const btnToggleActiveEl = document.getElementById("btnToggleClientActive");
 
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
   const returnTo = safeReturnPath(params.get("returnTo"));
-  const isEdit = Boolean(id);
+  const requestedMode = String(params.get("mode") || "").trim().toLowerCase();
+  const role = normalizeRole(session?.profile?.role || document.body.dataset.role || ROLES.VIEWER);
+  const canManage = canManageCustomers(role);
+  const isExisting = Boolean(id);
+  const isEditMode = isExisting && requestedMode === "edit";
+  const isViewMode = isExisting && requestedMode !== "edit";
+  const isCreateMode = !isExisting;
   let saving = false;
+  let currentCustomer = null;
 
   function goBack(extra = "") {
     const sep = returnTo.includes("?") ? "&" : "?";
     location.href = `${returnTo}${extra ? `${sep}${extra}` : ""}`;
   }
 
-  async function loadForEdit() {
-    if (!isEdit) return;
+  function setupViewMode() {
+    titleEl.textContent = "Detalle de cliente";
+    formActionsEl?.classList.remove("hidden");
+    btnSaveEl?.classList.add("hidden");
+    if (btnCancelEl) btnCancelEl.textContent = "Volver";
+    detailActionsEl?.classList.remove("hidden");
+    detailActionsEl?.classList.add("flex");
+    setReadOnly([nameEl, phoneEl, emailEl, addressEl, notesEl], true);
+  }
 
-    titleEl.textContent = "Editar cliente";
+  function setupEditOrCreateMode() {
+    titleEl.textContent = isCreateMode ? "Nuevo cliente" : "Editar cliente";
+    formActionsEl?.classList.remove("hidden");
+    btnSaveEl?.classList.remove("hidden");
+    if (btnCancelEl) btnCancelEl.textContent = "Cancelar";
+    detailActionsEl?.classList.add("hidden");
+    detailActionsEl?.classList.remove("flex");
+    setReadOnly([nameEl, phoneEl, emailEl, addressEl, notesEl], false);
+  }
+
+  async function loadForExisting() {
+    if (!isExisting) return;
+
     const row = await getCustomerById(id);
     if (!row) {
       showToast("No se encontro el cliente.", { type: "error", duration: 2500 });
@@ -54,20 +121,87 @@ export function initClientFormPage() {
       return;
     }
 
+    currentCustomer = row;
     nameEl.value = row.full_name || "";
     phoneEl.value = row.phone || "";
     emailEl.value = row.email || "";
+    addressEl.value = row.address || "";
     notesEl.value = row.notes || "";
+
+    if (btnToggleActiveEl) {
+      btnToggleActiveEl.textContent = row.is_active ? "Dar de baja" : "Reactivar";
+      btnToggleActiveEl.classList.toggle("btn-primary", !row.is_active);
+      btnToggleActiveEl.classList.toggle("btn-secondary", row.is_active);
+    }
+  }
+
+  if (!canManage && !isViewMode) {
+    showToast("No tenes permisos para modificar clientes.", { type: "warning", duration: 2500 });
+    if (!isExisting) {
+      goBack();
+      return;
+    }
+  }
+
+  if (isViewMode || !canManage) setupViewMode();
+  else setupEditOrCreateMode();
+
+  if (btnEditEl) {
+    btnEditEl.classList.toggle("hidden", !canManage);
+    btnEditEl.addEventListener("click", () => {
+      if (!isExisting || !canManage) return;
+      location.href = `/pages/cliente-form.html?id=${encodeURIComponent(id)}&mode=edit&returnTo=${encodeURIComponent(returnTo)}`;
+    });
+  }
+
+  if (btnToggleActiveEl) {
+    btnToggleActiveEl.classList.toggle("hidden", !canManage);
+    btnToggleActiveEl.addEventListener("click", async () => {
+      if (!isExisting || !canManage || !currentCustomer) return;
+
+      if (currentCustomer.is_active) {
+        const ok = confirm(`Dar de baja a "${currentCustomer.full_name}"?`);
+        if (!ok) return;
+      }
+
+      const res = currentCustomer.is_active
+        ? await deactivateCustomer(currentCustomer.id)
+        : await reactivateCustomer(currentCustomer.id);
+
+      if (!res?.ok) {
+        showToast(summarizeError(res?.error), { type: "error", duration: 3000 });
+        return;
+      }
+
+      currentCustomer = res.data;
+      btnToggleActiveEl.textContent = currentCustomer.is_active ? "Dar de baja" : "Reactivar";
+      btnToggleActiveEl.classList.toggle("btn-primary", !currentCustomer.is_active);
+      btnToggleActiveEl.classList.toggle("btn-secondary", currentCustomer.is_active);
+      showToast(currentCustomer.is_active ? "Cliente reactivado." : "Cliente dado de baja.", { type: "success" });
+    });
+  }
+
+  if (!canManage) {
+    detailActionsEl?.classList.add("hidden");
+    detailActionsEl?.classList.remove("flex");
   }
 
   formEl.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (saving) return;
+    if (saving || isViewMode || !canManage) return;
+
+    const validatedPhone = validateWhatsappPhone(phoneEl.value);
+    if (!validatedPhone.ok) {
+      showToast(validatedPhone.error, { type: "warning", duration: 3000 });
+      phoneEl.focus();
+      return;
+    }
 
     const payload = {
       full_name: nameEl.value.trim(),
-      phone: phoneEl.value.trim(),
+      phone: validatedPhone.value,
       email: emailEl.value.trim(),
+      address: addressEl.value.trim(),
       notes: notesEl.value.trim()
     };
 
@@ -81,7 +215,7 @@ export function initClientFormPage() {
     btnSaveEl.disabled = true;
     btnSaveEl.classList.add("opacity-70", "cursor-not-allowed");
 
-    const res = isEdit
+    const res = isEditMode
       ? await updateCustomer(id, payload)
       : await createCustomer(payload);
 
@@ -94,9 +228,9 @@ export function initClientFormPage() {
       return;
     }
 
-    showToast(isEdit ? "Cliente actualizado." : "Cliente creado.", { type: "success", duration: 1200 });
+    showToast(isEditMode ? "Cliente actualizado." : "Cliente creado.", { type: "success", duration: 1200 });
 
-    if (!isEdit && returnTo === "/pages/checkout.html") {
+    if (!isEditMode && returnTo === "/pages/checkout.html") {
       goBack(`customer_id=${encodeURIComponent(res.data.id)}`);
       return;
     }
@@ -106,5 +240,5 @@ export function initClientFormPage() {
 
   btnCancelEl.addEventListener("click", () => goBack());
 
-  loadForEdit();
+  loadForExisting();
 }

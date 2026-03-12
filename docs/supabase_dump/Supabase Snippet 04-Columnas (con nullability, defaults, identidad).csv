@@ -29,6 +29,7 @@ public,customers,6,notes,text,text,YES,null,NO,null
 public,customers,7,is_active,boolean,bool,NO,true,NO,null
 public,customers,8,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,customers,9,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,customers,10,address,text,text,YES,null,NO,null
 public,inventory_movements,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,inventory_movements,2,user_id,uuid,uuid,NO,null,NO,null
 public,inventory_movements,3,product_id,uuid,uuid,NO,null,NO,null

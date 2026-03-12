@@ -69,12 +69,12 @@
   <nav id="appShellBottom"></nav>
 
   <script type="module">
-    import { requireAuth } from "/js/auth.js";
+    import { requireRole } from "/js/auth.js";
     import { initCheckoutPage } from "/js/checkout-page.js";
     import { initAppShell } from "/js/app-shell.js";
 
-    const session = await requireAuth();
-    if (!session) throw new Error("Redirecting to login...");
+    const session = await requireRole(["admin", "seller"]);
+    if (!session) throw new Error("Redirecting due role guard...");
 
     initAppShell({
       title: "Reserva",

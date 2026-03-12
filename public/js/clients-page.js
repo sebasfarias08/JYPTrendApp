@@ -1,8 +1,7 @@
 import {
-  deactivateCustomer,
-  getCustomers,
-  reactivateCustomer
+  getCustomers
 } from "./customers-service.js";
+import { canManageCustomers, normalizeRole, ROLES } from "./utils/permissions.js";
 import { showToast } from "./toast.js";
 
 function escapeHtml(str) {
@@ -36,7 +35,7 @@ function whatsappIconSvg() {
     <path d="M8.8 8.8c.2-.5.4-.5.7-.5h.6c.2 0 .4 0 .5.3.2.4.7 1.7.7 1.8.1.2.1.3 0 .5-.1.2-.2.3-.3.4l-.3.3c-.1.1-.2.2-.1.4.1.2.6 1.1 1.4 1.7.9.8 1.6 1 1.8 1.1.2.1.3 0 .4-.1l.5-.6c.2-.2.3-.2.5-.1.2.1 1.3.6 1.5.7.2.1.3.1.3.2 0 .1 0 .7-.4 1.3-.3.6-1 .8-1.3.9-.3.1-.7.1-1.1 0-.4-.1-.9-.3-1.5-.5-2.5-1.1-4.1-3.8-4.2-4-.1-.2-1-1.3-1-2.5 0-1.1.6-1.7.8-1.9Z"></path>
   </svg>`;
 }
-export function initClientsPage() {
+export function initClientsPage(session = null) {
   const listEl = document.getElementById("clientsList");
   const emptyEl = document.getElementById("clientsEmpty");
   const countEl = document.getElementById("clientsCount");
@@ -47,6 +46,8 @@ export function initClientsPage() {
   const params = new URLSearchParams(location.search);
   const mode = params.get("mode");
   const returnTo = params.get("returnTo");
+  const role = normalizeRole(session?.profile?.role || document.body.dataset.role || ROLES.VIEWER);
+  const canManage = canManageCustomers(role);
 
   if (mode === "new") {
     location.replace(buildFormUrl({ mode: "new", returnTo: returnTo || "" }));
@@ -91,52 +92,39 @@ export function initClientsPage() {
         : `<div class="text-sm text-muted">-</div>`;
 
       return `
-      <article class="card p-3">
+      <article class="card p-3 hover-surface-2 cursor-pointer" data-open-client-id="${c.id}" tabindex="0" role="button" aria-label="Ver detalle de ${escapeHtml(c.full_name)}">
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">
             <div class="font-semibold break-words">${escapeHtml(c.full_name)}</div>
             ${phoneCell}
+            ${c.address ? `<div class="text-sm text-subtle mt-1 break-words">${escapeHtml(c.address)}</div>` : ""}
             ${c.notes ? `<div class="text-sm text-subtle mt-1 break-words">${escapeHtml(c.notes)}</div>` : ""}
             <div class="mt-2">
               <span class="${c.is_active ? "badge badge-success" : "badge badge-neutral"}">${c.is_active ? "Activo" : "Inactivo"}</span>
             </div>
           </div>
-          <div class="flex flex-col gap-2 shrink-0">
-            <a class="btn btn-secondary text-sm" href="${buildFormUrl({ id: c.id })}">Editar</a>
-            <button class="btn ${c.is_active ? "btn-secondary" : "btn-primary"} text-sm" data-toggle-id="${c.id}">
-              ${c.is_active ? "Dar de baja" : "Reactivar"}
-            </button>
-          </div>
+          <div class="text-sm text-muted shrink-0">Ver detalle</div>
         </div>
       </article>
     `;
     }).join("");
 
-    listEl.querySelectorAll("[data-toggle-id]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const id = btn.getAttribute("data-toggle-id");
-        const row = rows.find((x) => x.id === id);
-        if (!row) return;
+    listEl.querySelectorAll("[data-open-client-id]").forEach((el) => {
+      const goToDetail = () => {
+        const clientId = el.getAttribute("data-open-client-id");
+        if (!clientId) return;
+        location.href = buildFormUrl({ id: clientId, mode: "view", returnTo: "/pages/clientes.html" });
+      };
 
-        if (row.is_active) {
-          const ok = confirm(`Dar de baja a "${row.full_name}"?`);
-          if (!ok) return;
-          const res = await deactivateCustomer(id);
-          if (!res.ok) {
-            showToast("No se pudo dar de baja el cliente.", { type: "error", duration: 2800 });
-            return;
-          }
-          showToast("Cliente dado de baja.", { type: "success" });
-        } else {
-          const res = await reactivateCustomer(id);
-          if (!res.ok) {
-            showToast("No se pudo reactivar el cliente.", { type: "error", duration: 2800 });
-            return;
-          }
-          showToast("Cliente reactivado.", { type: "success" });
+      el.addEventListener("click", (event) => {
+        if (event.target instanceof HTMLElement && event.target.closest("a,button,input,textarea,label")) return;
+        goToDetail();
+      });
+      el.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          goToDetail();
         }
-
-        await loadRows();
       });
     });
   }
@@ -146,7 +134,12 @@ export function initClientsPage() {
     renderList();
   }
 
+  btnNewClientEl.classList.toggle("hidden", !canManage);
   btnNewClientEl.addEventListener("click", () => {
+    if (!canManage) {
+      showToast("No tenes permisos para crear clientes.", { type: "warning", duration: 2400 });
+      return;
+    }
     location.href = buildFormUrl({ mode: "new" });
   });
   searchEl.addEventListener("input", renderList);

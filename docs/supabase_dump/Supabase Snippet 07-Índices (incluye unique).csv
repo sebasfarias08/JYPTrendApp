@@ -5,9 +5,9 @@ public,cash_movements,idx_cash_movements_payment_id,CREATE INDEX idx_cash_moveme
 public,cash_movements,idx_cash_movements_pos_created_at,"CREATE INDEX idx_cash_movements_pos_created_at ON public.cash_movements USING btree (point_of_sale_id, created_at DESC)"
 public,cash_movements,idx_cash_movements_user_created_at,"CREATE INDEX idx_cash_movements_user_created_at ON public.cash_movements USING btree (user_id, created_at DESC)"
 public,categories,categories_pkey,CREATE UNIQUE INDEX categories_pkey ON public.categories USING btree (id)
+public,customers,customers_full_name_phone_uidx,"CREATE UNIQUE INDEX customers_full_name_phone_uidx ON public.customers USING btree (lower(btrim(full_name)), lower(btrim(COALESCE(phone, ''::text)))) WHERE (is_active = true)"
 public,customers,customers_pkey,CREATE UNIQUE INDEX customers_pkey ON public.customers USING btree (id)
 public,customers,customers_user_created_idx,"CREATE INDEX customers_user_created_idx ON public.customers USING btree (user_id, created_at DESC)"
-public,customers,customers_user_full_name_uidx,"CREATE UNIQUE INDEX customers_user_full_name_uidx ON public.customers USING btree (user_id, lower(btrim(full_name))) WHERE (is_active = true)"
 public,inventory_movements,idx_inventory_movements_point_of_sale,"CREATE INDEX idx_inventory_movements_point_of_sale ON public.inventory_movements USING btree (point_of_sale_id, created_at DESC)"
 public,inventory_movements,idx_inventory_movements_product_created_at,"CREATE INDEX idx_inventory_movements_product_created_at ON public.inventory_movements USING btree (product_id, created_at DESC)"
 public,inventory_movements,idx_inventory_movements_reference,"CREATE INDEX idx_inventory_movements_reference ON public.inventory_movements USING btree (reference_type, reference_id)"

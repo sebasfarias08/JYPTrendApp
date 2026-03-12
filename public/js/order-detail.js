@@ -41,74 +41,12 @@ function itemLineCode(orderRef, item, index) {
   return `${orderRef}-${String(index + 1).padStart(2, "0")}`;
 }
 
-function buildMockOrder(id = "mock-order-1") {
-  return {
-    id,
-    order_number: 100006,
-    created_at: new Date().toISOString(),
-    order_status: "Reservado",
-    payment_status: "Pendiente",
-    subtotal: 58200,
-    discount_amount: 1200,
-    shipping_amount: 2500,
-    tax_amount: 0,
-    grand_total: 59500,
-    total: 59500,
-    customer_name: "John Garcia",
-    customer_name_snapshot: "John Garcia",
-    customer_phone: "+54 9 11 1234 5678",
-    customer_phone_snapshot: "+54 9 11 1234 5678",
-    customer_email_snapshot: "john.garcia@example.com",
-    customer_address_snapshot: "Av. Corrientes 1234, CABA",
-    customers: {
-      full_name: "John Garcia",
-      phone: "+54 9 11 1234 5678",
-      email: "john.garcia@example.com"
-    },
-    order_items: [
-      {
-        id: "mock-item-1",
-        product_id: "mock-product-1",
-        variant_id: null,
-        qty: 2,
-        unit_price: 22000,
-        subtotal: 44000,
-        product_name_snapshot: "Blue Oxford Shirt",
-        variant_name_snapshot: "Size L",
-        sku_snapshot: "DXZ_10006",
-        products: {
-          id: "mock-product-1",
-          name: "Blue Oxford Shirt",
-          image_path: null
-        }
-      },
-      {
-        id: "mock-item-2",
-        product_id: "mock-product-2",
-        variant_id: null,
-        qty: 1,
-        unit_price: 14200,
-        subtotal: 14200,
-        product_name_snapshot: "Running Sneakers",
-        variant_name_snapshot: "Size 42",
-        sku_snapshot: "DXZ_10007",
-        products: {
-          id: "mock-product-2",
-          name: "Running Sneakers",
-          image_path: null
-        }
-      }
-    ]
-  };
-}
-
-export async function initOrderDetailScreen({ containerId = "order-detail-container", orderId = null, mock = false } = {}) {
+export async function initOrderDetailScreen({ containerId = "order-detail-container", orderId = null } = {}) {
   const root = document.getElementById(containerId);
   if (!root) return;
 
-  const isMock = Boolean(mock) || new URLSearchParams(location.search).get("mock") === "1";
   const id = orderId || new URLSearchParams(location.search).get("id");
-  if (!id && !isMock) {
+  if (!id) {
     root.innerHTML = `<div class="rounded-2xl bg-white shadow-sm p-4 text-sm text-red-600">Falta el parametro <code>id</code>.</div>`;
     return;
   }
@@ -273,13 +211,6 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
       onChange: async (next) => {
         if (next === order.order_status) return;
 
-        if (isMock) {
-          order.order_status = next;
-          showToast(`Estado pedido (mock): ${statusLabel(next)}`, { type: "success", duration: 1200 });
-          renderOrderDetail(order);
-          return;
-        }
-
         try {
           await updateOrderStatus(order.id, next);
           order.order_status = next;
@@ -300,13 +231,6 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
       onChange: async (next) => {
         if (next === order.payment_status) return;
 
-        if (isMock) {
-          order.payment_status = next;
-          showToast(`Estado pago (mock): ${statusLabel(next)}`, { type: "success", duration: 1200 });
-          renderOrderDetail(order);
-          return;
-        }
-
         try {
           await updatePaymentStatus(order.id, next);
           order.payment_status = next;
@@ -324,7 +248,7 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
 
   root.innerHTML = `<div class="rounded-2xl bg-white shadow-sm p-4 text-sm text-slate-500">Cargando detalle del pedido...</div>`;
 
-  const order = isMock ? buildMockOrder(id || "mock-order-1") : await getOrderDetail(id);
+  const order = await getOrderDetail(id);
   if (!order) {
     root.innerHTML = `<div class="rounded-2xl bg-white shadow-sm p-4 text-sm text-red-600">No se encontro el pedido solicitado.</div>`;
     return;

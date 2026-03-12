@@ -24,6 +24,11 @@ export function canCreateOrders(role) {
   return normalized === ROLES.ADMIN || normalized === ROLES.SELLER;
 }
 
+export function canManageCustomers(role) {
+  const normalized = normalizeRole(role);
+  return normalized === ROLES.ADMIN || normalized === ROLES.SELLER;
+}
+
 export function canViewAdminPanel(role) {
   return normalizeRole(role) === ROLES.ADMIN;
 }
@@ -35,5 +40,11 @@ export function canViewReports(role) {
 
 export function canAccessCatalogRoute(pathname) {
   const path = String(pathname || "").toLowerCase();
-  return path === "/" || path === "/index.html" || path === "/pages/producto.html";
+  return (
+    path === "/" ||
+    path === "/index.html" ||
+    path === "/pages/producto.html" ||
+    path === "/pages/clientes.html" ||
+    path === "/pages/cliente-form.html"
+  );
 }

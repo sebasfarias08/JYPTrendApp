@@ -23,7 +23,7 @@
 
         <div>
           <label class="text-xs text-muted block mb-1" for="clientPhone">Telefono</label>
-          <input id="clientPhone" class="input" placeholder="Ej: 11 5555-5555" />
+          <input id="clientPhone" class="input" placeholder="Ej: 54 9 11 6054010" inputmode="tel" pattern="54 9 [0-9]{2,4} [0-9]{6,8}" />
         </div>
 
         <div>
@@ -32,13 +32,23 @@
         </div>
 
         <div>
-          <label class="text-xs text-muted block mb-1" for="clientNotes">Notas</label>
-          <textarea id="clientNotes" class="input" placeholder="Condiciones comerciales, direccion, etc."></textarea>
+          <label class="text-xs text-muted block mb-1" for="clientAddress">Direccion</label>
+          <input id="clientAddress" class="input" placeholder="Direccion del cliente" />
         </div>
 
-        <div class="flex gap-2">
+        <div>
+          <label class="text-xs text-muted block mb-1" for="clientNotes">Notas</label>
+          <textarea id="clientNotes" class="input" placeholder="Condiciones comerciales"></textarea>
+        </div>
+
+        <div id="clientFormActions" class="flex gap-2">
           <button id="btnSaveClient" type="submit" class="btn btn-primary flex-1">Guardar</button>
           <button id="btnCancelClient" type="button" class="btn btn-secondary">Cancelar</button>
+        </div>
+
+        <div id="clientDetailActions" class="hidden gap-2">
+          <button id="btnEditClient" type="button" class="btn btn-secondary flex-1">Editar</button>
+          <button id="btnToggleClientActive" type="button" class="btn btn-secondary flex-1">Dar de baja</button>
         </div>
       </form>
     </section>
@@ -59,7 +69,7 @@
       onRefresh: async () => location.reload()
     });
 
-    initClientFormPage();
+    initClientFormPage(session);
   </script>
 </body>
 </html>

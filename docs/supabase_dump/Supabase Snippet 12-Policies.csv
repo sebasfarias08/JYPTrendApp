@@ -9,22 +9,22 @@ public,categories,categories_admin_write,PERMISSIVE,{authenticated},ALL,"(EXISTS
    FROM profiles p
   WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))"
 public,categories,public read categories,PERMISSIVE,"{anon,authenticated}",SELECT,(active = true),null
-public,customers,customers_delete_own,PERMISSIVE,{public},DELETE,(auth.uid() = user_id),null
-public,customers,customers_insert_own,PERMISSIVE,{public},INSERT,null,(auth.uid() = user_id)
-public,customers,customers_select_own,PERMISSIVE,{public},SELECT,(auth.uid() = user_id),null
-public,customers,customers_update_own,PERMISSIVE,{public},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
+public,customers,customers_delete_admin_seller,PERMISSIVE,{authenticated},DELETE,"(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text]))",null
+public,customers,customers_insert_admin_seller,PERMISSIVE,{authenticated},INSERT,null,"(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text]))"
+public,customers,customers_select_all_auth,PERMISSIVE,{authenticated},SELECT,"(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text, 'viewer'::text]))",null
+public,customers,customers_update_admin_seller,PERMISSIVE,{authenticated},UPDATE,"(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text]))","(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text]))"
 public,inventory_movements,inventory_movements_delete_own,PERMISSIVE,{authenticated},DELETE,(auth.uid() = user_id),null
 public,inventory_movements,inventory_movements_insert_own,PERMISSIVE,{authenticated},INSERT,null,(auth.uid() = user_id)
 public,inventory_movements,inventory_movements_select_own,PERMISSIVE,{authenticated},SELECT,(auth.uid() = user_id),null
 public,inventory_movements,inventory_movements_update_own,PERMISSIVE,{authenticated},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
-public,order_items,order_items_delete_all_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
-public,order_items,order_items_insert_all_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
-public,order_items,order_items_select_all_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
-public,order_items,order_items_update_all_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
-public,orders,orders_delete_admin_only,PERMISSIVE,{authenticated},DELETE,(get_user_role() = 'admin'::text),null
-public,orders,orders_insert_all_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
-public,orders,orders_select_all_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
-public,orders,orders_update_all_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,order_items,order_items_delete_admin_seller,PERMISSIVE,{authenticated},DELETE,"(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text]))",null
+public,order_items,order_items_insert_admin_seller,PERMISSIVE,{authenticated},INSERT,null,"(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text]))"
+public,order_items,order_items_select_all_auth,PERMISSIVE,{authenticated},SELECT,"(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text, 'viewer'::text]))",null
+public,order_items,order_items_update_admin_seller,PERMISSIVE,{authenticated},UPDATE,"(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text]))","(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text]))"
+public,orders,orders_delete_admin_seller,PERMISSIVE,{authenticated},DELETE,"(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text]))",null
+public,orders,orders_insert_admin_seller,PERMISSIVE,{authenticated},INSERT,null,"(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text]))"
+public,orders,orders_select_all_auth,PERMISSIVE,{authenticated},SELECT,"(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text, 'viewer'::text]))",null
+public,orders,orders_update_admin_seller,PERMISSIVE,{authenticated},UPDATE,"(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text]))","(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text]))"
 public,payment_allocations,payment_allocations_delete_admin_only,PERMISSIVE,{authenticated},DELETE,"(EXISTS ( SELECT 1
    FROM profiles p
   WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))",null

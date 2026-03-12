@@ -18,6 +18,7 @@ function mapCustomer(row) {
     full_name: row.full_name ?? "",
     phone: row.phone ?? "",
     email: row.email ?? "",
+    address: row.address ?? "",
     notes: row.notes ?? "",
     is_active: Boolean(row.is_active),
     created_at: row.created_at ?? null,
@@ -26,13 +27,9 @@ function mapCustomer(row) {
 }
 
 export async function getCustomers({ includeInactive = false, search = "" } = {}) {
-  const userId = await getCurrentUserId();
-  if (!userId) return [];
-
   let query = supabase
     .from("customers")
-    .select("id, user_id, full_name, phone, email, notes, is_active, created_at, updated_at")
-    .eq("user_id", userId)
+    .select("id, user_id, full_name, phone, email, address, notes, is_active, created_at, updated_at")
     .order("full_name", { ascending: true });
 
   if (!includeInactive) {
@@ -60,14 +57,10 @@ export async function getActiveCustomers() {
 export async function getCustomerById(id) {
   if (!id) return null;
 
-  const userId = await getCurrentUserId();
-  if (!userId) return null;
-
   const { data, error } = await supabase
     .from("customers")
-    .select("id, user_id, full_name, phone, email, notes, is_active, created_at, updated_at")
+    .select("id, user_id, full_name, phone, email, address, notes, is_active, created_at, updated_at")
     .eq("id", id)
-    .eq("user_id", userId)
     .maybeSingle();
 
   if (error) {
@@ -87,6 +80,7 @@ export async function createCustomer(payload) {
     full_name: String(payload?.full_name ?? "").trim(),
     phone: String(payload?.phone ?? "").trim() || null,
     email: String(payload?.email ?? "").trim() || null,
+    address: String(payload?.address ?? "").trim() || null,
     notes: String(payload?.notes ?? "").trim() || null,
     is_active: true
   };
@@ -94,7 +88,7 @@ export async function createCustomer(payload) {
   const { data, error } = await supabase
     .from("customers")
     .insert(body)
-    .select("id, user_id, full_name, phone, email, notes, is_active, created_at, updated_at")
+    .select("id, user_id, full_name, phone, email, address, notes, is_active, created_at, updated_at")
     .single();
 
   if (error) {
@@ -112,6 +106,7 @@ export async function updateCustomer(id, payload) {
     full_name: String(payload?.full_name ?? "").trim(),
     phone: String(payload?.phone ?? "").trim() || null,
     email: String(payload?.email ?? "").trim() || null,
+    address: String(payload?.address ?? "").trim() || null,
     notes: String(payload?.notes ?? "").trim() || null
   };
 
@@ -119,7 +114,7 @@ export async function updateCustomer(id, payload) {
     .from("customers")
     .update(body)
     .eq("id", id)
-    .select("id, user_id, full_name, phone, email, notes, is_active, created_at, updated_at")
+    .select("id, user_id, full_name, phone, email, address, notes, is_active, created_at, updated_at")
     .single();
 
   if (error) {
@@ -137,7 +132,7 @@ export async function deactivateCustomer(id) {
     .from("customers")
     .update({ is_active: false })
     .eq("id", id)
-    .select("id, user_id, full_name, phone, email, notes, is_active, created_at, updated_at")
+    .select("id, user_id, full_name, phone, email, address, notes, is_active, created_at, updated_at")
     .single();
 
   if (error) {
@@ -155,7 +150,7 @@ export async function reactivateCustomer(id) {
     .from("customers")
     .update({ is_active: true })
     .eq("id", id)
-    .select("id, user_id, full_name, phone, email, notes, is_active, created_at, updated_at")
+    .select("id, user_id, full_name, phone, email, address, notes, is_active, created_at, updated_at")
     .single();
 
   if (error) {
