@@ -24,7 +24,7 @@ export async function getProducts() {
       `)
       .eq("active", true)
       .eq("products.active", true)
-      .order("product_id", { ascending: true }),
+      .order("variant_name", { ascending: true }),
     getStockByVariant()
   ]);
 
@@ -43,23 +43,28 @@ export async function getProducts() {
     stockByVariantId.set(variantId, current + (Number.isFinite(qty) ? qty : 0));
   }
 
-  return (data ?? []).map((row) => {
+  const variants = (data ?? []).map((row) => {
     const product = row?.products ?? {};
     const productName = String(product?.name ?? "").trim();
     const variantName = String(row?.variant_name ?? "").trim();
-    const mergedName = variantName ? `${productName} - ${variantName}` : productName;
+    const stockQty = Number(stockByVariantId.get(row.id) ?? 0);
+    const displayName = variantName || productName;
 
     return {
       id: row.id,
       variant_id: row.id,
       product_id: row.product_id ?? product?.id ?? null,
-      name: mergedName,
+      name: displayName,
       product_name: productName,
       variant_name: variantName,
       price: Number(row?.sale_price ?? 0),
       image_path: product?.image_path ?? "",
       categories: product?.categories ?? null,
-      stock_qty: Number(stockByVariantId.get(row.id) ?? 0)
+      stock_qty: stockQty
     };
   });
+
+  return variants
+    .filter((v) => Number(v.stock_qty ?? 0) > 0)
+    .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "es", { sensitivity: "base" }));
 }

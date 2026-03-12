@@ -155,10 +155,3 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 2. Consolidar y remover wrappers/archivos legacy no usados (`public/js/supabase-client.js`) cuando sea seguro.
 3. Expandir uso de views para dashboards y reportes.
 4. Agregar tests de servicios Supabase criticos (auth, pedidos, stock).
-
-
-
-
-
-
-
