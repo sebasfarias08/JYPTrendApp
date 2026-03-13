@@ -26,13 +26,15 @@ function readLatLng(place) {
 }
 
 function buildAddressState(nextState = {}) {
+  // Supabase/UI callers may pass null during transitions; normalize first.
+  const safeState = nextState ?? {};
   return {
-    address_input: String(nextState.address_input ?? "").trim(),
-    address_formatted: String(nextState.address_formatted ?? "").trim(),
-    address_notes: String(nextState.address_notes ?? "").trim(),
-    address_place_id: String(nextState.address_place_id ?? "").trim(),
-    address_lat: Number.isFinite(Number(nextState.address_lat)) ? Number(nextState.address_lat) : null,
-    address_lng: Number.isFinite(Number(nextState.address_lng)) ? Number(nextState.address_lng) : null
+    address_input: String(safeState?.address_input ?? "").trim(),
+    address_formatted: String(safeState?.address_formatted ?? "").trim(),
+    address_notes: String(safeState?.address_notes ?? "").trim(),
+    address_place_id: String(safeState?.address_place_id ?? "").trim(),
+    address_lat: Number.isFinite(Number(safeState?.address_lat)) ? Number(safeState.address_lat) : null,
+    address_lng: Number.isFinite(Number(safeState?.address_lng)) ? Number(safeState.address_lng) : null
   };
 }
 
@@ -90,7 +92,7 @@ export function createAddressAutocomplete({
     throw new Error("createAddressAutocomplete: input no encontrado.");
   }
 
-  let currentState = buildAddressState(initialValue);
+  let currentState = buildAddressState(initialValue ?? {});
   let lastTypedValue = currentState.address_input || currentState.address_formatted || "";
   let autocomplete = null;
   let placeListener = null;
@@ -143,9 +145,10 @@ export function createAddressAutocomplete({
   }
 
   function setState(nextState = {}, { syncInputs = true } = {}) {
+    const safeNextState = nextState ?? {};
     currentState = buildAddressState({
       ...currentState,
-      ...nextState
+      ...safeNextState
     });
     if (syncInputs) syncInputValues();
     emitChange();
@@ -226,8 +229,9 @@ export function createAddressAutocomplete({
   return {
     getValue: () => ({ ...currentState }),
     setValue: (value = {}) => {
-      lastTypedValue = String(value?.address_input || value?.address_formatted || "").trim();
-      setState(value);
+      const safeValue = value ?? {};
+      lastTypedValue = String(safeValue?.address_input || safeValue?.address_formatted || "").trim();
+      setState(safeValue);
     },
     destroy: () => {
       addressInput.removeEventListener("input", handleInput);

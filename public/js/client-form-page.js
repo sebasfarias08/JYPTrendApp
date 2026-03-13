@@ -80,7 +80,11 @@ export function initClientFormPage(session = null) {
   const isCreateMode = !isExisting;
   let saving = false;
   let currentCustomer = null;
-  let addressField = null;
+  let addressField = {
+    getValue: () => ({}),
+    setValue: () => {},
+    destroy: () => {}
+  };
 
   function syncPhoneField() {
     if (!phoneEl) return;
@@ -125,18 +129,19 @@ export function initClientFormPage(session = null) {
       return;
     }
 
-    currentCustomer = row;
-    nameEl.value = row.full_name || "";
-    phoneEl.value = formatArgentinaPhoneForInput(row.phone || "");
-    emailEl.value = row.email || "";
-    notesEl.value = row.notes || "";
+    const customer = row ?? {};
+    currentCustomer = customer;
+    nameEl.value = customer?.full_name || "";
+    phoneEl.value = formatArgentinaPhoneForInput(customer?.phone || "");
+    emailEl.value = customer?.email || "";
+    notesEl.value = customer?.notes || "";
     addressField?.setValue({
-      address_input: row.address_input || row.address_formatted || row.address || "",
-      address_formatted: row.address_formatted || row.address || "",
-      address_notes: row.address_notes || "",
-      address_place_id: row.address_place_id || "",
-      address_lat: row.address_lat,
-      address_lng: row.address_lng
+      address_input: customer?.address_input || customer?.address_formatted || customer?.address || "",
+      address_formatted: customer?.address_formatted || customer?.address || "",
+      address_notes: customer?.address_notes || "",
+      address_place_id: customer?.address_place_id || "",
+      address_lat: customer?.address_lat ?? null,
+      address_lng: customer?.address_lng ?? null
     });
 
     if (btnToggleActiveEl) {
@@ -199,13 +204,15 @@ export function initClientFormPage(session = null) {
 
   phoneEl?.addEventListener("input", syncPhoneField);
   phoneEl?.addEventListener("blur", syncPhoneField);
-  addressField = createAddressAutocomplete({
-    input: addressSearchEl,
-    notesInput: addressNotesEl,
-    mapsButton: btnOpenMapsEl,
-    summary: addressSummaryEl,
-    status: addressStatusEl
-  });
+  if (addressSearchEl) {
+    addressField = createAddressAutocomplete({
+      input: addressSearchEl,
+      notesInput: addressNotesEl,
+      mapsButton: btnOpenMapsEl,
+      summary: addressSummaryEl,
+      status: addressStatusEl
+    });
+  }
 
   formEl.addEventListener("submit", async (event) => {
     event.preventDefault();

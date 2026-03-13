@@ -12,25 +12,26 @@ async function getCurrentUserId() {
 
 function mapCustomer(row) {
   if (!row) return null;
-  const addressFormatted = row.address_formatted ?? "";
-  const addressInput = row.address_input ?? "";
+  const customer = row ?? {};
+  const addressFormatted = customer?.address_formatted ?? "";
+  const addressInput = customer?.address_input ?? "";
   return {
-    id: row.id,
-    user_id: row.user_id,
-    full_name: row.full_name ?? "",
-    phone: row.phone ?? "",
-    email: row.email ?? "",
-    address: (row.address ?? addressFormatted) || addressInput || "",
+    id: customer?.id ?? null,
+    user_id: customer?.user_id ?? null,
+    full_name: customer?.full_name ?? "",
+    phone: customer?.phone ?? "",
+    email: customer?.email ?? "",
+    address: (customer?.address ?? addressFormatted) || addressInput || "",
     address_input: addressInput,
     address_formatted: addressFormatted,
-    address_notes: row.address_notes ?? "",
-    address_place_id: row.address_place_id ?? "",
-    address_lat: row.address_lat ?? null,
-    address_lng: row.address_lng ?? null,
-    notes: row.notes ?? "",
-    is_active: Boolean(row.is_active),
-    created_at: row.created_at ?? null,
-    updated_at: row.updated_at ?? null
+    address_notes: customer?.address_notes ?? "",
+    address_place_id: customer?.address_place_id ?? "",
+    address_lat: customer?.address_lat ?? null,
+    address_lng: customer?.address_lng ?? null,
+    notes: customer?.notes ?? "",
+    is_active: Boolean(customer?.is_active),
+    created_at: customer?.created_at ?? null,
+    updated_at: customer?.updated_at ?? null
   };
 }
 
