@@ -61,6 +61,9 @@ Nota: existe `public/js/supabase-client.js` por compatibilidad legacy, pero el c
 
 - Cliente Supabase unico:
   - `public/js/lib/supabase-client.js`
+- Configuracion publica opcional para Google Maps Places:
+  - `public/pages/cliente-form.html` lee `meta[name="google-maps-api-key"]`.
+  - Alternativamente puede definirse `window.__APP_CONFIG.GOOGLE_MAPS_API_KEY` antes de cargar `public/js/client-form-page.js`.
 - Consultas centralizadas:
   - `public/js/services/*.js`
 - Autenticacion y perfil:
@@ -140,6 +143,30 @@ npx serve public
 ```
 
 o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
+
+## Google Maps Places para clientes
+
+Para activar autocomplete de direcciones en el alta/edicion de clientes:
+
+1. Crear una API key publica de Google Maps con `Places API` habilitada.
+2. Restringirla por dominio/origen antes de usarla en produccion.
+3. Cargarla en `public/pages/cliente-form.html`:
+
+```html
+<meta name="google-maps-api-key" content="TU_GOOGLE_MAPS_API_KEY" />
+```
+
+Tambien puede inyectarse por runtime:
+
+```html
+<script>
+  window.__APP_CONFIG = {
+    GOOGLE_MAPS_API_KEY: "TU_GOOGLE_MAPS_API_KEY"
+  };
+</script>
+```
+
+Si la key no esta configurada, el formulario sigue permitiendo carga manual de direccion, pero sin autocomplete de Maps.
 
 ## Riesgos / deuda tecnica
 

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#F7F8FA" />
+  <meta name="google-maps-api-key" content="" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <title>Formulario cliente</title>
   <script src="/js/vendor/tailwindcss-playcdn.js"></script>
@@ -48,8 +49,35 @@
         </div>
 
         <div>
-          <label class="text-xs text-muted block mb-1" for="clientAddress">Direccion</label>
-          <input id="clientAddress" class="input" placeholder="Direccion del cliente" />
+          <label class="text-xs text-muted block mb-1" for="clientAddressSearch">Buscar direccion</label>
+          <input
+            id="clientAddressSearch"
+            type="search"
+            class="input"
+            placeholder="Av. Corrientes 1234"
+            autocomplete="street-address"
+            spellcheck="false"
+            enterkeyhint="search"
+            aria-describedby="clientAddressStatus" />
+          <p id="clientAddressStatus" class="mt-1 text-xs text-subtle">
+            Busca y selecciona una direccion sugerida por Maps.
+          </p>
+          <div id="clientAddressSummary" class="hidden mt-2 rounded-[var(--radius)] border divider bg-surface-2 px-3 py-2 text-sm"></div>
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="clientAddressNotes">Detalle / Piso / Depto / Referencia</label>
+          <textarea
+            id="clientAddressNotes"
+            class="input"
+            rows="2"
+            placeholder="Torre B, piso 3, depto C, porteria 24 hs"></textarea>
+        </div>
+
+        <div>
+          <button id="btnOpenMaps" type="button" class="btn btn-secondary w-full opacity-60 cursor-not-allowed" disabled>
+            Abrir en Maps
+          </button>
         </div>
 
         <div>

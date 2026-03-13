@@ -5,6 +5,7 @@ import {
   reactivateCustomer,
   updateCustomer
 } from "./customers-service.js";
+import { createAddressAutocomplete } from "./components/address-autocomplete.js";
 import { showToast } from "./toast.js";
 import {
   formatArgentinaPhoneForInput,
@@ -54,7 +55,11 @@ export function initClientFormPage(session = null) {
   const nameEl = document.getElementById("clientName");
   const phoneEl = document.getElementById("clientPhone");
   const emailEl = document.getElementById("clientEmail");
-  const addressEl = document.getElementById("clientAddress");
+  const addressSearchEl = document.getElementById("clientAddressSearch");
+  const addressNotesEl = document.getElementById("clientAddressNotes");
+  const addressSummaryEl = document.getElementById("clientAddressSummary");
+  const addressStatusEl = document.getElementById("clientAddressStatus");
+  const btnOpenMapsEl = document.getElementById("btnOpenMaps");
   const notesEl = document.getElementById("clientNotes");
   const formActionsEl = document.getElementById("clientFormActions");
   const detailActionsEl = document.getElementById("clientDetailActions");
@@ -75,6 +80,7 @@ export function initClientFormPage(session = null) {
   const isCreateMode = !isExisting;
   let saving = false;
   let currentCustomer = null;
+  let addressField = null;
 
   function syncPhoneField() {
     if (!phoneEl) return;
@@ -96,7 +102,7 @@ export function initClientFormPage(session = null) {
     if (btnCancelEl) btnCancelEl.textContent = "Volver";
     detailActionsEl?.classList.remove("hidden");
     detailActionsEl?.classList.add("flex");
-    setReadOnly([nameEl, phoneEl, emailEl, addressEl, notesEl], true);
+    setReadOnly([nameEl, phoneEl, emailEl, addressSearchEl, addressNotesEl, notesEl], true);
   }
 
   function setupEditOrCreateMode() {
@@ -106,7 +112,7 @@ export function initClientFormPage(session = null) {
     if (btnCancelEl) btnCancelEl.textContent = "Cancelar";
     detailActionsEl?.classList.add("hidden");
     detailActionsEl?.classList.remove("flex");
-    setReadOnly([nameEl, phoneEl, emailEl, addressEl, notesEl], false);
+    setReadOnly([nameEl, phoneEl, emailEl, addressSearchEl, addressNotesEl, notesEl], false);
   }
 
   async function loadForExisting() {
@@ -123,8 +129,15 @@ export function initClientFormPage(session = null) {
     nameEl.value = row.full_name || "";
     phoneEl.value = formatArgentinaPhoneForInput(row.phone || "");
     emailEl.value = row.email || "";
-    addressEl.value = row.address || "";
     notesEl.value = row.notes || "";
+    addressField?.setValue({
+      address_input: row.address_input || row.address_formatted || row.address || "",
+      address_formatted: row.address_formatted || row.address || "",
+      address_notes: row.address_notes || "",
+      address_place_id: row.address_place_id || "",
+      address_lat: row.address_lat,
+      address_lng: row.address_lng
+    });
 
     if (btnToggleActiveEl) {
       btnToggleActiveEl.textContent = row.is_active ? "Dar de baja" : "Reactivar";
@@ -186,6 +199,13 @@ export function initClientFormPage(session = null) {
 
   phoneEl?.addEventListener("input", syncPhoneField);
   phoneEl?.addEventListener("blur", syncPhoneField);
+  addressField = createAddressAutocomplete({
+    input: addressSearchEl,
+    notesInput: addressNotesEl,
+    mapsButton: btnOpenMapsEl,
+    summary: addressSummaryEl,
+    status: addressStatusEl
+  });
 
   formEl.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -198,11 +218,17 @@ export function initClientFormPage(session = null) {
       return;
     }
 
+    const addressValue = addressField?.getValue?.() ?? {};
     const payload = {
       full_name: nameEl.value.trim(),
       phone: validatedPhone.value,
       email: emailEl.value.trim(),
-      address: addressEl.value.trim(),
+      address_input: addressValue.address_input,
+      address_formatted: addressValue.address_formatted,
+      address_notes: addressValue.address_notes,
+      address_place_id: addressValue.address_place_id,
+      address_lat: addressValue.address_lat,
+      address_lng: addressValue.address_lng,
       notes: notesEl.value.trim()
     };
 

@@ -29,6 +29,7 @@ const PRECACHE_URLS = [
   "/js/catalog-service.js",
   "/js/customers-service.js",
   "/js/client-form-page.js",
+  "/js/components/address-autocomplete.js",
   "/js/image.js",
   "/js/clients-page.js",
   "/js/products-page.js",
@@ -47,6 +48,7 @@ const PRECACHE_URLS = [
   "/js/sw-register.js",
   "/js/toast.js",
   "/js/utils/argentina-phone.js",
+  "/js/utils/runtime-config.js",
   "/js/vendor/tailwindcss-playcdn.js",
 
   "/assets/icons/icon-192.png",
