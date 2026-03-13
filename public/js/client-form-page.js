@@ -6,9 +6,12 @@ import {
   updateCustomer
 } from "./customers-service.js";
 import { showToast } from "./toast.js";
+import {
+  formatArgentinaPhoneForInput,
+  normalizeArgentinaWhatsAppPhone,
+  sanitizeArgentinaPhoneInput
+} from "./utils/argentina-phone.js";
 import { canManageCustomers, normalizeRole, ROLES } from "./utils/permissions.js";
-
-const WHATSAPP_PHONE_REGEX = /^54\s+9\s+\d{2,4}\s+\d{6,8}$/;
 
 function safeReturnPath(value) {
   const raw = String(value || "").trim();
@@ -33,21 +36,8 @@ function summarizeError(err) {
   return msg;
 }
 
-function normalizePhone(phone) {
-  return String(phone ?? "").trim().replace(/\s+/g, " ");
-}
-
 function validateWhatsappPhone(phone) {
-  const normalized = normalizePhone(phone);
-  if (!normalized) return { ok: true, value: "" };
-  if (!WHATSAPP_PHONE_REGEX.test(normalized)) {
-    return {
-      ok: false,
-      value: normalized,
-      error: "Telefono invalido. Usa formato: 54 9 codigo_area numero. Ej: 54 9 11 6054010."
-    };
-  }
-  return { ok: true, value: normalized };
+  return normalizeArgentinaWhatsAppPhone(phone);
 }
 
 function setReadOnly(inputs, readOnly) {
@@ -86,6 +76,14 @@ export function initClientFormPage(session = null) {
   let saving = false;
   let currentCustomer = null;
 
+  function syncPhoneField() {
+    if (!phoneEl) return;
+
+    // Keep the mobile input constrained to a friendly national-format draft.
+    const sanitized = sanitizeArgentinaPhoneInput(phoneEl.value);
+    phoneEl.value = formatArgentinaPhoneForInput(sanitized);
+  }
+
   function goBack(extra = "") {
     const sep = returnTo.includes("?") ? "&" : "?";
     location.href = `${returnTo}${extra ? `${sep}${extra}` : ""}`;
@@ -123,7 +121,7 @@ export function initClientFormPage(session = null) {
 
     currentCustomer = row;
     nameEl.value = row.full_name || "";
-    phoneEl.value = row.phone || "";
+    phoneEl.value = formatArgentinaPhoneForInput(row.phone || "");
     emailEl.value = row.email || "";
     addressEl.value = row.address || "";
     notesEl.value = row.notes || "";
@@ -185,6 +183,9 @@ export function initClientFormPage(session = null) {
     detailActionsEl?.classList.add("hidden");
     detailActionsEl?.classList.remove("flex");
   }
+
+  phoneEl?.addEventListener("input", syncPhoneField);
+  phoneEl?.addEventListener("blur", syncPhoneField);
 
   formEl.addEventListener("submit", async (event) => {
     event.preventDefault();

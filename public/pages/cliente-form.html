@@ -23,7 +23,23 @@
 
         <div>
           <label class="text-xs text-muted block mb-1" for="clientPhone">Telefono</label>
-          <input id="clientPhone" class="input" placeholder="Ej: 54 9 11 6054010" inputmode="tel" pattern="54 9 [0-9]{2,4} [0-9]{6,8}" />
+          <div class="flex min-h-[44px] items-stretch overflow-hidden rounded-[var(--radius)] border border-[var(--border-strong)] bg-surface focus-within:border-[var(--primary)] focus-within:shadow-[0_0_0_3px_var(--ring)]">
+            <span class="inline-flex shrink-0 items-center border-r divider bg-surface-2 px-3 text-sm font-semibold text-muted select-none">
+              +54 9
+            </span>
+            <input
+              id="clientPhone"
+              type="tel"
+              class="min-w-0 flex-1 border-0 bg-transparent px-3 py-[10px] text-[var(--text)] outline-none"
+              placeholder="11 6054 0410"
+              inputmode="numeric"
+              autocomplete="tel-national"
+              spellcheck="false"
+              aria-describedby="clientPhoneHelp" />
+          </div>
+          <p id="clientPhoneHelp" class="mt-1 text-xs text-subtle">
+            Ingresa el celular local. Ej: 11 6054 0410.
+          </p>
         </div>
 
         <div>

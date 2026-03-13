@@ -1,5 +1,5 @@
 /* public/sw.js */
-const APP_VERSION = "v1.1.9";
+const APP_VERSION = "v1.1.10";
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 
@@ -46,6 +46,7 @@ const PRECACHE_URLS = [
   "/js/supabase-client.js",
   "/js/sw-register.js",
   "/js/toast.js",
+  "/js/utils/argentina-phone.js",
   "/js/vendor/tailwindcss-playcdn.js",
 
   "/assets/icons/icon-192.png",
