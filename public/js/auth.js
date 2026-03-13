@@ -7,6 +7,7 @@ import {
   signOutSession,
   subscribeAuthChange
 } from "./services/auth-service.js";
+import { clearSalesContextCache, getSalesContext } from "./services/sales-context-service.js";
 import { canAccessCatalogRoute, normalizeRole, ROLES } from "./utils/permissions.js";
 
 const DEFAULT_LOGIN_PATH = "/pages/login.html";
@@ -64,6 +65,7 @@ function buildFallbackViewerProfile(user) {
 export function clearAuthCache() {
   cachedProfile = null;
   cachedProfileUserId = null;
+  clearSalesContextCache();
 }
 
 export async function signInWithGoogle() {
@@ -167,8 +169,13 @@ export async function requireAuth() {
     return null;
   }
 
+  const salesContext = await getSalesContext({
+    userId: session.user.id,
+    profile
+  });
+
   // Backward-compatible return: existing pages can still use session.user.id
-  return { ...session, session, profile };
+  return { ...session, session, profile, salesContext };
 }
 
 export async function requireRole(roles = []) {

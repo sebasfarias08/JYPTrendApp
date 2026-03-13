@@ -70,13 +70,13 @@ async function validateCartStock(cartItems, context) {
 
 export async function createOrderWithItems(order, cartItems) {
   const userId = order?.user_id ?? null;
-  const fallbackContext = await getSalesContext(userId);
+  const fallbackContext = await getSalesContext({ userId });
   const { warehouse_id: warehouseId, point_of_sale_id: pointOfSaleId } = resolveOrderContext(order, cartItems, fallbackContext);
 
   if (!warehouseId || !pointOfSaleId) {
     return {
       ok: false,
-      error: new Error("Missing or inconsistent warehouse_id / point_of_sale_id for order creation.")
+      error: fallbackContext?.error || new Error("Missing or inconsistent warehouse_id / point_of_sale_id for order creation.")
     };
   }
 

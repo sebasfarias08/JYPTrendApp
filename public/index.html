@@ -203,7 +203,23 @@
 
     async function reloadProducts() {
       statusLineEl.textContent = "Actualizando catalogo...";
-      products = await getProducts();
+      try {
+        products = await getProducts({
+          userId: session.user.id,
+          profile: session.profile
+        });
+      } catch (error) {
+        console.error("reloadProducts error:", error);
+        products = [];
+        listEl.innerHTML = "";
+        emptyStateEl.classList.remove("hidden");
+        emptyStateEl.textContent = String(
+          error?.message ||
+          "No se pudo cargar el catalogo porque falta un contexto de venta valido."
+        );
+        statusLineEl.textContent = "Catalogo no disponible.";
+        return;
+      }
 
       const hasPerfumes = products.some((p) => normalizeSlug(p.categories?.slug ?? p.categories?.name ?? "") === "perfumes");
       if (!hasPerfumes) {

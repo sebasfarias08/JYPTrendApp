@@ -1,13 +1,14 @@
 import { supabase } from "../lib/supabase-client.js";
 import { getStockByVariant } from "./stock-service.js";
-import { getSalesContext } from "./sales-context-service.js";
+import { requireSalesContext } from "./sales-context-service.js";
 
-export async function getProducts() {
-  const salesContext = await getSalesContext();
-  if (!salesContext.warehouse_id || !salesContext.point_of_sale_id) {
-    console.warn("getProducts missing sales context.");
-    return [];
-  }
+export async function getProducts(options = null) {
+  const normalizedOptions = options && typeof options === "object" ? options : {};
+  const salesContext = await requireSalesContext({
+    userId: normalizedOptions.userId ?? null,
+    profile: normalizedOptions.profile ?? null,
+    forceReload: normalizedOptions.forceReload === true
+  });
 
   const [variantsResult, stockRows] = await Promise.all([
     supabase
@@ -41,7 +42,7 @@ export async function getProducts() {
   const { data, error } = variantsResult;
   if (error) {
     console.error("getProducts (variants) error:", error);
-    return [];
+    throw error;
   }
 
   const stockByVariantId = new Map();

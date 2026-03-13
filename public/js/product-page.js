@@ -5,7 +5,7 @@ import { shareProduct, copyToClipboard, downloadImage } from "./share.js";
 import { addToCart } from "./cart.js";
 import { showToast } from "./toast.js";
 import { canManageInventory } from "./utils/permissions.js";
-import { getSalesContext } from "./services/sales-context-service.js";
+import { requireSalesContext } from "./services/sales-context-service.js";
 
 function formatArs(value) {
   const n = Number(value ?? 0);
@@ -36,7 +36,13 @@ export async function initProductPage(role = "viewer") {
 
   showToast("Cargando producto...", { type: "info", duration: 900 });
   let p = await getProductById(id);
-  const salesContext = await getSalesContext();
+  let salesContext = null;
+  try {
+    salesContext = await requireSalesContext();
+  } catch (error) {
+    console.warn("initProductPage sales context warning:", error);
+    showToast(String(error?.message || "No se pudo resolver el contexto de venta."), { type: "warning", duration: 3200 });
+  }
 
   if (!p) {
     showToast("No se encontro el producto (o esta inactivo).", { type: "error" });
