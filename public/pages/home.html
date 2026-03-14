@@ -8,29 +8,176 @@
   <title>Home</title>
   <script src="/js/vendor/tailwindcss-playcdn.js"></script>
   <link rel="stylesheet" href="/css/theme.css" />
+  <style>
+    .home-shell {
+      background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.92), rgba(247, 248, 250, 0) 34%),
+        linear-gradient(180deg, #fdfdfd 0%, #f4f6f9 100%);
+    }
+
+    .home-card {
+      border-radius: 18px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .home-stat-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      padding: 14px 16px;
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.14);
+    }
+
+    .home-stat-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -18px -28px auto;
+      width: 110px;
+      height: 110px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .home-stat-success {
+      background: linear-gradient(135deg, #57c748 0%, #2f9d33 100%);
+    }
+
+    .home-stat-primary {
+      background: linear-gradient(135deg, #4a90ff 0%, #2563eb 100%);
+    }
+
+    .home-cta {
+      background: linear-gradient(180deg, #ff5e58 0%, #ef2f27 100%);
+      box-shadow: 0 12px 24px rgba(239, 47, 39, 0.28);
+    }
+
+    .home-panel {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      border-radius: 18px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .home-order-row + .home-order-row {
+      border-top: 1px solid #e7ebf2;
+    }
+
+    .home-quick {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7f8fb 100%);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+  </style>
 </head>
 
-<body class="h-screen overflow-hidden flex flex-col">
+<body class="h-screen overflow-hidden flex flex-col home-shell">
   <header id="appShellTop"></header>
 
-  <main class="flex-1 overflow-y-auto p-4 space-y-4 pb-[calc(env(safe-area-inset-bottom)+7rem)]">
-    <section class="card p-4 space-y-3">
-      <h2 class="font-semibold">Accesos Rapidos</h2>
-      <div class="grid grid-cols-2 gap-2">
-        <a class="btn btn-primary text-center" href="/index.html?tab=perfumes">Nueva Reserva</a>
-        <a class="btn btn-primary text-center" href="/pages/pedidos.html">Historial</a>
-        <a class="btn btn-primary text-center" href="/pages/clientes.html">Clientes</a>
-        <a class="btn btn-primary text-center" href="/pages/checkout.html">Carrito</a>
+  <main class="flex-1 overflow-y-auto px-4 pt-5 space-y-4 pb-[calc(env(safe-area-inset-bottom)+7rem)]">
+    <section class="space-y-4">
+      <div class="space-y-1">
+        <p class="text-[15px] text-slate-500">Panel de hoy</p>
+        <h2 id="homeGreeting" class="text-[32px] leading-none font-semibold text-slate-800">Hola</h2>
+      </div>
+
+      <div class="space-y-3">
+        <article class="home-stat-card home-stat-success">
+          <div class="relative z-10 flex items-start justify-between gap-3">
+            <div>
+              <p class="text-sm font-semibold text-white/90">Hoy vendiste</p>
+              <p id="todaySales" class="mt-1 text-[2rem] leading-none font-bold tracking-tight">$0</p>
+            </div>
+            <div class="mt-1 rounded-2xl bg-white/20 p-2.5 backdrop-blur-sm" aria-hidden="true">
+              <svg viewBox="0 0 24 24" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M3 7h18"></path>
+                <path d="M6 12h12"></path>
+                <path d="M9 17h6"></path>
+                <rect x="2.5" y="4" width="19" height="16" rx="2.5"></rect>
+              </svg>
+            </div>
+          </div>
+        </article>
+
+        <article class="home-stat-card home-stat-primary">
+          <div class="relative z-10 flex items-start justify-between gap-3">
+            <div>
+              <p id="pendingDeliveries" class="text-[1.5rem] leading-none font-bold tracking-tight">0 pedidos pendientes</p>
+              <p class="mt-1 text-sm text-white/90">Seguimiento en tiempo real</p>
+            </div>
+            <div class="mt-1 rounded-2xl bg-white/20 p-2.5 backdrop-blur-sm" aria-hidden="true">
+              <svg viewBox="0 0 24 24" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                <path d="M16 3v4"></path>
+                <path d="M8 3v4"></path>
+                <path d="M3 11h18"></path>
+                <path d="m10 16 2 2 4-5"></path>
+              </svg>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <a href="/pages/checkout.html" class="home-cta home-card min-h-[72px] rounded-2xl px-5 flex items-center justify-center gap-3 text-white font-bold text-[1.2rem]">
+        <span class="text-[2rem] leading-none">+</span>
+        <span>Nueva Venta</span>
+      </a>
+    </section>
+
+    <section class="home-panel p-4">
+      <div class="flex items-center justify-between gap-3">
+        <h3 class="text-[1.05rem] font-semibold text-slate-800">Pedidos pendientes</h3>
+        <a href="/pages/pedidos.html" class="text-sm font-semibold text-blue-600">Ver todos</a>
+      </div>
+      <div id="recentOrders" class="mt-3">
+        <p class="py-4 text-sm text-muted">Cargando pedidos...</p>
       </div>
     </section>
 
-    <section class="card p-4 space-y-3">
-      <div class="flex items-center justify-between gap-3">
-        <h2 class="font-semibold">Mis pedidos</h2>
-        <span id="pendingDeliveries" class="text-sm text-muted">Pendientes: -</span>
-      </div>
-      <div id="recentOrders" class="space-y-2">
-        <p class="text-sm text-muted">Cargando pedidos...</p>
+    <section class="home-panel p-4 space-y-3">
+      <h3 class="text-[1.05rem] font-semibold text-slate-800">Acciones rapidas</h3>
+      <div class="grid grid-cols-2 gap-3">
+        <a class="home-quick min-h-[58px] px-3 flex items-center gap-3 text-slate-700 font-medium" href="/pages/clientes.html">
+          <span class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 grid place-items-center">
+            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M20 8v6"></path>
+              <path d="M23 11h-6"></path>
+            </svg>
+          </span>
+          <span>Clientes</span>
+        </a>
+        <a class="home-quick min-h-[58px] px-3 flex items-center gap-3 text-slate-700 font-medium" href="/index.html?tab=perfumes">
+          <span class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 grid place-items-center">
+            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="4" width="18" height="15" rx="2"></rect>
+              <path d="M7 8h10"></path>
+              <path d="M7 12h6"></path>
+            </svg>
+          </span>
+          <span>Catalogo</span>
+        </a>
+        <a class="home-quick min-h-[58px] px-3 flex items-center gap-3 text-slate-700 font-medium" href="/pages/pedidos.html">
+          <span class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 grid place-items-center">
+            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="6" width="18" height="12" rx="2"></rect>
+              <path d="M7 12h10"></path>
+            </svg>
+          </span>
+          <span>Pagos</span>
+        </a>
+        <a class="home-quick min-h-[58px] px-3 flex items-center gap-3 text-slate-700 font-medium" href="/pages/about.html">
+          <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-500 grid place-items-center">
+            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M5 19V9"></path>
+              <path d="M12 19V5"></path>
+              <path d="M19 19v-7"></path>
+            </svg>
+          </span>
+          <span>Reportes</span>
+        </a>
       </div>
     </section>
   </main>
@@ -42,7 +189,6 @@
     import { initAppShell } from "/js/app-shell.js";
     import * as ordersService from "/js/orders-service.js";
     import * as orderStatusModule from "/js/order-status.js";
-    import { orderStatusBadgeClass, paymentStatusBadgeClass } from "/js/status-ui.js";
     import { showToast } from "/js/toast.js";
     const normalizeStatus = orderStatusModule.normalizeStatus ?? ((status) => String(status ?? "").trim());
     const statusLabel = orderStatusModule.statusLabel ?? ((status) => String(status ?? ""));
@@ -57,6 +203,8 @@
       onRefresh: async () => loadDashboard()
     });
 
+    const greetingEl = document.getElementById("homeGreeting");
+    const todaySalesEl = document.getElementById("todaySales");
     const pendingDeliveriesEl = document.getElementById("pendingDeliveries");
     const recentOrdersEl = document.getElementById("recentOrders");
 
@@ -68,78 +216,100 @@
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
 
-    function orderDateGroupLabel(date) {
-      const now = new Date();
-      const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const startGiven = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      const diffDays = Math.round((startToday - startGiven) / 86400000);
+    function firstNameFromProfile(profile) {
+      const raw = profile?.full_name || profile?.email || session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || "";
+      const clean = String(raw).trim();
+      if (!clean) return "Juan";
+      return clean.split(/\s+/)[0];
+    }
 
-      if (diffDays === 0) return "Hoy";
-      if (diffDays === 1) return "Ayer";
-      return date.toLocaleDateString("es-AR", { day: "numeric", month: "short" });
+    function isToday(dateValue) {
+      const date = new Date(dateValue);
+      const now = new Date();
+      return date.getFullYear() === now.getFullYear()
+        && date.getMonth() === now.getMonth()
+        && date.getDate() === now.getDate();
+    }
+
+    function orderTone(order) {
+      const payment = normalizeStatus(order.payment_status ?? "Pendiente").toLowerCase();
+      const status = normalizeStatus(order.order_status ?? "Reservado").toLowerCase();
+
+      if (status.includes("listo") || status.includes("enviado")) {
+        return {
+          dotClass: "bg-green-500",
+          icon: "check",
+          label: statusLabel(order.order_status ?? "Listo")
+        };
+      }
+
+      if (payment.includes("pago") || payment.includes("abonado") || payment.includes("pendiente")) {
+        return {
+          dotClass: "bg-amber-400",
+          icon: "clock",
+          label: statusLabel(order.payment_status ?? "Pendiente")
+        };
+      }
+
+      return {
+        dotClass: "bg-orange-400",
+        icon: "bookmark",
+        label: statusLabel(order.order_status ?? "Reservado")
+      };
+    }
+
+    function toneIcon(name) {
+      const icons = {
+        clock: '<path d="M12 7v5l3 2"></path><circle cx="12" cy="12" r="8"></circle>',
+        bookmark: '<path d="M7 4h10v16l-5-3-5 3z"></path>',
+        check: '<path d="m7 12 3 3 7-7"></path><circle cx="12" cy="12" r="9"></circle>'
+      };
+      return icons[name] ?? icons.clock;
     }
 
     function renderRecentOrders(rows) {
       if (!rows.length) {
-        recentOrdersEl.innerHTML = `<p class="text-sm text-muted">No hay pedidos activos para mostrar.</p>`;
+        recentOrdersEl.innerHTML = `<p class="py-4 text-sm text-muted">No hay pedidos activos para mostrar.</p>`;
         return;
       }
 
-      const groups = new Map();
-      rows.slice(0, 8).forEach((order) => {
-        const createdAt = new Date(order.created_at);
-        const label = orderDateGroupLabel(createdAt);
-        if (!groups.has(label)) groups.set(label, []);
-        groups.get(label).push(order);
-      });
+      recentOrdersEl.innerHTML = rows.slice(0, 5).map((order) => {
+        const customer = (order.customer_name || "").trim() || "Sin cliente";
+        const tone = orderTone(order);
+        const orderLabel = statusLabel(order.order_status ?? "Reservado");
+        const detail = tone.label === orderLabel ? tone.label : `${orderLabel} - ${tone.label}`;
 
-      const sections = [];
-      for (const [label, items] of groups.entries()) {
-        const cards = items.map((o) => {
-          const os = normalizeStatus(o.order_status ?? "Reservado");
-          const ps = normalizeStatus(o.payment_status ?? "Pendiente");
-          const customer = (o.customer_name || "").trim() || "Sin cliente";
-          const createdAt = new Date(o.created_at);
-          const timeText = createdAt.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
-          const ref = o.order_number ? `#${o.order_number}` : "Pedido";
+        return `
+          <a href="/pages/pedido-detalle.html?id=${encodeURIComponent(order.id)}" class="home-order-row flex items-center gap-3 py-3">
+            <span class="w-8 h-8 rounded-full ${tone.dotClass} text-white grid place-items-center shrink-0">
+              <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                ${toneIcon(tone.icon)}
+              </svg>
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-[15px] font-semibold text-slate-800 truncate">${escapeHtml(customer)}</span>
+              <span class="block text-[13px] text-slate-500 truncate">${escapeHtml(detail)}</span>
+            </span>
+          </a>
+        `;
+      }).join("");
+    }
 
-          return `
-            <a href="/pages/pedido-detalle.html?id=${encodeURIComponent(o.id)}" class="block bg-white rounded-xl shadow-sm p-3">
-              <div class="flex items-start gap-3">
-                <div class="min-w-0 flex-1">
-                  <div class="font-semibold text-sm text-slate-900 truncate">${escapeHtml(customer)}</div>
-                  <div class="text-xs text-slate-500 mt-0.5">${escapeHtml(timeText)}</div>
-                  <div class="mt-2 flex flex-wrap gap-1">
-                    <span class="inline-flex px-2 py-1 rounded-full text-[11px] font-medium ${orderStatusBadgeClass(os)}">${escapeHtml(statusLabel(os))}</span>
-                    <span class="inline-flex px-2 py-1 rounded-full text-[11px] font-medium ${paymentStatusBadgeClass(ps)}">${escapeHtml(statusLabel(ps))}</span>
-                  </div>
-                </div>
+    function updateDashboardMetrics(rows) {
+      const todayTotal = rows
+        .filter((order) => isToday(order.created_at))
+        .reduce((acc, order) => acc + Number(order.total ?? 0), 0);
 
-                <div class="text-right shrink-0">
-                  <div class="font-semibold text-sm text-slate-900">$ ${fmtMoney(o.total)}</div>
-                  <div class="text-xs text-slate-500 mt-2">${escapeHtml(ref)}</div>
-                </div>
-              </div>
-            </a>
-          `;
-        }).join("");
-
-        sections.push(`
-          <section class="space-y-2">
-            <h2 class="text-sm font-semibold text-slate-700">${escapeHtml(label)}</h2>
-            <div class="space-y-2">${cards}</div>
-          </section>
-        `);
-      }
-
-      recentOrdersEl.innerHTML = sections.join("");
+      todaySalesEl.textContent = `$${fmtMoney(todayTotal)}`;
+      pendingDeliveriesEl.textContent = `${rows.length} pedidos pendientes`;
     }
 
     async function loadDashboard() {
       showToast("Actualizando home...", { type: "info", duration: 1000 });
 
       const orders = await getMyOpenOrders({ limit: 200 });
-      pendingDeliveriesEl.textContent = `Pendientes: ${orders.length}`;
+      greetingEl.textContent = `Hola, ${firstNameFromProfile(session.profile)}`;
+      updateDashboardMetrics(orders);
       renderRecentOrders(orders);
     }
 
