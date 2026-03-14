@@ -1,6 +1,7 @@
 schema_name,table_name,trigger_name,trigger_definition
 public,cash_movements,trg_cash_movements_set_updated_at,CREATE TRIGGER trg_cash_movements_set_updated_at BEFORE UPDATE ON public.cash_movements FOR EACH ROW EXECUTE FUNCTION set_updated_at()
 public,categories,trg_categories_set_updated_at,CREATE TRIGGER trg_categories_set_updated_at BEFORE UPDATE ON public.categories FOR EACH ROW EXECUTE FUNCTION set_updated_at()
+public,customers,trg_customers_normalize_phone,CREATE TRIGGER trg_customers_normalize_phone BEFORE INSERT OR UPDATE ON public.customers FOR EACH ROW EXECUTE FUNCTION trg_customers_normalize_phone()
 public,customers,trg_customers_set_updated_at,CREATE TRIGGER trg_customers_set_updated_at BEFORE UPDATE ON public.customers FOR EACH ROW EXECUTE FUNCTION set_customers_updated_at()
 public,inventory_movements,trg_inventory_movements_set_updated_at,CREATE TRIGGER trg_inventory_movements_set_updated_at BEFORE UPDATE ON public.inventory_movements FOR EACH ROW EXECUTE FUNCTION set_updated_at()
 public,order_items,trg_order_items_recalc_order,CREATE TRIGGER trg_order_items_recalc_order AFTER INSERT OR DELETE OR UPDATE ON public.order_items FOR EACH ROW EXECUTE FUNCTION set_order_totals()
@@ -9,6 +10,7 @@ public,order_items,trg_order_items_set_updated_at,CREATE TRIGGER trg_order_items
 public,order_items,trg_order_items_sync_inventory,CREATE TRIGGER trg_order_items_sync_inventory AFTER INSERT OR DELETE OR UPDATE ON public.order_items FOR EACH ROW EXECUTE FUNCTION sync_inventory_from_order_item()
 public,order_items,trg_order_items_validate_stock,CREATE TRIGGER trg_order_items_validate_stock BEFORE INSERT OR UPDATE ON public.order_items FOR EACH ROW EXECUTE FUNCTION validate_order_item_stock()
 public,orders,trg_orders_set_updated_at,CREATE TRIGGER trg_orders_set_updated_at BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION set_updated_at()
+public,orders,trg_orders_sync_inventory_active_flag,CREATE TRIGGER trg_orders_sync_inventory_active_flag AFTER UPDATE OF is_active ON public.orders FOR EACH ROW EXECUTE FUNCTION sync_inventory_from_order_active_flag()
 public,payment_allocations,trg_payment_allocations_set_updated_at,CREATE TRIGGER trg_payment_allocations_set_updated_at BEFORE UPDATE ON public.payment_allocations FOR EACH ROW EXECUTE FUNCTION set_updated_at()
 public,payments,trg_payments_set_updated_at,CREATE TRIGGER trg_payments_set_updated_at BEFORE UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION set_updated_at()
 public,points_of_sale,trg_points_of_sale_set_updated_at,CREATE TRIGGER trg_points_of_sale_set_updated_at BEFORE UPDATE ON public.points_of_sale FOR EACH ROW EXECUTE FUNCTION set_updated_at()

@@ -30,6 +30,12 @@ public,customers,7,is_active,boolean,bool,NO,true,NO,null
 public,customers,8,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,customers,9,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,customers,10,address,text,text,YES,null,NO,null
+public,customers,11,address_input,text,text,YES,null,NO,null
+public,customers,12,address_formatted,text,text,YES,null,NO,null
+public,customers,13,address_notes,text,text,YES,null,NO,null
+public,customers,14,address_place_id,text,text,YES,null,NO,null
+public,customers,15,address_lat,double precision,float8,YES,null,NO,null
+public,customers,16,address_lng,double precision,float8,YES,null,NO,null
 public,inventory_movements,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,inventory_movements,2,user_id,uuid,uuid,NO,null,NO,null
 public,inventory_movements,3,product_id,uuid,uuid,NO,null,NO,null
@@ -92,6 +98,7 @@ public,orders,29,customer_phone_snapshot,text,text,YES,null,NO,null
 public,orders,30,customer_email_snapshot,text,text,YES,null,NO,null
 public,orders,31,customer_address_snapshot,text,text,YES,null,NO,null
 public,orders,32,warehouse_id,uuid,uuid,YES,null,NO,null
+public,orders,33,is_active,boolean,bool,NO,true,NO,null
 public,payment_allocations,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,payment_allocations,2,user_id,uuid,uuid,NO,null,NO,null
 public,payment_allocations,3,payment_id,uuid,uuid,NO,null,NO,null
@@ -156,6 +163,8 @@ public,profiles,4,role,text,text,NO,'seller'::text,NO,null
 public,profiles,5,is_active,boolean,bool,NO,true,NO,null
 public,profiles,6,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,profiles,7,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,profiles,8,default_warehouse_id,uuid,uuid,YES,null,NO,null
+public,profiles,9,default_point_of_sale_id,uuid,uuid,YES,null,NO,null
 public,purchase_order_items,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,purchase_order_items,2,purchase_order_id,uuid,uuid,NO,null,NO,null
 public,purchase_order_items,3,product_id,uuid,uuid,NO,null,NO,null

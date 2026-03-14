@@ -26,6 +26,8 @@ public,points_of_sale,points_of_sale_user_id_fkey,user_id,auth,users,id,a,c
 public,product_variants,product_variants_product_id_fkey,product_id,public,products,id,a,c
 public,product_variants,product_variants_user_id_fkey,user_id,auth,users,id,a,c
 public,products,products_category_id_fkey,category_id,public,categories,id,a,a
+public,profiles,profiles_default_point_of_sale_id_fkey,default_point_of_sale_id,public,points_of_sale,id,a,n
+public,profiles,profiles_default_warehouse_id_fkey,default_warehouse_id,public,warehouses,id,a,n
 public,profiles,profiles_id_fkey,id,auth,users,id,a,c
 public,purchase_order_items,purchase_order_items_product_id_fkey,product_id,public,products,id,a,r
 public,purchase_order_items,purchase_order_items_purchase_order_id_fkey,purchase_order_id,public,purchase_orders,id,a,c

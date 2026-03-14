@@ -40,6 +40,7 @@
     import { getImageUrl } from "/js/image.js";
     import { addToCart } from "/js/cart.js";
     import { initAppShell } from "/js/app-shell.js";
+    import { INVENTORY_CHANGED_EVENT } from "/js/services/stock-service.js";
     import { normalizeRole, ROLES } from "/js/utils/permissions.js";
 
     let searchInputEl = null;
@@ -268,6 +269,9 @@
 
     searchInputEl?.addEventListener("input", applyFilters);
     window.addEventListener("cart:changed", applyFilters);
+    window.addEventListener(INVENTORY_CHANGED_EVENT, () => {
+      reloadProducts();
+    });
 
     await reloadProducts();
   </script>

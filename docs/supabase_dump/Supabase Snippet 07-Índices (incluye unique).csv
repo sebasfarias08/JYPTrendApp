@@ -5,7 +5,9 @@ public,cash_movements,idx_cash_movements_payment_id,CREATE INDEX idx_cash_moveme
 public,cash_movements,idx_cash_movements_pos_created_at,"CREATE INDEX idx_cash_movements_pos_created_at ON public.cash_movements USING btree (point_of_sale_id, created_at DESC)"
 public,cash_movements,idx_cash_movements_user_created_at,"CREATE INDEX idx_cash_movements_user_created_at ON public.cash_movements USING btree (user_id, created_at DESC)"
 public,categories,categories_pkey,CREATE UNIQUE INDEX categories_pkey ON public.categories USING btree (id)
+public,customers,customers_address_trgm_idx,CREATE INDEX customers_address_trgm_idx ON public.customers USING gin (address_formatted gin_trgm_ops)
 public,customers,customers_full_name_phone_uidx,"CREATE UNIQUE INDEX customers_full_name_phone_uidx ON public.customers USING btree (lower(btrim(full_name)), lower(btrim(COALESCE(phone, ''::text)))) WHERE (is_active = true)"
+public,customers,customers_lat_lng_idx,"CREATE INDEX customers_lat_lng_idx ON public.customers USING btree (address_lat, address_lng)"
 public,customers,customers_pkey,CREATE UNIQUE INDEX customers_pkey ON public.customers USING btree (id)
 public,customers,customers_user_created_idx,"CREATE INDEX customers_user_created_idx ON public.customers USING btree (user_id, created_at DESC)"
 public,inventory_movements,idx_inventory_movements_point_of_sale,"CREATE INDEX idx_inventory_movements_point_of_sale ON public.inventory_movements USING btree (point_of_sale_id, created_at DESC)"
@@ -53,6 +55,8 @@ public,product_variants,product_variants_pkey,CREATE UNIQUE INDEX product_varian
 public,product_variants,product_variants_product_name_unique_idx,"CREATE UNIQUE INDEX product_variants_product_name_unique_idx ON public.product_variants USING btree (product_id, lower(variant_name))"
 public,product_variants,product_variants_sku_unique_idx,CREATE UNIQUE INDEX product_variants_sku_unique_idx ON public.product_variants USING btree (lower(sku)) WHERE (sku IS NOT NULL)
 public,products,products_pkey,CREATE UNIQUE INDEX products_pkey ON public.products USING btree (id)
+public,profiles,idx_profiles_default_point_of_sale_id,CREATE INDEX idx_profiles_default_point_of_sale_id ON public.profiles USING btree (default_point_of_sale_id)
+public,profiles,idx_profiles_default_warehouse_id,CREATE INDEX idx_profiles_default_warehouse_id ON public.profiles USING btree (default_warehouse_id)
 public,profiles,idx_profiles_role_active,"CREATE INDEX idx_profiles_role_active ON public.profiles USING btree (role, is_active)"
 public,profiles,profiles_pkey,CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)
 public,purchase_order_items,idx_purchase_order_items_po_id,CREATE INDEX idx_purchase_order_items_po_id ON public.purchase_order_items USING btree (purchase_order_id)

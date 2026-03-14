@@ -1,5 +1,5 @@
 import { getProductsForAdmin, setProductActive } from "./product-service.js";
-import { getStockByVariant } from "./services/stock-service.js";
+import { getStockByVariant, INVENTORY_CHANGED_EVENT } from "./services/stock-service.js";
 import { getImageUrl } from "./image.js";
 import { showToast } from "./toast.js";
 
@@ -176,6 +176,9 @@ export function initProductsPage() {
   });
   searchEl.addEventListener("input", renderList);
   showInactiveEl.addEventListener("change", renderList);
+  window.addEventListener(INVENTORY_CHANGED_EVENT, () => {
+    loadRows();
+  });
 
   loadRows();
 }

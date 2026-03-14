@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase-client.js";
-import { getStockByVariant } from "./stock-service.js";
+import { getStockByVariant, notifyInventoryChanged } from "./stock-service.js";
 import { getSalesContext } from "./sales-context-service.js";
 
 function resolveOrderContext(order, cartItems, fallbackContext) {
@@ -66,6 +66,13 @@ async function validateCartStock(cartItems, context) {
   }
 
   return { ok: true };
+}
+
+function emitInventoryRefresh(detail = {}) {
+  notifyInventoryChanged({
+    source: "orders",
+    ...detail
+  });
 }
 
 export async function createOrderWithItems(order, cartItems) {
@@ -143,10 +150,20 @@ export async function createOrderWithItems(order, cartItems) {
 
   if (itemsErr) {
     console.error("Insert items error:", itemsErr);
-    // rollback best-effort
-    await supabase.from("orders").delete().eq("id", order_id);
+    // rollback best-effort via soft delete
+    await supabase
+      .from("orders")
+      .update({ is_active: false })
+      .eq("id", order_id)
+      .eq("is_active", true);
     return { ok: false, error: itemsErr };
   }
+
+  emitInventoryRefresh({
+    orderId: order_id,
+    warehouse_id: warehouseId,
+    point_of_sale_id: pointOfSaleId
+  });
 
   let order_number = null;
   const { data: numRow, error: numErr } = await supabase

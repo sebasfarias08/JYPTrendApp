@@ -6,11 +6,11 @@ public,current_app_role,,text,sql,"CREATE OR REPLACE FUNCTION public.current_app
  SET search_path TO 'public'
 AS $function$
   select coalesce((
-      select lower(role)
-      from public.profiles
-      where id = auth.uid()
-        and is_active = true
-      limit 1
+    select lower(role)
+    from public.profiles
+    where id = auth.uid()
+      and is_active = true
+    limit 1
   ), 'none')
 $function$
 "
@@ -23,6 +23,96 @@ AS $function$
   from profiles
   where id = auth.uid();
 $function$
+"
+public,gin_extract_query_trgm,"text, internal, smallint, internal, internal, internal, internal",internal,c,"CREATE OR REPLACE FUNCTION public.gin_extract_query_trgm(text, internal, smallint, internal, internal, internal, internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gin_extract_query_trgm$function$
+"
+public,gin_extract_value_trgm,"text, internal",internal,c,"CREATE OR REPLACE FUNCTION public.gin_extract_value_trgm(text, internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gin_extract_value_trgm$function$
+"
+public,gin_trgm_consistent,"internal, smallint, text, integer, internal, internal, internal, internal",boolean,c,"CREATE OR REPLACE FUNCTION public.gin_trgm_consistent(internal, smallint, text, integer, internal, internal, internal, internal)
+ RETURNS boolean
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gin_trgm_consistent$function$
+"
+public,gin_trgm_triconsistent,"internal, smallint, text, integer, internal, internal, internal","""char""",c,"CREATE OR REPLACE FUNCTION public.gin_trgm_triconsistent(internal, smallint, text, integer, internal, internal, internal)
+ RETURNS ""char""
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gin_trgm_triconsistent$function$
+"
+public,gtrgm_compress,internal,internal,c,"CREATE OR REPLACE FUNCTION public.gtrgm_compress(internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_compress$function$
+"
+public,gtrgm_consistent,"internal, text, smallint, oid, internal",boolean,c,"CREATE OR REPLACE FUNCTION public.gtrgm_consistent(internal, text, smallint, oid, internal)
+ RETURNS boolean
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_consistent$function$
+"
+public,gtrgm_decompress,internal,internal,c,"CREATE OR REPLACE FUNCTION public.gtrgm_decompress(internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_decompress$function$
+"
+public,gtrgm_distance,"internal, text, smallint, oid, internal",double precision,c,"CREATE OR REPLACE FUNCTION public.gtrgm_distance(internal, text, smallint, oid, internal)
+ RETURNS double precision
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_distance$function$
+"
+public,gtrgm_in,cstring,gtrgm,c,"CREATE OR REPLACE FUNCTION public.gtrgm_in(cstring)
+ RETURNS gtrgm
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_in$function$
+"
+public,gtrgm_options,internal,void,c,"CREATE OR REPLACE FUNCTION public.gtrgm_options(internal)
+ RETURNS void
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE
+AS '$libdir/pg_trgm', $function$gtrgm_options$function$
+"
+public,gtrgm_out,gtrgm,cstring,c,"CREATE OR REPLACE FUNCTION public.gtrgm_out(gtrgm)
+ RETURNS cstring
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_out$function$
+"
+public,gtrgm_penalty,"internal, internal, internal",internal,c,"CREATE OR REPLACE FUNCTION public.gtrgm_penalty(internal, internal, internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_penalty$function$
+"
+public,gtrgm_picksplit,"internal, internal",internal,c,"CREATE OR REPLACE FUNCTION public.gtrgm_picksplit(internal, internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_picksplit$function$
+"
+public,gtrgm_same,"gtrgm, gtrgm, internal",internal,c,"CREATE OR REPLACE FUNCTION public.gtrgm_same(gtrgm, gtrgm, internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_same$function$
+"
+public,gtrgm_union,"internal, internal",gtrgm,c,"CREATE OR REPLACE FUNCTION public.gtrgm_union(internal, internal)
+ RETURNS gtrgm
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_union$function$
 "
 public,handle_new_user_profile,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.handle_new_user_profile()
  RETURNS trigger
@@ -42,6 +132,35 @@ begin
   on conflict (id) do nothing;
 
   return new;
+end;
+$function$
+"
+public,normalize_phone_ar,phone_input text,text,plpgsql,"CREATE OR REPLACE FUNCTION public.normalize_phone_ar(phone_input text)
+ RETURNS text
+ LANGUAGE plpgsql
+AS $function$
+declare
+    digits text;
+begin
+    if phone_input is null then
+        return null;
+    end if;
+
+    digits := regexp_replace(phone_input, '\D', '', 'g');
+
+    if length(digits) = 10 then
+        return '549' || digits;
+    end if;
+
+    if digits like '549%' then
+        return digits;
+    end if;
+
+    if digits like '54%' then
+        return '9' || substr(digits,3);
+    end if;
+
+    return digits;
 end;
 $function$
 "
@@ -114,6 +233,12 @@ begin
   return new;
 end;
 $function$
+"
+public,set_limit,real,real,c,"CREATE OR REPLACE FUNCTION public.set_limit(real)
+ RETURNS real
+ LANGUAGE c
+ STRICT
+AS '$libdir/pg_trgm', $function$set_limit$function$
 "
 public,set_order_totals,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.set_order_totals()
  RETURNS trigger
@@ -193,6 +318,148 @@ begin
 end;
 $function$
 "
+public,show_limit,,real,c,"CREATE OR REPLACE FUNCTION public.show_limit()
+ RETURNS real
+ LANGUAGE c
+ STABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$show_limit$function$
+"
+public,show_trgm,text,text[],c,"CREATE OR REPLACE FUNCTION public.show_trgm(text)
+ RETURNS text[]
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$show_trgm$function$
+"
+public,similarity,"text, text",real,c,"CREATE OR REPLACE FUNCTION public.similarity(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$similarity$function$
+"
+public,similarity_dist,"text, text",real,c,"CREATE OR REPLACE FUNCTION public.similarity_dist(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$similarity_dist$function$
+"
+public,similarity_op,"text, text",boolean,c,"CREATE OR REPLACE FUNCTION public.similarity_op(text, text)
+ RETURNS boolean
+ LANGUAGE c
+ STABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$similarity_op$function$
+"
+public,strict_word_similarity,"text, text",real,c,"CREATE OR REPLACE FUNCTION public.strict_word_similarity(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$strict_word_similarity$function$
+"
+public,strict_word_similarity_commutator_op,"text, text",boolean,c,"CREATE OR REPLACE FUNCTION public.strict_word_similarity_commutator_op(text, text)
+ RETURNS boolean
+ LANGUAGE c
+ STABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$strict_word_similarity_commutator_op$function$
+"
+public,strict_word_similarity_dist_commutator_op,"text, text",real,c,"CREATE OR REPLACE FUNCTION public.strict_word_similarity_dist_commutator_op(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$strict_word_similarity_dist_commutator_op$function$
+"
+public,strict_word_similarity_dist_op,"text, text",real,c,"CREATE OR REPLACE FUNCTION public.strict_word_similarity_dist_op(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$strict_word_similarity_dist_op$function$
+"
+public,strict_word_similarity_op,"text, text",boolean,c,"CREATE OR REPLACE FUNCTION public.strict_word_similarity_op(text, text)
+ RETURNS boolean
+ LANGUAGE c
+ STABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$strict_word_similarity_op$function$
+"
+public,sync_inventory_from_order_active_flag,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.sync_inventory_from_order_active_flag()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  -- Solo actuar cuando cambia is_active
+  if coalesce(old.is_active, true) is not distinct from coalesce(new.is_active, true) then
+    return new;
+  end if;
+
+  -- Si pasa de true -> false: devolver stock
+  if coalesce(old.is_active, true) = true
+     and coalesce(new.is_active, true) = false then
+
+    insert into public.inventory_movements (
+      user_id,
+      product_id,
+      variant_id,
+      warehouse_id,
+      point_of_sale_id,
+      movement_type,
+      qty,
+      reference_type,
+      reference_id,
+      notes
+    )
+    select
+      new.user_id,
+      oi.product_id,
+      oi.variant_id,
+      new.warehouse_id,
+      new.point_of_sale_id,
+      'SALE',
+      oi.qty,
+      'ORDER_SOFT_DELETE_STOCK',
+      new.id,
+      'Soft delete order - stock revert'
+    from public.order_items oi
+    where oi.order_id = new.id;
+
+    return new;
+  end if;
+
+  -- Si pasa de false -> true: volver a descontar stock
+  if coalesce(old.is_active, true) = false
+     and coalesce(new.is_active, true) = true then
+
+    insert into public.inventory_movements (
+      user_id,
+      product_id,
+      variant_id,
+      warehouse_id,
+      point_of_sale_id,
+      movement_type,
+      qty,
+      reference_type,
+      reference_id,
+      notes
+    )
+    select
+      new.user_id,
+      oi.product_id,
+      oi.variant_id,
+      new.warehouse_id,
+      new.point_of_sale_id,
+      'SALE',
+      -oi.qty,
+      'ORDER_SOFT_DELETE_STOCK',
+      new.id,
+      'Reactivate order - stock apply'
+    from public.order_items oi
+    where oi.order_id = new.id;
+
+    return new;
+  end if;
+
+  return new;
+end;
+$function$
+"
 public,sync_inventory_from_order_item,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.sync_inventory_from_order_item()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -209,109 +476,8 @@ begin
       from public.orders
      where id = new.order_id;
 
-    insert into public.inventory_movements (
-      user_id,
-      product_id,
-      variant_id,
-      warehouse_id,
-      point_of_sale_id,
-      movement_type,
-      qty,
-      reference_type,
-      reference_id,
-      notes
-    )
-    values (
-      v_order_new.user_id,
-      new.product_id,
-      new.variant_id,
-      v_order_new.warehouse_id,
-      v_order_new.point_of_sale_id,
-      'SALE',
-      -new.qty,
-      'ORDER_ITEM_STOCK',
-      new.id,
-      'Auto stock sync - insert'
-    );
-
-    return new;
-  end if;
-
-  if tg_op = 'DELETE' then
-    select *
-      into v_order_old
-      from public.orders
-     where id = old.order_id;
-
-    insert into public.inventory_movements (
-      user_id,
-      product_id,
-      variant_id,
-      warehouse_id,
-      point_of_sale_id,
-      movement_type,
-      qty,
-      reference_type,
-      reference_id,
-      notes
-    )
-    values (
-      v_order_old.user_id,
-      old.product_id,
-      old.variant_id,
-      v_order_old.warehouse_id,
-      v_order_old.point_of_sale_id,
-      'SALE',
-      old.qty,
-      'ORDER_ITEM_STOCK',
-      old.id,
-      'Auto stock sync - delete'
-    );
-
-    return old;
-  end if;
-
-  if tg_op = 'UPDATE' then
-    select *
-      into v_order_old
-      from public.orders
-     where id = old.order_id;
-
-    select *
-      into v_order_new
-      from public.orders
-     where id = new.order_id;
-
-    if old.qty is distinct from new.qty
-       or old.product_id is distinct from new.product_id
-       or old.variant_id is distinct from new.variant_id
-       or old.order_id is distinct from new.order_id
-    then
-      insert into public.inventory_movements (
-        user_id,
-        product_id,
-        variant_id,
-        warehouse_id,
-        point_of_sale_id,
-        movement_type,
-        qty,
-        reference_type,
-        reference_id,
-        notes
-      )
-      values (
-        v_order_old.user_id,
-        old.product_id,
-        old.variant_id,
-        v_order_old.warehouse_id,
-        v_order_old.point_of_sale_id,
-        'SALE',
-        old.qty,
-        'ORDER_ITEM_STOCK',
-        old.id,
-        'Auto stock sync - revert old'
-      );
-
+    -- Solo impacta stock si la orden esta activa
+    if coalesce(v_order_new.is_active, true) then
       insert into public.inventory_movements (
         user_id,
         product_id,
@@ -334,14 +500,140 @@ begin
         -new.qty,
         'ORDER_ITEM_STOCK',
         new.id,
-        'Auto stock sync - apply new'
+        'Auto stock sync - insert'
       );
     end if;
 
     return new;
   end if;
 
+  if tg_op = 'DELETE' then
+    select *
+      into v_order_old
+      from public.orders
+     where id = old.order_id;
+
+    -- Solo revierte stock si la orden estaba activa
+    if coalesce(v_order_old.is_active, true) then
+      insert into public.inventory_movements (
+        user_id,
+        product_id,
+        variant_id,
+        warehouse_id,
+        point_of_sale_id,
+        movement_type,
+        qty,
+        reference_type,
+        reference_id,
+        notes
+      )
+      values (
+        v_order_old.user_id,
+        old.product_id,
+        old.variant_id,
+        v_order_old.warehouse_id,
+        v_order_old.point_of_sale_id,
+        'SALE',
+        old.qty,
+        'ORDER_ITEM_STOCK',
+        old.id,
+        'Auto stock sync - delete'
+      );
+    end if;
+
+    return old;
+  end if;
+
+  if tg_op = 'UPDATE' then
+    select *
+      into v_order_old
+      from public.orders
+     where id = old.order_id;
+
+    select *
+      into v_order_new
+      from public.orders
+     where id = new.order_id;
+
+    if old.qty is distinct from new.qty
+       or old.product_id is distinct from new.product_id
+       or old.variant_id is distinct from new.variant_id
+       or old.order_id is distinct from new.order_id
+    then
+      -- Revierte el item viejo solo si la orden vieja estaba activa
+      if coalesce(v_order_old.is_active, true) then
+        insert into public.inventory_movements (
+          user_id,
+          product_id,
+          variant_id,
+          warehouse_id,
+          point_of_sale_id,
+          movement_type,
+          qty,
+          reference_type,
+          reference_id,
+          notes
+        )
+        values (
+          v_order_old.user_id,
+          old.product_id,
+          old.variant_id,
+          v_order_old.warehouse_id,
+          v_order_old.point_of_sale_id,
+          'SALE',
+          old.qty,
+          'ORDER_ITEM_STOCK',
+          old.id,
+          'Auto stock sync - revert old'
+        );
+      end if;
+
+      -- Aplica el item nuevo solo si la orden nueva esta activa
+      if coalesce(v_order_new.is_active, true) then
+        insert into public.inventory_movements (
+          user_id,
+          product_id,
+          variant_id,
+          warehouse_id,
+          point_of_sale_id,
+          movement_type,
+          qty,
+          reference_type,
+          reference_id,
+          notes
+        )
+        values (
+          v_order_new.user_id,
+          new.product_id,
+          new.variant_id,
+          v_order_new.warehouse_id,
+          v_order_new.point_of_sale_id,
+          'SALE',
+          -new.qty,
+          'ORDER_ITEM_STOCK',
+          new.id,
+          'Auto stock sync - apply new'
+        );
+      end if;
+    end if;
+
+    return new;
+  end if;
+
   return coalesce(new, old);
+end;
+$function$
+"
+public,trg_customers_normalize_phone,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.trg_customers_normalize_phone()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+begin
+    if new.phone is not null then
+        new.phone := normalize_phone_ar(new.phone);
+    end if;
+
+    return new;
 end;
 $function$
 "
@@ -437,4 +729,34 @@ begin
   return new;
 end;
 $function$
+"
+public,word_similarity,"text, text",real,c,"CREATE OR REPLACE FUNCTION public.word_similarity(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$word_similarity$function$
+"
+public,word_similarity_commutator_op,"text, text",boolean,c,"CREATE OR REPLACE FUNCTION public.word_similarity_commutator_op(text, text)
+ RETURNS boolean
+ LANGUAGE c
+ STABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$word_similarity_commutator_op$function$
+"
+public,word_similarity_dist_commutator_op,"text, text",real,c,"CREATE OR REPLACE FUNCTION public.word_similarity_dist_commutator_op(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$word_similarity_dist_commutator_op$function$
+"
+public,word_similarity_dist_op,"text, text",real,c,"CREATE OR REPLACE FUNCTION public.word_similarity_dist_op(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$word_similarity_dist_op$function$
+"
+public,word_similarity_op,"text, text",boolean,c,"CREATE OR REPLACE FUNCTION public.word_similarity_op(text, text)
+ RETURNS boolean
+ LANGUAGE c
+ STABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$word_similarity_op$function$
 "
