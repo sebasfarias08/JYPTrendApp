@@ -377,13 +377,16 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
 
     return `
       <div id="editOrderModal" class="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-sm p-4 flex items-end justify-center">
-        <div class="w-full max-w-md max-h-[92vh] overflow-hidden rounded-[28px] bg-white shadow-2xl flex flex-col">
+        <div class="w-full max-w-md h-[92vh] overflow-hidden rounded-[28px] bg-white shadow-2xl flex flex-col">
           <div class="px-4 pt-4 pb-3 border-b border-slate-200 flex items-center justify-between gap-3">
             <div>
               <h2 class="text-base font-semibold text-slate-900">Editar pedido</h2>
               <p class="text-xs text-slate-500 mt-1">${escapeHtml(formatOrderRef(order))}</p>
             </div>
-            <button id="btnCloseEditOrderModal" type="button" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700">x</button>
+            <div class="flex items-center gap-2">
+              <button id="btnSaveEditOrderTop" type="button" class="h-10 px-3 rounded-xl bg-slate-900 text-white text-sm font-medium ${isSavingEdit ? "opacity-70" : ""}" ${isSavingEdit ? "disabled" : ""}>${isSavingEdit ? "Guardando..." : "Guardar"}</button>
+              <button id="btnCloseEditOrderModal" type="button" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700">x</button>
+            </div>
           </div>
           <div class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
             <section class="space-y-3">
@@ -405,7 +408,7 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
               <div class="space-y-2">${catalogHtml}</div>
             </section>
           </div>
-          <div class="px-4 py-4 border-t border-slate-200 bg-slate-50 flex items-center gap-3">
+          <div class="px-4 py-4 border-t border-slate-200 bg-slate-50 flex items-center gap-3 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
             <button id="btnCancelEditOrder" type="button" class="flex-1 h-11 rounded-2xl border border-slate-200 bg-white text-slate-700 text-sm font-medium">Cancelar</button>
             <button id="btnSaveEditOrder" type="button" class="flex-1 h-11 rounded-2xl bg-slate-900 text-white text-sm font-medium ${isSavingEdit ? "opacity-70" : ""}" ${isSavingEdit ? "disabled" : ""}>${isSavingEdit ? "Guardando..." : "Guardar cambios"}</button>
           </div>
@@ -525,6 +528,7 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
     document.getElementById("btnDeleteOrder")?.addEventListener("click", handleSoftDelete);
     document.getElementById("btnCloseEditOrderModal")?.addEventListener("click", closeEditModal);
     document.getElementById("btnCancelEditOrder")?.addEventListener("click", closeEditModal);
+    document.getElementById("btnSaveEditOrderTop")?.addEventListener("click", handleSaveEditedItems);
     document.getElementById("btnSaveEditOrder")?.addEventListener("click", handleSaveEditedItems);
     document.getElementById("editOrderModal")?.addEventListener("click", (event) => {
       if (event.target?.id === "editOrderModal") closeEditModal();
