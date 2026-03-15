@@ -1,7 +1,6 @@
-import { getProductsForAdmin, setProductActive } from "./product-service.js";
+import { getProductsForAdmin } from "./product-service.js";
 import { getStockByVariant, INVENTORY_CHANGED_EVENT } from "./services/stock-service.js";
 import { getImageUrl } from "./image.js";
-import { showToast } from "./toast.js";
 
 function escapeHtml(str) {
   return String(str ?? "")
@@ -22,7 +21,7 @@ function buildFormUrl({ id = "", mode = "" } = {}) {
   if (id) params.set("id", id);
   if (mode) params.set("mode", mode);
   const qs = params.toString();
-  return `/pages/producto-form.html${qs ? `?${qs}` : ""}`;
+  return `/pages/productos-form.html${qs ? `?${qs}` : ""}`;
 }
 
 function variantPriceSummary(activeVariants) {
@@ -97,7 +96,7 @@ export function initProductsPage() {
       const stockTotal = getProductVariantStock(p);
 
       return `
-        <article class="card p-3">
+        <a href="${buildFormUrl({ id: p.id, mode: "view" })}" class="block card p-3 transition hover-surface-2">
           <div class="mb-2 text-xs text-muted">
             Variantes activas: <span class="font-semibold">${activeVariants.length}</span>
             ${labels.length ? ` | ${labels.join(" | ")}` : ""}
@@ -120,38 +119,9 @@ export function initProductsPage() {
               </div>
             </div>
           </div>
-          <div class="mt-3 flex flex-wrap gap-2">
-            <a href="/pages/producto.html?id=${encodeURIComponent(p.id)}" class="btn btn-secondary text-sm">Ver</a>
-            <a href="${buildFormUrl({ id: p.id })}" class="btn btn-secondary text-sm">Editar</a>
-            <button class="btn ${p.active ? "btn-secondary" : "btn-primary"} text-sm" data-toggle-id="${p.id}">
-              ${p.active ? "Dar de baja" : "Reactivar"}
-            </button>
-          </div>
-        </article>
+        </a>
       `;
     }).join("");
-
-    listEl.querySelectorAll("[data-toggle-id]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const id = btn.getAttribute("data-toggle-id");
-        const row = rows.find((x) => x.id === id);
-        if (!row) return;
-
-        if (row.active) {
-          const ok = confirm(`Dar de baja a "${row.name}"?`);
-          if (!ok) return;
-        }
-
-        const res = await setProductActive(id, !row.active);
-        if (!res.ok) {
-          showToast("No se pudo actualizar el estado del producto.", { type: "error", duration: 2800 });
-          return;
-        }
-
-        showToast(row.active ? "Producto dado de baja." : "Producto reactivado.", { type: "success" });
-        await loadRows();
-      });
-    });
   }
 
   async function loadRows() {

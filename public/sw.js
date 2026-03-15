@@ -1,5 +1,5 @@
 /* public/sw.js */
-const APP_VERSION = "v1.1.17";
+const APP_VERSION = "v1.1.18";
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 
@@ -21,7 +21,7 @@ const PRECACHE_URLS = [
   "/pages/clientes.html",
   "/pages/cliente-form.html",
   "/pages/productos.html",
-  "/pages/producto-form.html",
+  "/pages/productos-form.html",
 
   "/js/app-shell.js",
   "/js/auth.js",

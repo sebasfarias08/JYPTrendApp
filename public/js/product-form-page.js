@@ -2,6 +2,7 @@ import {
   createProduct,
   getProductById,
   getProductCategories,
+  setProductActive,
   upsertVariants,
   updateProductById
 } from "./product-service.js";
@@ -50,6 +51,7 @@ function hasVariantData(v) {
 }
 
 export function initProductFormPage() {
+  const actionsEl = document.getElementById("productFormActions");
   const titleEl = document.getElementById("productFormTitle");
   const formEl = document.getElementById("productForm");
   const nameEl = document.getElementById("productName");
@@ -61,17 +63,69 @@ export function initProductFormPage() {
   const btnAddVariantEl = document.getElementById("btnAddVariant");
   const btnSaveEl = document.getElementById("btnSaveProduct");
   const btnCancelEl = document.getElementById("btnCancelProduct");
+  const btnEditTopEl = document.getElementById("btnEditTop");
+  const btnDeleteTopEl = document.getElementById("btnDeleteTop");
 
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
+  const mode = params.get("mode");
   const returnTo = safeReturnPath(params.get("returnTo"));
-  const isEdit = Boolean(id);
+  const isExisting = Boolean(id);
+  const isViewMode = isExisting && mode === "view";
+  const isEditMode = isExisting && !isViewMode;
   let categories = [];
   let variants = [];
+  let productRow = null;
   let saving = false;
 
   function goBack() {
     location.href = returnTo;
+  }
+
+  function buildCurrentPageUrl(nextMode) {
+    const query = new URLSearchParams();
+    if (id) query.set("id", id);
+    if (nextMode) query.set("mode", nextMode);
+    if (returnTo) query.set("returnTo", returnTo);
+    const qs = query.toString();
+    return `/pages/productos-form.html${qs ? `?${qs}` : ""}`;
+  }
+
+  function setReadOnlyState(disabled) {
+    [
+      nameEl,
+      priceEl,
+      categoryEl,
+      imagePathEl,
+      descriptionEl
+    ].forEach((el) => {
+      el.disabled = disabled;
+      el.readOnly = disabled;
+    });
+  }
+
+  function updateActionButtons() {
+    if (!actionsEl || !btnEditTopEl || !btnDeleteTopEl) return;
+
+    const showTopActions = isExisting;
+    actionsEl.classList.toggle("hidden", !showTopActions);
+    actionsEl.classList.toggle("flex", showTopActions);
+    btnEditTopEl.classList.toggle("hidden", !isViewMode);
+    btnDeleteTopEl.textContent = productRow?.active === false ? "Reactivar" : "Borrar";
+  }
+
+  function applyPageMode() {
+    titleEl.textContent = !isExisting
+      ? "Nuevo producto"
+      : isViewMode
+        ? "Detalle producto"
+        : "Editar producto";
+
+    setReadOnlyState(isViewMode);
+    btnAddVariantEl.classList.toggle("hidden", isViewMode);
+    btnSaveEl.classList.toggle("hidden", isViewMode);
+    btnCancelEl.textContent = isViewMode ? "Volver" : "Cancelar";
+    updateActionButtons();
   }
 
   function renderCategoryOptions(selected = "") {
@@ -96,28 +150,28 @@ export function initProductFormPage() {
       item.innerHTML = `
         <div class="flex items-center justify-between">
           <div class="text-xs font-semibold">Variante ${index + 1}</div>
-          <button type="button" class="btn btn-secondary text-xs" data-remove-variant="${index}">Quitar</button>
+          <button type="button" class="btn btn-secondary text-xs ${isViewMode ? "hidden" : ""}" data-remove-variant="${index}">Quitar</button>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <label class="text-xs text-muted block mb-1">Nombre variante *</label>
-            <input class="input" data-variant-field="variant_name" data-variant-index="${index}" value="${escapeHtml(v.variant_name || "")}" />
+            <input class="input" data-variant-field="variant_name" data-variant-index="${index}" value="${escapeHtml(v.variant_name || "")}" ${isViewMode ? "disabled readonly" : ""} />
           </div>
           <div>
             <label class="text-xs text-muted block mb-1">SKU</label>
-            <input class="input" data-variant-field="sku" data-variant-index="${index}" value="${escapeHtml(v.sku || "")}" />
+            <input class="input" data-variant-field="sku" data-variant-index="${index}" value="${escapeHtml(v.sku || "")}" ${isViewMode ? "disabled readonly" : ""} />
           </div>
           <div>
             <label class="text-xs text-muted block mb-1">Barcode</label>
-            <input class="input" data-variant-field="barcode" data-variant-index="${index}" value="${escapeHtml(v.barcode || "")}" />
+            <input class="input" data-variant-field="barcode" data-variant-index="${index}" value="${escapeHtml(v.barcode || "")}" ${isViewMode ? "disabled readonly" : ""} />
           </div>
           <div>
             <label class="text-xs text-muted block mb-1">Precio venta variante</label>
-            <input type="number" min="0" step="1" class="input" data-variant-field="sale_price" data-variant-index="${index}" value="${v.sale_price ?? ""}" />
+            <input type="number" min="0" step="1" class="input" data-variant-field="sale_price" data-variant-index="${index}" value="${v.sale_price ?? ""}" ${isViewMode ? "disabled readonly" : ""} />
           </div>
         </div>
         <label class="inline-flex items-center gap-2 text-xs text-muted">
-          <input type="checkbox" data-variant-field="active" data-variant-index="${index}" ${v.active === false ? "" : "checked"} />
+          <input type="checkbox" data-variant-field="active" data-variant-index="${index}" ${v.active === false ? "" : "checked"} ${isViewMode ? "disabled" : ""} />
           Variante activa
         </label>
       `;
@@ -155,8 +209,7 @@ export function initProductFormPage() {
   }
 
   async function loadForEdit() {
-    if (!isEdit) return;
-    titleEl.textContent = "Editar producto";
+    if (!isExisting) return;
 
     const row = await getProductById(id, { includeInactive: true });
     if (!row) {
@@ -165,6 +218,7 @@ export function initProductFormPage() {
       return;
     }
 
+    productRow = row;
     nameEl.value = row.name || "";
     priceEl.value = String(Number(row.price || 0));
     categoryEl.value = row.category_id || "";
@@ -172,6 +226,7 @@ export function initProductFormPage() {
     descriptionEl.value = row.description || "";
     variants = (Array.isArray(row.product_variants) ? row.product_variants : []).map((v) => normalizeVariantDraft(v));
     renderVariants();
+    applyPageMode();
   }
 
   function validateVariants() {
@@ -206,7 +261,7 @@ export function initProductFormPage() {
 
   formEl.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (saving) return;
+    if (saving || isViewMode) return;
 
     const payload = {
       name: nameEl.value.trim(),
@@ -235,7 +290,7 @@ export function initProductFormPage() {
     btnSaveEl.disabled = true;
     btnSaveEl.classList.add("opacity-70", "cursor-not-allowed");
 
-    const res = isEdit
+    const res = isEditMode
       ? await updateProductById(id, payload)
       : await createProduct(payload);
 
@@ -248,7 +303,7 @@ export function initProductFormPage() {
       return;
     }
 
-    const productId = isEdit ? id : res?.data?.id;
+    const productId = isEditMode ? id : res?.data?.id;
     if (productId) {
       const variantsResult = await upsertVariants(productId, validatedVariants);
       if (!variantsResult?.ok) {
@@ -257,7 +312,7 @@ export function initProductFormPage() {
       }
     }
 
-    showToast(isEdit ? "Producto actualizado." : "Producto creado.", { type: "success", duration: 1200 });
+    showToast(isEditMode ? "Producto actualizado." : "Producto creado.", { type: "success", duration: 1200 });
     goBack();
   });
 
@@ -274,11 +329,44 @@ export function initProductFormPage() {
   });
 
   btnCancelEl.addEventListener("click", goBack);
+  btnEditTopEl?.addEventListener("click", () => {
+    if (!isExisting) return;
+    location.href = buildCurrentPageUrl("edit");
+  });
+  btnDeleteTopEl?.addEventListener("click", async () => {
+    if (!isExisting || saving || !productRow) return;
+
+    const willActivate = productRow.active === false;
+    const message = willActivate
+      ? `Reactivar "${productRow.name}"?`
+      : `Dar de baja a "${productRow.name}"?`;
+    const ok = confirm(message);
+    if (!ok) return;
+
+    saving = true;
+    btnDeleteTopEl.disabled = true;
+    btnDeleteTopEl.classList.add("opacity-70", "cursor-not-allowed");
+
+    const result = await setProductActive(id, willActivate);
+
+    saving = false;
+    btnDeleteTopEl.disabled = false;
+    btnDeleteTopEl.classList.remove("opacity-70", "cursor-not-allowed");
+
+    if (!result?.ok) {
+      showToast(summarizeError(result?.error), { type: "error", duration: 3000 });
+      return;
+    }
+
+    showToast(willActivate ? "Producto reactivado." : "Producto dado de baja.", { type: "success", duration: 1400 });
+    goBack();
+  });
 
   (async () => {
     categories = await getProductCategories();
     renderCategoryOptions("");
     renderVariants();
+    applyPageMode();
     await loadForEdit();
   })();
 }
