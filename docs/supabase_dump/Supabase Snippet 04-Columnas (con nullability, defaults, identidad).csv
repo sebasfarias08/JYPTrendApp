@@ -147,6 +147,7 @@ public,product_variants,16,weight,numeric,numeric,YES,null,NO,null
 public,product_variants,17,active,boolean,bool,NO,true,NO,null
 public,product_variants,18,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,product_variants,19,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,product_variants,20,image_path,text,text,YES,null,NO,null
 public,products,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,products,2,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,products,3,name,text,text,YES,null,NO,null
@@ -204,17 +205,15 @@ public,suppliers,7,notes,text,text,YES,null,NO,null
 public,suppliers,8,is_active,boolean,bool,NO,true,NO,null
 public,suppliers,9,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,suppliers,10,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
-public,v_inventory_stock_by_product,1,user_id,uuid,uuid,YES,null,NO,null
-public,v_inventory_stock_by_product,2,product_id,uuid,uuid,YES,null,NO,null
-public,v_inventory_stock_by_product,3,warehouse_id,uuid,uuid,YES,null,NO,null
-public,v_inventory_stock_by_product,4,point_of_sale_id,uuid,uuid,YES,null,NO,null
-public,v_inventory_stock_by_product,5,stock_qty,numeric,numeric,YES,null,NO,null
-public,v_inventory_stock_by_variant,1,user_id,uuid,uuid,YES,null,NO,null
-public,v_inventory_stock_by_variant,2,product_id,uuid,uuid,YES,null,NO,null
-public,v_inventory_stock_by_variant,3,variant_id,uuid,uuid,YES,null,NO,null
-public,v_inventory_stock_by_variant,4,warehouse_id,uuid,uuid,YES,null,NO,null
-public,v_inventory_stock_by_variant,5,point_of_sale_id,uuid,uuid,YES,null,NO,null
-public,v_inventory_stock_by_variant,6,stock_qty,numeric,numeric,YES,null,NO,null
+public,v_inventory_stock_by_product,1,product_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_product,2,warehouse_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_product,3,point_of_sale_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_product,4,stock_qty,numeric,numeric,YES,null,NO,null
+public,v_inventory_stock_by_variant,1,product_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_variant,2,variant_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_variant,3,warehouse_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_variant,4,point_of_sale_id,uuid,uuid,YES,null,NO,null
+public,v_inventory_stock_by_variant,5,stock_qty,numeric,numeric,YES,null,NO,null
 public,v_order_payment_summary,1,order_id,uuid,uuid,YES,null,NO,null
 public,v_order_payment_summary,2,user_id,uuid,uuid,YES,null,NO,null
 public,v_order_payment_summary,3,order_number,bigint,int8,YES,null,NO,null

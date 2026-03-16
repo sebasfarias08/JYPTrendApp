@@ -17,12 +17,12 @@ export async function getProducts(options = null) {
         id,
         product_id,
         variant_name,
+        image_path,
         sale_price,
         active,
         products!inner (
           id,
           name,
-          image_path,
           active,
           categories (
             name,
@@ -69,7 +69,7 @@ export async function getProducts(options = null) {
       product_name: productName,
       variant_name: variantName,
       price: Number(row?.sale_price ?? 0),
-      image_path: product?.image_path ?? "",
+      image_path: row?.image_path ?? "",
       categories: product?.categories ?? null,
       stock_qty: stockQty,
       warehouse_id: salesContext.warehouse_id,

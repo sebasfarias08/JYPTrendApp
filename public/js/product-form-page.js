@@ -41,13 +41,14 @@ function normalizeVariantDraft(v) {
     variant_name: String(v?.variant_name ?? "").trim(),
     sku: String(v?.sku ?? "").trim(),
     barcode: String(v?.barcode ?? "").trim(),
+    image_path: String(v?.image_path ?? "").trim(),
     sale_price: v?.sale_price === "" || v?.sale_price == null ? "" : Number(v.sale_price),
     active: v?.active !== false
   };
 }
 
 function hasVariantData(v) {
-  return Boolean(v.variant_name || v.sku || v.barcode || v.sale_price !== "");
+  return Boolean(v.variant_name || v.sku || v.barcode || v.image_path || v.sale_price !== "");
 }
 
 export function initProductFormPage() {
@@ -168,6 +169,10 @@ export function initProductFormPage() {
           <div>
             <label class="text-xs text-muted block mb-1">Precio venta variante</label>
             <input type="number" min="0" step="1" class="input" data-variant-field="sale_price" data-variant-index="${index}" value="${v.sale_price ?? ""}" ${isViewMode ? "disabled readonly" : ""} />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="text-xs text-muted block mb-1">Ruta imagen variante</label>
+            <input class="input" data-variant-field="image_path" data-variant-index="${index}" value="${escapeHtml(v.image_path || "")}" placeholder="products/imagen-variante.jpg" ${isViewMode ? "disabled readonly" : ""} />
           </div>
         </div>
         <label class="inline-flex items-center gap-2 text-xs text-muted">
@@ -322,6 +327,7 @@ export function initProductFormPage() {
       variant_name: "",
       sku: "",
       barcode: "",
+      image_path: "",
       sale_price: "",
       active: true
     });

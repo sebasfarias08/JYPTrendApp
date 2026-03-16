@@ -8,6 +8,7 @@ function mapVariant(row) {
     sku: row.sku ?? "",
     barcode: row.barcode ?? "",
     variant_name: row.variant_name ?? "",
+    image_path: row.image_path ?? "",
     sale_price: row.sale_price == null ? null : Number(row.sale_price),
     active: row.active !== false,
     created_at: row.created_at ?? null,
@@ -56,6 +57,7 @@ export async function getProductById(id, { includeInactive = false } = {}) {
         sku,
         barcode,
         variant_name,
+        image_path,
         sale_price,
         active,
         created_at,
@@ -99,6 +101,7 @@ export async function getProductsForAdmin({ includeInactive = true, search = "" 
         sku,
         barcode,
         variant_name,
+        image_path,
         sale_price,
         active,
         created_at,
@@ -202,6 +205,7 @@ export async function upsertVariants(productId, variants = []) {
       variant_name: String(v?.variant_name ?? "").trim(),
       sku: String(v?.sku ?? "").trim() || null,
       barcode: String(v?.barcode ?? "").trim() || null,
+      image_path: String(v?.image_path ?? "").trim() || null,
       sale_price: v?.sale_price == null || v?.sale_price === "" ? null : Number(v.sale_price),
       active: v?.active !== false
     }))
@@ -242,6 +246,7 @@ export async function upsertVariants(productId, variants = []) {
       variant_name: v.variant_name,
       sku: v.sku,
       barcode: v.barcode,
+      image_path: v.image_path,
       sale_price: v.sale_price,
       active: v.active
     }));
@@ -265,6 +270,7 @@ export async function upsertVariants(productId, variants = []) {
         variant_name: row.variant_name,
         sku: row.sku,
         barcode: row.barcode,
+        image_path: row.image_path,
         sale_price: row.sale_price,
         active: row.active
       })

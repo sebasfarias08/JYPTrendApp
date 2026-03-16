@@ -153,15 +153,155 @@ select public.refresh_mv_sales_by_product();
 ## 7. Triggers y funciones activas
 
 ### Triggers relevantes
-- Timestamps (`set_updated_at`) en casi todas las tablas.
-- `order_items`:
-  - `trg_order_items_set_subtotal` -> `order_items_set_subtotal()`
-  - `trg_order_items_recalc_order` -> `set_order_totals()`
-  - `trg_order_items_sync_inventory` -> `sync_inventory_from_order_item()`
-- `purchase_order_items`:
-  - `trg_purchase_order_items_set_subtotal` -> `purchase_order_items_set_subtotal()`
-  - `trg_purchase_order_items_recalc_po` -> `set_purchase_order_totals()`
-- `customers` usa trigger especifico `set_customers_updated_at()`.
+
+```txt
+trg_cash_movements_set_updated_at
+trg_categories_set_updated_at
+trg_customers_normalize_phone
+trg_customers_set_updated_at
+trg_inventory_movements_set_updated_at
+trg_order_items_recalc_order
+trg_order_items_set_subtotal
+trg_order_items_set_updated_at
+trg_order_items_sync_inventory
+trg_order_items_validate_stock
+trg_orders_set_updated_at
+trg_orders_sync_inventory_active_flag
+trg_payment_allocations_set_updated_at
+trg_payments_set_updated_at
+trg_points_of_sale_set_updated_at
+trg_product_variants_set_updated_at
+trg_products_set_updated_at
+trg_profiles_set_updated_at
+trg_purchase_order_items_recalc_po
+trg_purchase_order_items_set_subtotal
+trg_purchase_order_items_set_updated_at
+trg_purchase_orders_set_updated_at
+trg_suppliers_set_updated_at
+trg_warehouses_set_updated_at
+````
+
+### Propósito de los triggers
+
+#### Gestión de timestamps
+
+Aplicado en múltiples tablas para mantener el campo `updated_at`.
+
+Triggers asociados:
+
+```txt
+trg_cash_movements_set_updated_at
+trg_categories_set_updated_at
+trg_customers_set_updated_at
+trg_inventory_movements_set_updated_at
+trg_order_items_set_updated_at
+trg_orders_set_updated_at
+trg_payment_allocations_set_updated_at
+trg_payments_set_updated_at
+trg_points_of_sale_set_updated_at
+trg_product_variants_set_updated_at
+trg_products_set_updated_at
+trg_profiles_set_updated_at
+trg_purchase_order_items_set_updated_at
+trg_purchase_orders_set_updated_at
+trg_suppliers_set_updated_at
+trg_warehouses_set_updated_at
+```
+
+Todos ejecutan:
+
+```txt
+set_updated_at()
+```
+
+---
+
+#### Lógica de órdenes de venta
+
+En `order_items`:
+
+```txt
+trg_order_items_set_subtotal
+→ order_items_set_subtotal()
+```
+
+Calcula automáticamente el subtotal de la línea.
+
+```txt
+trg_order_items_recalc_order
+→ set_order_totals()
+```
+
+Recalcula los totales de la orden cuando cambian los items.
+
+```txt
+trg_order_items_sync_inventory
+→ sync_inventory_from_order_item()
+```
+
+Sincroniza inventario cuando se modifica una línea de orden.
+
+```txt
+trg_order_items_validate_stock
+→ validate_order_item_stock()
+```
+
+Valida disponibilidad de stock antes de insertar o actualizar.
+
+---
+
+#### Sincronización de inventario desde órdenes
+
+En `orders`:
+
+```txt
+trg_orders_sync_inventory_active_flag
+→ sync_inventory_from_order_active_flag()
+```
+
+Actualiza inventario cuando cambia el estado activo de la orden.
+
+---
+
+#### Lógica de órdenes de compra
+
+En `purchase_order_items`:
+
+```txt
+trg_purchase_order_items_set_subtotal
+→ purchase_order_items_set_subtotal()
+```
+
+Calcula el subtotal de la línea de compra.
+
+```txt
+trg_purchase_order_items_recalc_po
+→ set_purchase_order_totals()
+```
+
+Recalcula los totales de la orden de compra.
+
+---
+
+#### Normalización de datos de clientes
+
+En `customers`:
+
+```txt
+trg_customers_normalize_phone
+→ normalize_phone_ar()
+```
+
+Normaliza teléfonos argentinos antes de guardar.
+
+```txt
+trg_customers_set_updated_at
+→ set_customers_updated_at()
+```
+
+Gestiona el timestamp de actualización específico de la tabla.
+
+---
 
 ### Funciones en `public`
 
@@ -169,6 +309,7 @@ select public.refresh_mv_sales_by_product();
 current_app_role
 get_user_role
 handle_new_user_profile
+normalize_phone_ar
 order_items_set_subtotal
 purchase_order_items_set_subtotal
 refresh_mv_sales_by_product
@@ -177,8 +318,60 @@ set_customers_updated_at
 set_order_totals
 set_purchase_order_totals
 set_updated_at
+sync_inventory_from_order_active_flag
 sync_inventory_from_order_item
+validate_order_item_stock
 ```
+
+#### Clasificación funcional
+
+**Gestión de roles**
+
+```txt
+current_app_role
+get_user_role
+handle_new_user_profile
+```
+
+Utilizadas por las políticas RLS y creación automática de perfiles.
+
+---
+
+**Cálculo de montos**
+
+```txt
+order_items_set_subtotal
+set_order_totals
+purchase_order_items_set_subtotal
+set_purchase_order_totals
+```
+
+Gestionan cálculos automáticos de subtotales y totales.
+
+---
+
+**Inventario**
+
+```txt
+sync_inventory_from_order_item
+sync_inventory_from_order_active_flag
+validate_order_item_stock
+```
+
+Mantienen sincronizado el inventario y evitan ventas sin stock.
+
+---
+
+**Utilidades**
+
+```txt
+set_updated_at
+set_customers_updated_at
+normalize_phone_ar
+refresh_mv_sales_by_product
+rls_auto_enable
+```
+
 
 ## 8. RLS y politicas (estado real)
 
@@ -188,15 +381,18 @@ sync_inventory_from_order_item
 ### Patron por tabla
 
 - `categories`: lectura publica de activas (`anon/auth`), escritura solo admin.
-- `products`: lectura publica de activas + lectura autenticada adicional; escritura solo admin.
-- `product_variants`: lectura publica de activas; escritura solo admin.
+- `products`: lectura publica de activas (`anon/auth`) + lectura adicional para `authenticated`; escritura solo admin.
+- `product_variants`: lectura publica de activas (`anon/auth`), escritura solo admin.
 - `profiles`: `SELECT/INSERT/UPDATE` solo sobre propio `id = auth.uid()`.
-- `orders`, `order_items`, `customers`: politicas basadas en `current_app_role()` (admin/seller/viewer segun comando), no estrictamente owner-scoped por `user_id`.
-- `payments`, `inventory_movements`, `cash_movements`, `points_of_sale`, `purchase_orders`, `suppliers`: owner-scoped por `auth.uid() = user_id`.
-- `payment_allocations`, `warehouses`: owner o admin en `SELECT/INSERT/UPDATE`; `DELETE` solo admin.
+- `orders`, `order_items`, `customers`: politicas basadas en `current_app_role()`; `SELECT` para `admin/seller/viewer` y `INSERT/UPDATE/DELETE` para `admin/seller`.
+- `payments`, `inventory_movements`, `cash_movements`, `purchase_orders`, `suppliers`: owner-scoped por `auth.uid() = user_id`.
+- `payment_allocations`: `SELECT/INSERT/UPDATE` para owner o admin; `DELETE` solo admin.
 - `purchase_order_items`: acceso condicionado por pertenencia del `purchase_order` al usuario (`EXISTS ... purchase_orders.user_id = auth.uid()`).
+- `points_of_sale`: politicas basadas en rol; `SELECT` para `admin/seller/viewer` y `INSERT/UPDATE/DELETE` solo admin.
+- `warehouses`: politicas basadas en rol; `SELECT` para `admin/seller/viewer` y `INSERT/UPDATE/DELETE` solo admin.
 
 Importante: esta matriz corrige documentacion vieja que asumia owner-scope estricto para todas las entidades comerciales.
+
 
 ## 9. Constraints e indices destacados
 
@@ -227,14 +423,24 @@ En `payments`, default:
 
 - `payment_status = 'PENDIENTE'`
 
-Esto confirma coexistencia de vocabularios (capitalizacion/idioma), consistente con la deuda tecnica mencionada en `docs/README.md` y `docs/project-context.md`.  
-Si se estandariza, debe hacerse con migracion SQL + actualizacion de frontend + revision de policies/reportes.
+Esto evidencia coexistencia de vocabularios distintos en la base de datos:
+
+- mezcla de español e inglés
+- diferencia de capitalización (`Pendiente` vs `PENDIENTE`)
+
+Si se decide estandarizar estos valores, se deberá realizar:
+
+- migración SQL para normalizar valores existentes
+- actualización del frontend que consume estos estados
+- revisión de views, funciones y políticas RLS que dependan de estos campos
+- verificación de reportes y consultas analíticas
 
 ## 12. Reglas operativas para desarrollo (actualizadas)
 
 - No inventar tablas, columnas ni relaciones fuera de este documento.
-- Stock: usar `inventory_movements` y/o views de stock.
-- Totales/subtotales: respetar triggers DB (`set_order_totals`, `order_items_set_subtotal`, etc.).
-- Si se muta `order_items`, considerar efecto automatico en inventario (`sync_inventory_from_order_item`).
-- Autorizacion: usar politicas reales y `profiles.role`; no asumir que todo es owner-scoped.
-- Imagenes: usar bucket `catalog` y persistir path en `products.image_path`.
+- Stock: usar `inventory_movements` y/o views de stock (`v_inventory_stock_by_product`, `v_inventory_stock_by_variant`).
+- Totales/subtotales: respetar triggers de base de datos (`set_order_totals`, `order_items_set_subtotal`, `purchase_order_items_set_subtotal`, etc.).
+- Si se muta `order_items`, considerar efecto automático en inventario (`sync_inventory_from_order_item`).
+- Cambios en el estado activo de `orders` pueden impactar inventario (`sync_inventory_from_order_active_flag`).
+- Autorización: usar políticas RLS reales y `profiles.role`; no asumir que todas las entidades son owner-scoped por `user_id`.
+- Imágenes: usar bucket `catalog` y persistir el path en `products.image_path`.

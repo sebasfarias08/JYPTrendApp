@@ -67,10 +67,16 @@ export async function initProductPage(role = "viewer") {
     return activeVariants[0];
   }
 
+  function getDisplayImagePath() {
+    const variant = getSingleActiveVariant();
+    return String(variant?.image_path || p.image_path || "").trim();
+  }
+
   function currentShareMeta() {
     const shareUrl = `${location.origin}/pages/producto.html?id=${encodeURIComponent(p.id)}`;
     const shareText = `Mira este producto: ${p.name} - $ ${formatArs(p.price)}`;
-    const imageUrl = p.image_path ? getImageUrl(p.image_path) : "";
+    const imagePath = getDisplayImagePath();
+    const imageUrl = imagePath ? getImageUrl(imagePath) : "";
     return { shareUrl, shareText, imageUrl };
   }
 
@@ -82,7 +88,8 @@ export async function initProductPage(role = "viewer") {
   }
 
   function renderProduct() {
-    const imageUrl = p.image_path ? getImageUrl(p.image_path) : "";
+    const imagePath = getDisplayImagePath();
+    const imageUrl = imagePath ? getImageUrl(imagePath) : "";
     setText("name", p.name);
     setText("price", `$ ${formatArs(p.price)}`);
     setText("category", p.categories?.name ? p.categories.name : "");
@@ -133,7 +140,7 @@ export async function initProductPage(role = "viewer") {
         point_of_sale_id: salesContext.point_of_sale_id,
         name: p.name,
         price: Number(variant.sale_price ?? p.price ?? 0),
-        image_path: p.image_path
+        image_path: String(variant.image_path || p.image_path || "").trim()
       },
       1
     );
