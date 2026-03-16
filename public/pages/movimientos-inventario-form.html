@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F8FA" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <title>Formulario movimiento de inventario</title>
+  <script src="/js/vendor/tailwindcss-playcdn.js"></script>
+  <link rel="stylesheet" href="/css/theme.css" />
+</head>
+<body class="h-screen overflow-hidden flex flex-col">
+  <header id="appShellTop"></header>
+
+  <main class="flex-1 overflow-y-auto p-4 pb-[calc(env(safe-area-inset-bottom)+7rem)]">
+    <section class="card p-4 space-y-3">
+      <div id="inventoryMovementFormActions" class="hidden items-center justify-end gap-2">
+        <button id="btnEditTop" type="button" class="btn btn-secondary text-sm">Editar</button>
+        <button id="btnDeleteTop" type="button" class="btn btn-secondary text-sm">Borrar</button>
+      </div>
+      <div id="inventoryMovementSystemAlert" class="hidden alert alert-warning text-sm">
+        Movimiento automatico generado por el sistema. Solo lectura.
+      </div>
+      <h2 id="inventoryMovementFormTitle" class="text-sm font-semibold">Nuevo movimiento</h2>
+      <form id="inventoryMovementForm" class="space-y-3">
+        <div>
+          <label class="text-xs text-muted block mb-1" for="inventoryMovementProduct">Producto *</label>
+          <select id="inventoryMovementProduct" class="input" required></select>
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="inventoryMovementVariant">Variante</label>
+          <select id="inventoryMovementVariant" class="input"></select>
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="inventoryMovementType">Tipo de movimiento *</label>
+          <select id="inventoryMovementType" class="input" required></select>
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="inventoryMovementQty">Cantidad (+ ingreso / - egreso) *</label>
+          <input id="inventoryMovementQty" type="number" step="0.01" class="input" required />
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="inventoryMovementUnitCost">Costo unitario</label>
+          <input id="inventoryMovementUnitCost" type="number" min="0" step="0.01" class="input" />
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="inventoryMovementWarehouse">Deposito</label>
+          <select id="inventoryMovementWarehouse" class="input"></select>
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="inventoryMovementPointOfSale">Punto de venta</label>
+          <select id="inventoryMovementPointOfSale" class="input"></select>
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="inventoryMovementReferenceType">Reference type</label>
+          <select id="inventoryMovementReferenceType" class="input"></select>
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="inventoryMovementReferenceId">Reference id (UUID)</label>
+          <input id="inventoryMovementReferenceId" class="input" placeholder="00000000-0000-0000-0000-000000000000" />
+        </div>
+
+        <div>
+          <label class="text-xs text-muted block mb-1" for="inventoryMovementNotes">Notas</label>
+          <textarea id="inventoryMovementNotes" class="input" placeholder="Motivo o contexto del movimiento"></textarea>
+        </div>
+
+        <div class="flex gap-2">
+          <button id="btnSaveInventoryMovement" type="submit" class="btn btn-primary flex-1">Guardar</button>
+          <button id="btnCancelInventoryMovement" type="button" class="btn btn-secondary">Cancelar</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <nav id="appShellBottom"></nav>
+
+  <script type="module">
+    import { requireRole } from "/js/auth.js";
+    import { initAppShell } from "/js/app-shell.js";
+    import { initInventoryMovementFormPage } from "/js/inventory-movement-form-page.js";
+
+    const session = await requireRole(["admin"]);
+    if (!session) throw new Error("Redirect login");
+
+    initAppShell({
+      title: "Movimiento",
+      onRefresh: async () => location.reload()
+    });
+
+    initInventoryMovementFormPage();
+  </script>
+</body>
+</html>
