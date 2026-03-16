@@ -83,10 +83,18 @@ function mapQtyByVariant(items = []) {
   return map;
 }
 
+function getOrderItemVariantName(item) {
+  return String(
+    item?.variant_name_snapshot ||
+    item?.product_variants?.variant_name ||
+    ""
+  ).trim() || "General";
+}
+
 function buildDraftItemFromOrderItem(item) {
   const product = item?.products ?? {};
   const variant = item?.product_variants ?? {};
-  const variantName = item?.variant_name_snapshot || "General";
+  const variantName = getOrderItemVariantName(item);
   const productName = item?.product_name_snapshot || product?.name || "Producto";
   return {
     id: item?.id ?? null,
@@ -442,7 +450,7 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
           const imagePath = String(variantRow.image_path || product.image_path || "").replace(/^\/+/, "");
           const imageUrl = imagePath ? getImageUrl(imagePath) : "";
           const productName = item.product_name_snapshot || product.name || "Producto";
-          const variantName = item.variant_name_snapshot || "General";
+          const variantName = getOrderItemVariantName(item);
           const qty = Number(item.qty ?? 0);
           const lineTotal = Number(item.subtotal ?? 0);
           const lineCode = itemLineCode(orderRef, item, idx);

@@ -121,6 +121,7 @@ export async function getOrderDetail(orderId) {
         sku_snapshot,
         product_variants (
           id,
+          variant_name,
           image_path
         ),
         products (
