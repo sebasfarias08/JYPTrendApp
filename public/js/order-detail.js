@@ -86,12 +86,15 @@ function mapQtyByVariant(items = []) {
 function buildDraftItemFromOrderItem(item) {
   const product = item?.products ?? {};
   const variant = item?.product_variants ?? {};
+  const variantName = item?.variant_name_snapshot || "General";
+  const productName = item?.product_name_snapshot || product?.name || "Producto";
   return {
     id: item?.id ?? null,
     product_id: item?.product_id ?? product?.id ?? null,
     variant_id: item?.variant_id ?? null,
-    product_name: item?.product_name_snapshot || product?.name || "Producto",
-    variant_name: item?.variant_name_snapshot || "General",
+    product_name: productName,
+    display_name: variantName,
+    variant_name: variantName,
     sku: item?.sku_snapshot || "",
     image_path: variant?.image_path || product?.image_path || "",
     qty: Math.max(1, normalizeQty(item?.qty ?? 1)),
@@ -100,12 +103,14 @@ function buildDraftItemFromOrderItem(item) {
 }
 
 function buildDraftItemFromCatalogRow(row) {
+  const variantName = row?.variant_name || "General";
   return {
     id: null,
     product_id: row?.product_id ?? null,
     variant_id: row?.variant_id ?? row?.id ?? null,
     product_name: row?.product_name || "Producto",
-    variant_name: row?.variant_name || "General",
+    display_name: variantName,
+    variant_name: variantName,
     sku: row?.sku || "",
     image_path: row?.image_path || "",
     qty: 1,
@@ -328,8 +333,8 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
                   ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(item.product_name)}" class="w-full h-full object-cover" />` : `<div class="w-full h-full grid place-items-center text-[10px] text-slate-400">No img</div>`}
                 </div>
                 <div class="min-w-0 flex-1">
-                  <div class="text-sm font-semibold text-slate-900">${escapeHtml(item.product_name)}</div>
-                  <div class="text-xs text-slate-500 mt-1">${escapeHtml(item.variant_name || "General")}${item.sku ? ` | ${escapeHtml(item.sku)}` : ""}</div>
+                  <div class="text-sm font-semibold text-slate-900">${escapeHtml(item.display_name || item.variant_name || item.product_name || "General")}</div>
+                  <div class="text-xs text-slate-500 mt-1">${escapeHtml(item.product_name || "Producto")}${item.sku ? ` | ${escapeHtml(item.sku)}` : ""}</div>
                   <div class="text-xs text-slate-500 mt-1">Maximo editable: ${limit}</div>
                 </div>
                 <button type="button" data-remove-draft-index="${index}" class="h-9 px-3 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 text-sm">Quitar</button>
@@ -362,8 +367,8 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
               <button type="button" data-add-variant-id="${escapeHtml(row.variant_id ?? row.id ?? "")}" class="w-full rounded-2xl border border-slate-200 bg-white p-3 text-left ${canAdd ? "hover:border-slate-300" : "opacity-60"}" ${canAdd ? "" : "disabled"}>
                 <div class="flex items-start justify-between gap-3">
                   <div class="min-w-0">
-                    <div class="text-sm font-semibold text-slate-900">${escapeHtml(row.product_name)}</div>
-                    <div class="text-xs text-slate-500 mt-1">${escapeHtml(row.variant_name || "General")}${row.sku ? ` | ${escapeHtml(row.sku)}` : ""}</div>
+                    <div class="text-sm font-semibold text-slate-900">${escapeHtml(row.variant_name || "General")}</div>
+                    <div class="text-xs text-slate-500 mt-1">${escapeHtml(row.product_name || "Producto")}${row.sku ? ` | ${escapeHtml(row.sku)}` : ""}</div>
                     <div class="text-xs text-slate-500 mt-1">Disponible para editar: ${limit}</div>
                   </div>
                   <div class="text-right shrink-0">
@@ -444,11 +449,12 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
           return `
             <article class="flex items-start gap-3 py-2 ${idx < items.length - 1 ? "border-b border-slate-100" : ""}">
               <div class="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 shrink-0">
-                ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(productName)}" class="w-full h-full object-cover" />` : `<div class="w-full h-full grid place-items-center text-[10px] text-slate-400">No img</div>`}
+                ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(variantName)}" class="w-full h-full object-cover" />` : `<div class="w-full h-full grid place-items-center text-[10px] text-slate-400">No img</div>`}
               </div>
               <div class="min-w-0 flex-1">
-                <h4 class="text-sm font-semibold text-slate-900 truncate">${escapeHtml(productName)}</h4>
-                <p class="text-xs text-slate-500 mt-1">Qty: ${qty} pcs / ${escapeHtml(variantName)}</p>
+                <h4 class="text-sm font-semibold text-slate-900 truncate">${escapeHtml(variantName)}</h4>
+                <p class="text-xs text-slate-500 mt-1">Producto: ${escapeHtml(productName)}${item.sku_snapshot ? ` | SKU: ${escapeHtml(item.sku_snapshot)}` : ""}</p>
+                <p class="text-xs text-slate-500 mt-1">Qty: ${qty} pcs</p>
               </div>
               <div class="text-right shrink-0">
                 <div class="text-sm font-semibold text-slate-900">${currencyFmt.format(lineTotal)}</div>
