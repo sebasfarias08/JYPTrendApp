@@ -24,7 +24,7 @@ const MENU_ITEMS = [
   { label: "Clientes", href: "/pages/clientes.html", icon: "users", visible: () => true },
   { label: "Productos", href: "/pages/productos.html", icon: "inventory", visible: canManageInventory },
   { label: "Parametros", href: null, icon: "settings", visible: canViewAdminPanel },
-  { label: "Inventario", href: null, icon: "inventory", visible: canManageInventory },
+  { label: "Inventario", href: "/pages/inventarios-logisticos.html", icon: "inventory", visible: canManageInventory },
   { label: "About", href: "/pages/about.html", icon: "info", visible: canViewReports },
   { label: "Salir", href: null, icon: "logout", action: "logout" }
 ];

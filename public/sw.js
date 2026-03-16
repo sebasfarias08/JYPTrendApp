@@ -1,5 +1,5 @@
 /* public/sw.js */
-const APP_VERSION = "v1.1.24";
+const APP_VERSION = "v1.1.25";
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 
@@ -22,6 +22,8 @@ const PRECACHE_URLS = [
   "/pages/cliente-form.html",
   "/pages/productos.html",
   "/pages/productos-form.html",
+  "/pages/inventarios-logisticos.html",
+  "/pages/inventarios-logisticos-form.html",
 
   "/js/app-shell.js",
   "/js/auth.js",
@@ -34,6 +36,9 @@ const PRECACHE_URLS = [
   "/js/clients-page.js",
   "/js/products-page.js",
   "/js/product-form-page.js",
+  "/js/logistics-inventories-page.js",
+  "/js/logistics-inventory-form-page.js",
+  "/js/logistics-inventory-service.js",
   "/js/checkout-page.js",
   "/js/services/sales-context-service.js",
   "/js/order-ref.js",
