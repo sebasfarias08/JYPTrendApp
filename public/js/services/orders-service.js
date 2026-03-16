@@ -119,6 +119,10 @@ export async function getOrderDetail(orderId) {
         product_name_snapshot,
         variant_name_snapshot,
         sku_snapshot,
+        product_variants (
+          id,
+          image_path
+        ),
         products (
           id,
           name,
@@ -191,12 +195,12 @@ export async function getEditableOrderCatalog({
         product_id,
         variant_name,
         sku,
+        image_path,
         sale_price,
         active,
         products!inner (
           id,
           name,
-          image_path,
           active
         )
       `)
@@ -236,7 +240,7 @@ export async function getEditableOrderCatalog({
         product_name: String(product?.name ?? "").trim(),
         variant_name: String(row?.variant_name ?? "").trim(),
         sku: String(row?.sku ?? "").trim(),
-        image_path: product?.image_path ?? "",
+        image_path: row?.image_path ?? "",
         price: Number(row?.sale_price ?? 0),
         stock_qty: stockQty,
         effective_stock_qty: effectiveStockQty

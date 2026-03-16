@@ -85,6 +85,7 @@ function mapQtyByVariant(items = []) {
 
 function buildDraftItemFromOrderItem(item) {
   const product = item?.products ?? {};
+  const variant = item?.product_variants ?? {};
   return {
     id: item?.id ?? null,
     product_id: item?.product_id ?? product?.id ?? null,
@@ -92,7 +93,7 @@ function buildDraftItemFromOrderItem(item) {
     product_name: item?.product_name_snapshot || product?.name || "Producto",
     variant_name: item?.variant_name_snapshot || "General",
     sku: item?.sku_snapshot || "",
-    image_path: product?.image_path || "",
+    image_path: variant?.image_path || product?.image_path || "",
     qty: Math.max(1, normalizeQty(item?.qty ?? 1)),
     unit_price: Number(item?.unit_price ?? 0)
   };
@@ -432,10 +433,11 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
     const itemsHtml = items.length
       ? items.map((item, idx) => {
           const product = item.products || {};
-          const imagePath = String(product.image_path || "").replace(/^\/+/, "");
+          const variantRow = item.product_variants || {};
+          const imagePath = String(variantRow.image_path || product.image_path || "").replace(/^\/+/, "");
           const imageUrl = imagePath ? getImageUrl(imagePath) : "";
           const productName = item.product_name_snapshot || product.name || "Producto";
-          const variant = item.variant_name_snapshot || "General";
+          const variantName = item.variant_name_snapshot || "General";
           const qty = Number(item.qty ?? 0);
           const lineTotal = Number(item.subtotal ?? 0);
           const lineCode = itemLineCode(orderRef, item, idx);
@@ -446,7 +448,7 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
               </div>
               <div class="min-w-0 flex-1">
                 <h4 class="text-sm font-semibold text-slate-900 truncate">${escapeHtml(productName)}</h4>
-                <p class="text-xs text-slate-500 mt-1">Qty: ${qty} pcs / ${escapeHtml(variant)}</p>
+                <p class="text-xs text-slate-500 mt-1">Qty: ${qty} pcs / ${escapeHtml(variantName)}</p>
               </div>
               <div class="text-right shrink-0">
                 <div class="text-sm font-semibold text-slate-900">${currencyFmt.format(lineTotal)}</div>

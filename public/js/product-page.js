@@ -67,9 +67,14 @@ export async function initProductPage(role = "viewer") {
     return activeVariants[0];
   }
 
+  function getPreferredVariantImagePath() {
+    const activeVariants = (p.product_variants ?? []).filter((variant) => variant?.active !== false);
+    const withImage = activeVariants.find((variant) => String(variant?.image_path || "").trim());
+    return String(withImage?.image_path || activeVariants[0]?.image_path || "").trim();
+  }
+
   function getDisplayImagePath() {
-    const variant = getSingleActiveVariant();
-    return String(variant?.image_path || p.image_path || "").trim();
+    return String(getPreferredVariantImagePath() || p.image_path || "").trim();
   }
 
   function currentShareMeta() {
