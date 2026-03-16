@@ -1,4 +1,14 @@
 import { supabase } from "../lib/supabase-client.js";
+import { getSessionSnapshot } from "./auth-service.js";
+
+async function getCurrentUserId() {
+  const { session, error } = await getSessionSnapshot();
+  if (error) {
+    console.error("getCurrentUserId product-service error:", error);
+    return null;
+  }
+  return session?.user?.id ?? null;
+}
 
 function mapVariant(row) {
   if (!row) return null;
@@ -268,6 +278,11 @@ export async function setProductActive(id, active) {
 }
 
 export async function upsertVariants(productId, variants = []) {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { ok: false, error: new Error("No se pudo identificar al usuario actual para guardar variantes.") };
+  }
+
   const clean = (Array.isArray(variants) ? variants : [])
     .map((v) => ({
       id: v?.id || null,
@@ -276,7 +291,7 @@ export async function upsertVariants(productId, variants = []) {
       sku: String(v?.sku ?? "").trim() || null,
       barcode: String(v?.barcode ?? "").trim() || null,
       image_path: String(v?.image_path ?? "").trim() || null,
-      sale_price: v?.sale_price == null || v?.sale_price === "" ? null : Number(v.sale_price),
+      sale_price: v?.sale_price == null || v?.sale_price === "" ? 0 : Number(v.sale_price),
       active: v?.active !== false
     }))
     .filter((v) => v.variant_name);
@@ -313,6 +328,7 @@ export async function upsertVariants(productId, variants = []) {
     .filter((v) => !v.id)
     .map((v) => ({
       product_id: v.product_id,
+      user_id: userId,
       variant_name: v.variant_name,
       sku: v.sku,
       barcode: v.barcode,
