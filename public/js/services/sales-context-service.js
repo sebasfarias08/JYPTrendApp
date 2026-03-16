@@ -1,17 +1,18 @@
 import { supabase } from "../lib/supabase-client.js";
+import { getSessionSnapshot, logSupabaseError } from "./auth-service.js";
 
 const SALES_CONTEXT_ERROR_CODE = "SALES_CONTEXT_UNRESOLVED";
 let cachedContext = null;
 let cachedContextUserId = null;
 
 async function getCurrentUserId() {
-  const { data, error } = await supabase.auth.getUser();
+  const { session, error } = await getSessionSnapshot();
   if (error) {
-    console.error("getCurrentUserId error:", error);
+    logSupabaseError({ source: "sales-context-service", action: "getCurrentUserId", error, session });
     return null;
   }
 
-  return data?.user?.id ?? null;
+  return session?.user?.id ?? null;
 }
 
 function normalizeId(value) {
@@ -38,7 +39,8 @@ async function fetchProfileDefaults(userId) {
     .maybeSingle();
 
   if (error) {
-    console.error("fetchProfileDefaults error:", error);
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "sales-context-service", action: "fetchProfileDefaults", table: "profiles", error, session, extra: { userId: normalizedUserId } });
     return null;
   }
 
@@ -56,7 +58,8 @@ async function getReadableWarehouseById(warehouseId) {
     .maybeSingle();
 
   if (error) {
-    console.error("getReadableWarehouseById error:", error);
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "sales-context-service", action: "getReadableWarehouseById", table: "warehouses", error, session, extra: { warehouseId: normalizedWarehouseId } });
     return null;
   }
 
@@ -75,7 +78,8 @@ async function getReadablePointOfSaleById(pointOfSaleId) {
     .maybeSingle();
 
   if (error) {
-    console.error("getReadablePointOfSaleById error:", error);
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "sales-context-service", action: "getReadablePointOfSaleById", table: "points_of_sale", error, session, extra: { pointOfSaleId: normalizedPointOfSaleId } });
     return null;
   }
 
@@ -93,7 +97,8 @@ async function getFallbackWarehouseId() {
     .maybeSingle();
 
   if (error) {
-    console.error("getFallbackWarehouseId error:", error);
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "sales-context-service", action: "getFallbackWarehouseId", table: "warehouses", error, session });
     return null;
   }
 
@@ -110,7 +115,8 @@ async function getFallbackPointOfSaleId() {
     .maybeSingle();
 
   if (error) {
-    console.error("getFallbackPointOfSaleId error:", error);
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "sales-context-service", action: "getFallbackPointOfSaleId", table: "points_of_sale", error, session });
     return null;
   }
 

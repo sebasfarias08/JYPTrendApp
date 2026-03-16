@@ -1,13 +1,13 @@
 import { supabase } from "../lib/supabase-client.js";
-import { fetchUser } from "./auth-service.js";
+import { getSessionSnapshot, logSupabaseError } from "./auth-service.js";
 
 async function getCurrentUserId() {
-  const { data, error } = await fetchUser();
+  const { session, error } = await getSessionSnapshot();
   if (error) {
-    console.error("getCurrentUserId error:", error);
+    logSupabaseError({ source: "customers-service", action: "getCurrentUserId", error, session });
     return null;
   }
-  return data?.user?.id ?? null;
+  return session?.user?.id ?? null;
 }
 
 function mapCustomer(row) {
@@ -52,7 +52,8 @@ export async function getCustomers({ includeInactive = false, search = "" } = {}
 
   const { data, error } = await query;
   if (error) {
-    console.error("getCustomers error:", error);
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "customers-service", action: "getCustomers", table: "customers", error, session });
     return [];
   }
 
@@ -73,7 +74,8 @@ export async function getCustomerById(id) {
     .maybeSingle();
 
   if (error) {
-    console.error("getCustomerById error:", error);
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "customers-service", action: "getCustomerById", table: "customers", error, session, extra: { id } });
     return null;
   }
 
@@ -113,7 +115,8 @@ export async function createCustomer(payload) {
     .single();
 
   if (error) {
-    console.error("createCustomer error:", error);
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "customers-service", action: "createCustomer", table: "customers", error, session });
     return { ok: false, error };
   }
 
@@ -150,7 +153,8 @@ export async function updateCustomer(id, payload) {
     .single();
 
   if (error) {
-    console.error("updateCustomer error:", error);
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "customers-service", action: "updateCustomer", table: "customers", error, session, extra: { id } });
     return { ok: false, error };
   }
 
@@ -168,7 +172,8 @@ export async function deactivateCustomer(id) {
     .single();
 
   if (error) {
-    console.error("deactivateCustomer error:", error);
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "customers-service", action: "deactivateCustomer", table: "customers", error, session, extra: { id } });
     return { ok: false, error };
   }
 
@@ -186,7 +191,8 @@ export async function reactivateCustomer(id) {
     .single();
 
   if (error) {
-    console.error("reactivateCustomer error:", error);
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "customers-service", action: "reactivateCustomer", table: "customers", error, session, extra: { id } });
     return { ok: false, error };
   }
 

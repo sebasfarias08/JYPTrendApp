@@ -1,8 +1,10 @@
 // public/js/auth.js
 import {
+  authDebugMeta,
   fetchCurrentProfile,
   fetchSession,
-  fetchUser,
+  getSessionSnapshot,
+  logSupabaseError,
   signInWithGoogleOAuth,
   signOutSession,
   subscribeAuthChange
@@ -81,31 +83,24 @@ export async function signInWithGoogle() {
 
 export async function signOut() {
   const { error } = await signOutSession();
-  if (error) console.error("Sign out error:", error);
+  if (error) {
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "auth", action: "signOut", error, session });
+  }
   clearAuthCache();
 }
 
 export async function getSession() {
   const { data, error } = await fetchSession();
-  if (error) console.error("getSession error:", error);
+  if (error) {
+    logSupabaseError({ source: "auth", action: "getSession", error });
+  }
   return data?.session ?? null;
 }
 
 export async function getCurrentUser(session = null) {
-  const sessionUser = session?.user ?? null;
-  if (sessionUser?.id) return sessionUser;
-
-  const currentSession = await getSession();
-  if (!currentSession?.user?.id) return null;
-
-  const { data, error } = await fetchUser();
-  if (error) {
-    if (!isSessionMissingError(error)) {
-      console.error("getCurrentUser error:", error);
-    }
-    return null;
-  }
-  return data?.user ?? null;
+  const activeSession = session ?? await getSession();
+  return activeSession?.user ?? null;
 }
 
 export async function getCurrentProfile(forceReload = false, session = null) {
@@ -128,7 +123,10 @@ export async function getCurrentProfile(forceReload = false, session = null) {
       cachedProfileUserId = user.id;
       return fallback;
     }
-    console.error("getCurrentProfile error:", error);
+    const activeSession = session ?? await getSession();
+    if (!isSessionMissingError(error)) {
+      logSupabaseError({ source: "auth", action: "getCurrentProfile", table: "profiles", error, session: activeSession });
+    }
     clearAuthCache();
     return null;
   }
@@ -142,7 +140,11 @@ export async function getCurrentProfile(forceReload = false, session = null) {
 }
 
 export function onAuthChange(callback) {
-  return subscribeAuthChange((session) => {
+  return subscribeAuthChange(({ event, session }) => {
+    console.info("[auth] state changed", {
+      event,
+      ...authDebugMeta(session)
+    });
     if (!session) clearAuthCache();
     callback(session);
   });

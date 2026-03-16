@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase-client.js";
+import { getSessionSnapshot, logSupabaseError } from "./auth-service.js";
 import { getStockByVariant, notifyInventoryChanged } from "./stock-service.js";
 import { getSalesContext } from "./sales-context-service.js";
 
@@ -76,6 +77,14 @@ function emitInventoryRefresh(detail = {}) {
 }
 
 export async function createOrderWithItems(order, cartItems) {
+  const { session } = await getSessionSnapshot();
+  if (!session?.user?.id) {
+    return {
+      ok: false,
+      error: new Error("No hay una sesion valida para crear el pedido.")
+    };
+  }
+
   const userId = order?.user_id ?? null;
   const fallbackContext = await getSalesContext({ userId });
   const { warehouse_id: warehouseId, point_of_sale_id: pointOfSaleId } = resolveOrderContext(order, cartItems, fallbackContext);
@@ -115,7 +124,8 @@ export async function createOrderWithItems(order, cartItems) {
     .single();
 
   if (orderErr) {
-    console.error("Insert order error:", orderErr);
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "order-service", action: "createOrderWithItems.insertOrder", table: "orders", error: orderErr, session });
     return { ok: false, error: orderErr };
   }
 
@@ -132,7 +142,23 @@ export async function createOrderWithItems(order, cartItems) {
     .update(customerPatch)
     .eq("id", order_id);
   if (patchErr) {
-    console.warn("Customer patch warning:", patchErr);
+    const sessionMeta = session
+      ? {
+          hasSession: true,
+          userId: session.user?.id ?? null,
+          expiresAt: session.expires_at ? new Date(session.expires_at * 1000).toISOString() : null
+        }
+      : {
+          hasSession: false,
+          userId: null,
+          expiresAt: null
+        };
+    console.warn("[order-service] createOrderWithItems.customerPatch warning", {
+      orderId: order_id,
+      ...sessionMeta,
+      errorCode: patchErr?.code ?? null,
+      errorMessage: patchErr?.message ?? null
+    });
   }
 
   // 2) Insert items. DB trigger calculates subtotals/totals.
@@ -149,7 +175,8 @@ export async function createOrderWithItems(order, cartItems) {
     .insert(items);
 
   if (itemsErr) {
-    console.error("Insert items error:", itemsErr);
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({ source: "order-service", action: "createOrderWithItems.insertItems", table: "order_items", error: itemsErr, session, extra: { orderId: order_id } });
     // rollback best-effort via soft delete
     await supabase
       .from("orders")
