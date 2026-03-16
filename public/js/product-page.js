@@ -1,5 +1,5 @@
 ﻿// public/js/product-page.js
-import { getProductById, updateProductById } from "./product-service.js";
+import { getProductById, getProductVariantById, updateProductById } from "./product-service.js";
 import { getImageUrl } from "./image.js";
 import { shareProduct, copyToClipboard, downloadImage } from "./share.js";
 import { addToCart } from "./cart.js";
@@ -28,14 +28,15 @@ function setSrc(id, src, alt = "") {
 export async function initProductPage(role = "viewer") {
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
+  const variantId = params.get("variant_id");
 
-  if (!id) {
-    showToast("Falta el parametro id en la URL.", { type: "error" });
+  if (!id && !variantId) {
+    showToast("Falta el parametro id o variant_id en la URL.", { type: "error" });
     return;
   }
 
   showToast("Cargando producto...", { type: "info", duration: 900 });
-  let p = await getProductById(id);
+  let p = variantId ? await getProductVariantById(variantId) : await getProductById(id);
   let salesContext = null;
   try {
     salesContext = await requireSalesContext();
@@ -60,6 +61,7 @@ export async function initProductPage(role = "viewer") {
   const editDescriptionEl = document.getElementById("editDescription");
   const editImagePathEl = document.getElementById("editImagePath");
   const btnAddCartEl = document.getElementById("btnAddCart");
+  const isVariantMode = Boolean(variantId);
 
   function getSingleActiveVariant() {
     const activeVariants = (p.product_variants ?? []).filter((variant) => variant?.active !== false);
@@ -67,7 +69,24 @@ export async function initProductPage(role = "viewer") {
     return activeVariants[0];
   }
 
+  function getSelectedVariant() {
+    if (isVariantMode) {
+      return {
+        id: p.variant_id ?? variantId ?? null,
+        product_id: p.product_id ?? p.id ?? null,
+        variant_name: p.variant_name ?? p.name ?? "",
+        sale_price: Number(p.price ?? 0),
+        image_path: p.image_path ?? "",
+        active: p.active !== false
+      };
+    }
+    return getSingleActiveVariant();
+  }
+
   function getPreferredVariantImagePath() {
+    if (isVariantMode) {
+      return String(p.image_path || p.product_image_path || "").trim();
+    }
     const activeVariants = (p.product_variants ?? []).filter((variant) => variant?.active !== false);
     const withImage = activeVariants.find((variant) => String(variant?.image_path || "").trim());
     return String(withImage?.image_path || activeVariants[0]?.image_path || "").trim();
@@ -78,7 +97,9 @@ export async function initProductPage(role = "viewer") {
   }
 
   function currentShareMeta() {
-    const shareUrl = `${location.origin}/pages/producto.html?id=${encodeURIComponent(p.id)}`;
+    const shareUrl = isVariantMode
+      ? `${location.origin}/pages/producto.html?id=${encodeURIComponent(p.product_id || p.id || "")}&variant_id=${encodeURIComponent(p.variant_id || variantId || "")}`
+      : `${location.origin}/pages/producto.html?id=${encodeURIComponent(p.id)}`;
     const shareText = `Mira este producto: ${p.name} - $ ${formatArs(p.price)}`;
     const imagePath = getDisplayImagePath();
     const imageUrl = imagePath ? getImageUrl(imagePath) : "";
@@ -121,7 +142,7 @@ export async function initProductPage(role = "viewer") {
   }
   if (btnAddCartEl) {
     const canAddFromDetail = Boolean(
-      getSingleActiveVariant() &&
+      getSelectedVariant() &&
       salesContext?.warehouse_id &&
       salesContext?.point_of_sale_id
     );
@@ -131,7 +152,7 @@ export async function initProductPage(role = "viewer") {
   }
 
   btnAddCartEl?.addEventListener("click", () => {
-    const variant = getSingleActiveVariant();
+    const variant = getSelectedVariant();
     if (!variant) {
       showToast("Este producto debe agregarse desde el catalogo de variantes.", { type: "warning" });
       return;
@@ -139,7 +160,7 @@ export async function initProductPage(role = "viewer") {
 
     addToCart(
       {
-        product_id: p.id,
+        product_id: p.product_id || p.id,
         variant_id: variant.id,
         warehouse_id: salesContext.warehouse_id,
         point_of_sale_id: salesContext.point_of_sale_id,

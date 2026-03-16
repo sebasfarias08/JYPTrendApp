@@ -123,7 +123,7 @@
         const img = p.image_path ? getImageUrl(String(p.image_path).trim().replace(/^\/+/, "")) : "";
         const stock = Number(p.stock_qty ?? 0);
         const hasStock = stock > 0;
-        const productHref = `/pages/producto.html?id=${encodeURIComponent(p.product_id || "")}`;
+        const productHref = `/pages/producto.html?id=${encodeURIComponent(p.product_id || "")}&variant_id=${encodeURIComponent(p.variant_id || p.id || "")}`;
 
         return `
           <article class="px-3 py-2">

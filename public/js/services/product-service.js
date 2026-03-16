@@ -34,6 +34,32 @@ function mapProduct(row) {
   };
 }
 
+function mapVariantDetail(row) {
+  if (!row) return null;
+  const product = row.products ?? {};
+  const variantName = String(row.variant_name ?? "").trim();
+  const productName = String(product.name ?? "").trim();
+
+  return {
+    id: product.id ?? row.product_id ?? null,
+    product_id: row.product_id ?? product.id ?? null,
+    variant_id: row.id,
+    name: variantName || productName,
+    product_name: productName,
+    variant_name: variantName,
+    description: product.description ?? "",
+    price: Number(row.sale_price ?? product.price ?? 0),
+    base_price: Number(product.price ?? 0),
+    image_path: row.image_path ?? product.image_path ?? "",
+    product_image_path: product.image_path ?? "",
+    active: row.active !== false && product.active !== false,
+    category_id: product.category_id ?? product.categories?.id ?? null,
+    categories: product.categories ?? null,
+    created_at: row.created_at ?? null,
+    updated_at: row.updated_at ?? null
+  };
+}
+
 export async function getProductById(id, { includeInactive = false } = {}) {
   let query = supabase
     .from("products")
@@ -76,6 +102,50 @@ export async function getProductById(id, { includeInactive = false } = {}) {
     return null;
   }
   return mapProduct(data);
+}
+
+export async function getProductVariantById(id, { includeInactive = false } = {}) {
+  let query = supabase
+    .from("product_variants")
+    .select(`
+      id,
+      product_id,
+      sku,
+      barcode,
+      variant_name,
+      image_path,
+      sale_price,
+      active,
+      created_at,
+      updated_at,
+      products!inner (
+        id,
+        name,
+        description,
+        price,
+        image_path,
+        active,
+        category_id,
+        categories (
+          id,
+          name,
+          slug
+        )
+      )
+    `)
+    .eq("id", id);
+
+  if (!includeInactive) {
+    query = query.eq("active", true).eq("products.active", true);
+  }
+
+  const { data, error } = await query.maybeSingle();
+  if (error) {
+    console.error("getProductVariantById error:", error);
+    return null;
+  }
+
+  return mapVariantDetail(data);
 }
 
 export async function getProductsForAdmin({ includeInactive = true, search = "" } = {}) {
