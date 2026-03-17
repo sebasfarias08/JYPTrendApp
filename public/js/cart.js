@@ -75,6 +75,19 @@ export function updateQty(item_id, qty) {
   saveCart(items);
 }
 
+export function updatePrice(item_id, price) {
+  const items = getCart();
+  const normalizedPrice = Math.trunc(Number(price));
+  const targetKey = String(item_id || "");
+  if (!targetKey || !Number.isFinite(normalizedPrice) || normalizedPrice < 0) return;
+
+  const idx = items.findIndex((x) => itemKey(x) === targetKey);
+  if (idx === -1) return;
+
+  items[idx].price = normalizedPrice;
+  saveCart(items);
+}
+
 export function cartTotal() {
   return getCart().reduce((acc, it) => acc + (Number(it.price) * Number(it.qty)), 0);
 }

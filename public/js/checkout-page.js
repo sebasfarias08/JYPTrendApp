@@ -1,5 +1,5 @@
 // public/js/checkout-page.js
-import { getCart, updateQty, clearCart, cartTotal } from "./cart.js";
+import { getCart, updateQty, updatePrice, clearCart, cartTotal } from "./cart.js";
 import { getImageUrl } from "./image.js";
 import { createOrderWithItems } from "./order-service.js";
 import { getActiveCustomers, getCustomerById } from "./customers-service.js";
@@ -65,11 +65,26 @@ function render() {
         <img src="${img}" alt="${escapeHtml(it.name)}" class="w-16 h-16 object-contain rounded-xl bg-surface-2 border divider" />
         <div class="flex-1">
           <div class="font-semibold">${escapeHtml(it.name)}</div>
-          <div class="text-muted text-sm">$ ${formatArs(it.price)} c/u</div>
+          <div class="mt-1">
+            <label class="text-xs text-muted block mb-1" for="price-${escapeHtml(itemKey)}">Precio unitario</label>
+            <input
+              id="price-${escapeHtml(itemKey)}"
+              data-price="${itemKey}"
+              type="number"
+              min="0"
+              step="1"
+              inputmode="numeric"
+              value="${Math.trunc(Number(it.price) || 0)}"
+              class="input w-28 px-3 py-2 text-sm" />
+          </div>
 
           <div class="mt-2 flex items-center gap-2">
             <button data-dec="${itemKey}" class="btn btn-secondary px-3 py-2">-</button>
             <input data-qty="${itemKey}" value="${it.qty}"
+              type="number"
+              min="1"
+              step="1"
+              inputmode="numeric"
               class="input w-16 text-center px-2 py-2" />
             <button data-inc="${itemKey}" class="btn btn-secondary px-3 py-2">+</button>
 
@@ -101,8 +116,23 @@ function render() {
   listEl.querySelectorAll("[data-qty]").forEach((inp) => {
     inp.addEventListener("change", () => {
       const id = inp.getAttribute("data-qty");
-      const q = Number(inp.value);
-      updateQty(id, isFinite(q) ? q : 1);
+      const q = Math.trunc(Number(inp.value));
+      updateQty(id, Number.isFinite(q) ? q : 1);
+      render();
+    });
+  });
+
+  listEl.querySelectorAll("[data-price]").forEach((inp) => {
+    inp.addEventListener("change", () => {
+      const id = inp.getAttribute("data-price");
+      const price = Math.trunc(Number(inp.value));
+      if (!Number.isFinite(price) || price < 0) {
+        inp.value = "0";
+        updatePrice(id, 0);
+        render();
+        return;
+      }
+      updatePrice(id, price);
       render();
     });
   });
