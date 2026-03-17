@@ -65,30 +65,38 @@ function render() {
         <img src="${img}" alt="${escapeHtml(it.name)}" class="w-16 h-16 object-contain rounded-xl bg-surface-2 border divider" />
         <div class="flex-1">
           <div class="font-semibold">${escapeHtml(it.name)}</div>
-          <div class="mt-1">
-            <label class="text-xs text-muted block mb-1" for="price-${escapeHtml(itemKey)}">Precio unitario</label>
-            <input
-              id="price-${escapeHtml(itemKey)}"
-              data-price="${itemKey}"
-              type="number"
-              min="0"
-              step="1"
-              inputmode="numeric"
-              value="${Math.trunc(Number(it.price) || 0)}"
-              class="input w-28 px-3 py-2 text-sm" />
-          </div>
+          <div class="mt-2 grid grid-cols-[minmax(0,1.2fr)_auto_auto] items-end gap-3">
+            <div class="min-w-0">
+              <label class="text-xs text-muted block mb-1" for="price-${escapeHtml(itemKey)}">Precio unitario</label>
+              <input
+                id="price-${escapeHtml(itemKey)}"
+                data-price="${itemKey}"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                value="${Math.trunc(Number(it.price) || 0)}"
+                class="input w-full min-w-0 px-3 py-2 text-sm" />
+            </div>
 
-          <div class="mt-2 flex items-center gap-2">
-            <button data-dec="${itemKey}" class="btn btn-secondary px-3 py-2">-</button>
-            <input data-qty="${itemKey}" value="${it.qty}"
-              type="number"
-              min="1"
-              step="1"
-              inputmode="numeric"
-              class="input w-16 text-center px-2 py-2" />
-            <button data-inc="${itemKey}" class="btn btn-secondary px-3 py-2">+</button>
+            <div class="shrink-0">
+              <label class="text-xs text-muted block mb-1">Cantidad</label>
+              <div class="flex items-center gap-2">
+                <button data-dec="${itemKey}" class="btn btn-secondary px-3 py-2">-</button>
+                <input data-qty="${itemKey}" value="${it.qty}"
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputmode="numeric"
+                  class="input w-16 text-center px-2 py-2" />
+                <button data-inc="${itemKey}" class="btn btn-secondary px-3 py-2">+</button>
+              </div>
+            </div>
 
-            <div class="ml-auto font-semibold">$ ${formatArs(Number(it.price) * Number(it.qty))}</div>
+            <div class="shrink-0 text-right">
+              <div class="text-xs text-muted mb-1">Subtotal</div>
+              <div class="font-semibold whitespace-nowrap">$ ${formatArs(Number(it.price) * Number(it.qty))}</div>
+            </div>
           </div>
         </div>
       </div>
