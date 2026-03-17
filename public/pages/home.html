@@ -312,7 +312,11 @@
     async function loadDashboard() {
       showToast("Actualizando home...", { type: "info", duration: 1000 });
 
-      const orders = await getMyOpenOrders({ limit: 200 });
+      const orders = await getMyOpenOrders({
+        limit: 200,
+        sellerOnly: true,
+        userId: session?.user?.id ?? null
+      });
       greetingEl.textContent = `Hola, ${firstNameFromProfile(session.profile)}`;
       updateDashboardMetrics(orders);
       renderRecentOrders(orders);

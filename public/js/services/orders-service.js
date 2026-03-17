@@ -48,14 +48,24 @@ export async function getMyOrders({ limit = 50 } = {}) {
   return data ?? [];
 }
 
-export async function getMyOpenOrders({ limit = 80 } = {}) {
-  const { data, error } = await supabase
+export async function getMyOpenOrders({ limit = 80, sellerOnly = false, userId = null } = {}) {
+  const resolvedUserId = sellerOnly
+    ? (String(userId || "").trim() || (await getSessionSnapshot()).session?.user?.id || null)
+    : null;
+
+  let query = supabase
     .from("orders")
     .select("id, order_number, created_at, order_status, payment_status, total, customer_name")
     .eq("is_active", true)
     .not("order_status", "in", "(Cancelado,Finalizado)")
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  if (resolvedUserId) {
+    query = query.eq("user_id", resolvedUserId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     const { session } = await getSessionSnapshot();
