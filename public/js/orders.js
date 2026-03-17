@@ -20,6 +20,11 @@ function statusUiLabel(status) {
   return statusLabel(status) || "Unknown";
 }
 
+function formatArs(value) {
+  const n = Number(value ?? 0);
+  return new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(n);
+}
+
 function statusBadgeClass(status) {
   switch (normalizeStatus(status)) {
     case "Reservado":
@@ -65,6 +70,7 @@ function buildOrderCardModel(summaryRow, detailRow) {
     status: normalizeStatus(summaryRow.order_status || "Reservado"),
     qty: qty > 0 ? qty : 1,
     productName,
+    total: Number(summaryRow.total ?? detailRow?.total ?? 0),
     imageUrl: imagePath ? getImageUrl(imagePath) : "",
     searchSource: {
       ...summaryRow,
@@ -162,14 +168,14 @@ export async function initOrdersScreen({ containerId = "orders-container" } = {}
               </div>
 
               <div class="min-w-0 flex-1">
-                <div class="font-semibold text-sm text-slate-900 truncate">${escapeHtml(order.productName)}</div>
+                <div class="font-semibold text-sm text-slate-900 truncate">${escapeHtml(order.customer)}</div>
                 <div class="text-xs text-slate-500 mt-0.5">${escapeHtml(timeText)}</div>
                 <div class="text-xs text-slate-600 mt-1">${order.qty} pcs | ${escapeHtml(order.customer)}</div>
               </div>
 
               <div class="text-right shrink-0">
                 <span class="inline-flex px-2 py-1 rounded-full text-[11px] font-medium ${statusBadgeClass(order.status)}">${escapeHtml(statusUiLabel(order.status))}</span>
-                <div class="text-xs text-slate-500 mt-2">${escapeHtml(order.ref)}</div>
+                <div class="text-xs text-slate-500 mt-2">$ ${escapeHtml(formatArs(order.total))}</div>
               </div>
             </div>
           </a>
