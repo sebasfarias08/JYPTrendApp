@@ -174,11 +174,10 @@ export async function initProductPage(role = "viewer") {
   });
 
   document.getElementById("btnShare")?.addEventListener("click", async () => {
-    const { shareUrl, shareText, imageUrl } = currentShareMeta();
+    const { shareText, imageUrl } = currentShareMeta();
     const res = await shareProduct({
       title: p.name,
       text: shareText,
-      url: shareUrl,
       imageUrl
     });
     showToast(res.ok ? `Listo (${res.mode}).` : "No se pudo compartir en este dispositivo.", {
