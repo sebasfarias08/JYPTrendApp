@@ -77,28 +77,14 @@ These files are mostly thin `export * from ...` wrappers kept for compatibility 
 
 ## Legacy wrapper inventory
 
-### Necessary
+### Maintain Temporarily
 - `public/js/app-shell.js`
 - `public/js/auth.js`
 - `public/js/cart.js`
 - `public/js/catalog-service.js`
-- `public/js/client-form-page.js`
-- `public/js/clients-page.js`
-- `public/js/customers-service.js`
 - `public/js/image.js`
-- `public/js/inventory-movement-form-page.js`
-- `public/js/inventory-movement-service.js`
-- `public/js/inventory-movements-page.js`
-- `public/js/logistics-inventories-page.js`
-- `public/js/logistics-inventory-form-page.js`
-- `public/js/logistics-inventory-service.js`
-- `public/js/checkout-page.js`
 - `public/js/order-ref.js`
-- `public/js/order-service.js`
-- `public/js/orders-service.js`
 - `public/js/order-status.js`
-- `public/js/product-page.js`
-- `public/js/product-service.js`
 - `public/js/share.js`
 - `public/js/status-ui.js`
 - `public/js/supabase-client.js`
@@ -106,9 +92,41 @@ These files are mostly thin `export * from ...` wrappers kept for compatibility 
 - `public/js/toast.js`
 
 Reason:
-- keep them on disk for historical compatibility until a dedicated removal pass verifies no external/public consumers remain.
+- top-level public-looking compatibility paths with broad historical visibility;
+- removing them without external telemetry or manual validation would be a higher compatibility risk than the internal wrappers already retired.
 
-### Probably unnecessary
+### Require External/Manual Validation
+- `public/js/checkout-page.js`
+- `public/js/client-form-page.js`
+- `public/js/clients-page.js`
+- `public/js/customers-service.js`
+- `public/js/inventory-movement-form-page.js`
+- `public/js/inventory-movement-service.js`
+- `public/js/inventory-movements-page.js`
+- `public/js/logistics-inventories-page.js`
+- `public/js/logistics-inventory-form-page.js`
+- `public/js/logistics-inventory-service.js`
+- `public/js/order-service.js`
+- `public/js/orders-service.js`
+- `public/js/product-page.js`
+- `public/js/product-service.js`
+
+Reason:
+- no internal runtime references were found in the current repo state;
+- however, these are still top-level public URLs that may have been consumed externally or bookmarked historically.
+
+### Candidate For Future Removal
+- `public/js/order-detail.js`
+- `public/js/orders.js`
+- `public/js/product-form-page.js`
+- `public/js/products-page.js`
+
+Reason:
+- no internal runtime references were found in the current repo state;
+- they are not in the current precache list;
+- they appear less foundational than the broader compatibility surface above, so they fit a later selective retirement pass.
+
+### Internal Wrappers Already Retired
 - retired in the safe wrapper-removal pass:
   - `public/js/services/auth-service.js`
   - `public/js/services/catalog-service.js`
@@ -125,11 +143,6 @@ Reason:
   - `public/js/utils/permissions.js`
   - `public/js/utils/runtime-config.js`
   - `public/js/lib/supabase-client.js`
-- still present but deferred because they are top-level public wrappers:
-  - `public/js/order-detail.js`
-  - `public/js/orders.js`
-  - `public/js/product-form-page.js`
-  - `public/js/products-page.js`
 
 Reason:
 - retired files:
@@ -137,8 +150,6 @@ Reason:
   - not referenced by HTML entrypoints;
   - not present in the current `public/sw.js` precache list;
   - not considered important historical top-level public entrypoints.
-- deferred top-level files:
-  - still fit a later removal phase, but are more visible historical public URLs.
 
 ### Review manually
 - `public/js/components/address-autocomplete.js`
