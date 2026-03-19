@@ -37,7 +37,7 @@
     import { requireAuth } from "/js/app/auth/auth.js";
     import { registerServiceWorker, applyUpdate } from "/js/app/core/sw-register.js";
     import { getProducts } from "/js/features/catalog/catalog-service.js";
-    import { getCatalogCardImageUrl } from "/js/shared/utils/image.js";
+    import { getCatalogCardImageUrls } from "/js/shared/utils/image.js";
     import { addToCart } from "/js/features/checkout/cart.js";
     import { initAppShell } from "/js/app/shell/app-shell.js";
     import { INVENTORY_CHANGED_EVENT } from "/js/features/inventory/stock-service.js";
@@ -143,7 +143,9 @@
 
       emptyStateEl.classList.add("hidden");
       listEl.innerHTML = rows.map((p, index) => {
-        const img = p.image_path ? getCatalogCardImageUrl(String(p.image_path).trim().replace(/^\/+/, "")) : "";
+        const imageUrls = p.image_path
+          ? getCatalogCardImageUrls(String(p.image_path).trim().replace(/^\/+/, ""))
+          : { transformedUrl: "", publicUrl: "" };
         const stock = Number(p.stock_qty ?? 0);
         const hasStock = stock > 0;
         const productHref = `/pages/producto.html?id=${encodeURIComponent(p.product_id || "")}&variant_id=${encodeURIComponent(p.variant_id || p.id || "")}`;
@@ -155,7 +157,8 @@
             <div class="flex items-center gap-3 card p-2.5">
               <a href="${productHref}" class="block shrink-0">
                 <img
-                  src="${img}"
+                  src="${imageUrls.transformedUrl}"
+                  data-fallback-src="${imageUrls.publicUrl}"
                   alt="${escapeHtml(p.name)}"
                   width="70"
                   height="70"
@@ -199,6 +202,14 @@
           </article>
         `;
       }).join("");
+
+      listEl.querySelectorAll("img[data-fallback-src]").forEach((img) => {
+        img.addEventListener("error", () => {
+          const fallbackSrc = img.getAttribute("data-fallback-src") || "";
+          if (!fallbackSrc || img.getAttribute("src") === fallbackSrc) return;
+          img.setAttribute("src", fallbackSrc);
+        }, { once: true });
+      });
 
       listEl.querySelectorAll('a[href^="/pages/producto.html"]').forEach((link) => {
         link.addEventListener("click", () => {

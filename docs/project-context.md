@@ -6,7 +6,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 
 ## Current status
 - Functional and in active use.
-- App version in repo: `v1.7.3` (`public/version.json`, releasedAt `2026-03-19`).
+- App version in repo: `v1.7.4` (`public/version.json`, releasedAt `2026-03-19`).
 - Frontend-only app hosted as static site.
 
 ## Architecture
@@ -55,11 +55,13 @@ No legacy compatibility wrappers remain in the current repo state.
 - Catalog: `public/index.html`, `public/js/features/catalog/catalog-service.js`
   - Current source: single query to `public.v_catalog_variants_available` filtered by `warehouse_id` and `point_of_sale_id` from `salesContext`.
   - Phase 1 image optimization: transformed thumbnails from Supabase Storage, explicit image dimensions, async decoding, eager/high priority for the first image and lazy/low priority for the rest.
+  - Compatibility fix: if transformed delivery fails, the UI falls back to the original public Storage URL.
 - Sales context: `public/js/app/core/sales-context-service.js`
   - Current source: single RPC call to `public.get_sales_context_resolved(p_user_id uuid)`.
   - Keeps the same public contract for `getSalesContext()`, `requireSalesContext()`, cache invalidation and unresolved-context errors.
 - Product detail/edit/share: `public/pages/producto.html`, `public/js/features/product/product-page.js`
   - Phase 1 image optimization: larger transformed image variant plus stable square layout and async decoding.
+  - Compatibility fix: the main image falls back to the original public Storage URL when transformed delivery is unavailable.
 - Cart (localStorage): `public/js/features/checkout/cart.js`
 - Reserva: `public/pages/checkout.html`, `public/js/features/checkout/checkout-page.js`
 - Order creation: `public/js/features/orders/order-service.js`
@@ -138,6 +140,7 @@ Reason:
   - frontend now builds transformed public URLs for Supabase Storage from `public/js/shared/utils/storage-service.js` and `public/js/shared/utils/image.js`;
   - catalog cards request smaller thumbnails and defer lower-priority images;
   - product detail requests a larger transformed asset while preserving stable layout on mobile cold load.
+  - compatibility fallback now restores the original public URL when transformed image delivery is not supported by the project plan or fails at runtime.
 
 ## SQL assets in repo
 - `database/20260319_create_v_catalog_variants_available.sql`

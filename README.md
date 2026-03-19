@@ -5,7 +5,7 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 ## Resumen ejecutivo
 
 - Estado actual: funcional para operacion diaria (catalogo, carrito, Reserva, pedidos, clientes, productos, PWA basica).
-- Version de app en repo: `v1.7.3` (`public/version.json`, fecha `2026-03-19`).
+- Version de app en repo: `v1.7.4` (`public/version.json`, fecha `2026-03-19`).
 - Arquitectura: HTML multipagina + JavaScript ES Modules + Tailwind CDN + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Fuente de verdad backend: `docs/supabase-architecture-final.md`.
@@ -103,6 +103,7 @@ public/
   - `public/js/shared/utils/image.js` y `public/js/shared/utils/storage-service.js` ahora soportan URLs transformadas de Supabase Storage.
   - el catalogo usa thumbnails transformadas, `loading`/`fetchpriority` por prioridad visual y `decoding="async"`.
   - el detalle de producto usa una transformacion mayor con layout estable para reducir layout shift.
+  - si el proyecto no soporta image transformations, catalogo y detalle hacen fallback automatico a la URL publica original para no romper la carga.
 - Vista de catalogo optimizada:
   - `public.v_catalog_variants_available` unifica `product_variants`, `products`, `categories` y `v_inventory_stock_by_variant`.
   - el filtro operativo se resuelve por `warehouse_id` y `point_of_sale_id` del `salesContext`.
@@ -141,6 +142,7 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
   - la carga principal ahora depende de una sola vista en Supabase para reducir latencia y trabajo en cliente.
   - la resolucion previa de sales context en frontend fue reemplazada por una sola RPC a Supabase para evitar queries redundantes antes de leer el catalogo.
   - las imagenes del cold load mobile ahora descargan variantes mas chicas en cards y priorizan solo la primera imagen visible.
+  - el helper de imagenes conserva compatibilidad con proyectos sin transformaciones de Storage mediante fallback al asset publico.
 
 ## Riesgos / deuda tecnica
 

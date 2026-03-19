@@ -1,6 +1,6 @@
 ﻿// public/js/product-page.js
 import { getProductById, getProductVariantById, updateProductById } from "./product-service.js";
-import { getImageUrl, getProductDetailImageUrl } from "../../shared/utils/image.js";
+import { getImageUrl, getProductDetailImageUrls } from "../../shared/utils/image.js";
 import { shareProduct, copyToClipboard, downloadImage } from "../../shared/utils/share.js";
 import { addToCart } from "../checkout/cart.js";
 import { showToast } from "../../shared/ui/toast.js";
@@ -17,11 +17,21 @@ function setText(id, text) {
   if (el) el.textContent = text ?? "";
 }
 
-function setSrc(id, src, alt = "") {
+function setSrc(id, src, alt = "", fallbackSrc = "") {
   const el = document.getElementById(id);
   if (el) {
     el.src = src || "";
     el.alt = alt || "";
+    if (fallbackSrc) {
+      el.dataset.fallbackSrc = fallbackSrc;
+      el.onerror = () => {
+        if (!el.dataset.fallbackSrc || el.src === el.dataset.fallbackSrc) return;
+        el.src = el.dataset.fallbackSrc;
+      };
+    } else {
+      delete el.dataset.fallbackSrc;
+      el.onerror = null;
+    }
   }
 }
 
@@ -115,12 +125,14 @@ export async function initProductPage(role = "viewer") {
 
   function renderProduct() {
     const imagePath = getDisplayImagePath();
-    const imageUrl = imagePath ? getProductDetailImageUrl(imagePath) : "";
+    const imageUrls = imagePath
+      ? getProductDetailImageUrls(imagePath)
+      : { transformedUrl: "", publicUrl: "" };
     setText("name", p.name);
     setText("price", `$ ${formatArs(p.price)}`);
     setText("category", p.categories?.name ? p.categories.name : "");
     setText("desc", p.description || "");
-    setSrc("img", imageUrl, p.name);
+    setSrc("img", imageUrls.transformedUrl, p.name, imageUrls.publicUrl);
   }
 
   function openEditModal() {

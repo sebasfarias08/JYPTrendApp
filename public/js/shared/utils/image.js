@@ -1,4 +1,4 @@
-import { getCatalogImageUrl } from "./storage-service.js";
+import { getCatalogImageUrl, getCatalogImageUrls } from "./storage-service.js";
 
 export const IMAGE_TRANSFORMS = {
   catalogCard: {
@@ -19,10 +19,22 @@ export function getImageUrl(path, options = null) {
   return getCatalogImageUrl(path, options);
 }
 
+export function getImageUrls(path, options = null) {
+  return getCatalogImageUrls(path, options);
+}
+
 export function getCatalogCardImageUrl(path) {
   return getImageUrl(path, IMAGE_TRANSFORMS.catalogCard);
 }
 
 export function getProductDetailImageUrl(path) {
   return getImageUrl(path, IMAGE_TRANSFORMS.productDetail);
+}
+
+export function getCatalogCardImageUrls(path) {
+  return getImageUrls(path, IMAGE_TRANSFORMS.catalogCard);
+}
+
+export function getProductDetailImageUrls(path) {
+  return getImageUrls(path, IMAGE_TRANSFORMS.productDetail);
 }

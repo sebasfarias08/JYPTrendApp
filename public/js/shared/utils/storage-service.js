@@ -32,3 +32,21 @@ export function getCatalogImageUrl(path, options = null) {
   const { data } = supabase.storage.from("catalog").getPublicUrl(normalizedPath, transformOptions || undefined);
   return data?.publicUrl ?? "";
 }
+
+export function getCatalogImageUrls(path, options = null) {
+  const normalizedPath = normalizeImagePath(path);
+  if (!normalizedPath) {
+    return {
+      publicUrl: "",
+      transformedUrl: ""
+    };
+  }
+
+  const publicUrl = getCatalogImageUrl(normalizedPath);
+  const transformedUrl = options ? getCatalogImageUrl(normalizedPath, options) : publicUrl;
+
+  return {
+    publicUrl,
+    transformedUrl
+  };
+}
