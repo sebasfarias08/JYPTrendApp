@@ -1,4 +1,4 @@
-// public/js/status-ui.js
+// Status badge and tone helpers.
 import * as orderStatusModule from "../utils/order-status.js";
 
 const normalizeStatus = orderStatusModule.normalizeStatus ?? ((status) => String(status ?? "").trim());

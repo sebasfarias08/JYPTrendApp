@@ -5,7 +5,7 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 ## Resumen ejecutivo
 
 - Estado actual: funcional para operacion diaria (catalogo, carrito, Reserva, pedidos, clientes, productos, PWA basica).
-- Version de app en repo: `v1.3.0` (`public/version.json`, fecha `2026-03-19`).
+- Version de app en repo: `v1.4.0` (`public/version.json`, fecha `2026-03-19`).
 - Arquitectura: HTML multipagina + JavaScript ES Modules + Tailwind CDN + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Fuente de verdad backend: `docs/supabase-architecture-final.md`.
@@ -71,7 +71,7 @@ public/
   - `public/js/*.js`
   - `public/js/components/*.js`
 - Las paginas HTML activas ya importan modulos reales bajo `app/`, `features/` y `shared/`.
-- Tras la limpieza controlada, los wrappers top-level restantes se reducen al grupo `Maintain Temporarily`; `public/sw.js` sigue precacheando solo rutas modulares reales.
+- Tras la segunda limpieza controlada, los wrappers top-level restantes se reducen a `public/js/app-shell.js`, `public/js/auth.js` y `public/js/cart.js`; `public/sw.js` sigue precacheando solo rutas modulares reales.
 
 ## Integracion Supabase
 
@@ -121,14 +121,14 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 - Version documental alineada con `public/version.json`.
 - Imports internos auditados:
   - no se detectaron modulos internos de `public/js/**/*.js` importando wrappers legacy cuando ya existe el modulo real;
-  - los wrappers legacy retirados de `public/js/services/`, `public/js/utils/`, `public/js/lib/` y la tanda controlada de wrappers top-level no tenian uso en runtime ni dependian del precache;
-  - las referencias legacy que quedan en repo se concentran en el grupo `Maintain Temporarily` de `public/js/`, wrappers puntuales de `public/js/components/` y documentacion de inventario.
+  - los wrappers legacy retirados de `public/js/services/`, `public/js/utils/`, `public/js/lib/` y las dos tandas controladas de wrappers top-level no tenian uso en runtime ni dependian del precache;
+  - las referencias legacy que quedan en repo se concentran en `public/js/app-shell.js`, `public/js/auth.js`, `public/js/cart.js`, los wrappers de `public/js/components/` y documentacion de inventario.
 - Inventario y recomendacion de wrappers legacy:
   - ver `docs/project-context.md`.
 
 ## Riesgos / deuda tecnica
 
-1. Sigue existiendo una superficie legacy reducida en `public/js/` y `public/js/components/`; las proximas bajas deben validarse contra el uso interno del equipo.
+1. Sigue existiendo una superficie legacy minima en `public/js/` y `public/js/components/`; las proximas bajas deben validarse contra el uso interno del equipo.
 2. Configuracion de Supabase aun expuesta en frontend (anon key/public URL).
 3. Uso de Tailwind Play CDN en produccion.
 4. Cobertura de testing automatizado baja o inexistente.
@@ -136,7 +136,7 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 
 ## Backlog recomendado
 
-1. Revisar el grupo `Maintain Temporarily` para una siguiente tanda de retiro controlado.
+1. Evaluar la retirada final de `public/js/app-shell.js`, `public/js/auth.js` y `public/js/cart.js`.
 2. Decidir el destino final de `public/js/components/address-autocomplete.js` y `public/js/components/dropdown.js`.
 3. Agregar una verificacion automatica de imports legacy en CI.
 4. Agregar tests de servicios Supabase criticos (auth, pedidos, stock).

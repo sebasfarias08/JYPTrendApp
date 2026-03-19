@@ -1,4 +1,4 @@
-// public/js/toast.js
+// Toast UI helpers.
 let container = null;
 
 function ensureContainer() {

@@ -1,4 +1,4 @@
-/* public/js/sw-register.js */
+/* Service worker registration helpers. */
 export function registerServiceWorker({ onUpdate } = {}) {
   if (!("serviceWorker" in navigator)) return;
 

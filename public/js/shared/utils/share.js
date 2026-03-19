@@ -1,4 +1,4 @@
-/* public/js/share.js */
+/* Share helpers. */
 
 function canShareFiles() {
   return !!(navigator.share && navigator.canShare);

@@ -6,7 +6,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 
 ## Current status
 - Functional and in active use.
-- App version in repo: `v1.3.0` (`public/version.json`, releasedAt `2026-03-19`).
+- App version in repo: `v1.4.0` (`public/version.json`, releasedAt `2026-03-19`).
 - Frontend-only app hosted as static site.
 
 ## Architecture
@@ -32,7 +32,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 - `public/js/*.js`
 - `public/js/components/*.js`
 
-The remaining files in this surface are thin `export * from ...` wrappers still kept for selected historical top-level paths and component paths.
+The remaining files in this surface are thin `export * from ...` wrappers kept only for the smallest residual set of historical top-level paths and component paths.
 
 ## Active import strategy
 - HTML entrypoints already import real modules under:
@@ -43,7 +43,7 @@ The remaining files in this surface are thin `export * from ...` wrappers still 
   - no safe direct replacements were needed;
   - current internal imports already target real modules in the refactored structure.
 - Remaining legacy references found in repo:
-  - a reduced set of compatibility wrappers still exists on disk for selected historical public URLs;
+  - only a minimal set of compatibility wrappers still exists on disk for selected historical public URLs;
   - documentation still tracks some legacy locations for cleanup planning.
 
 ## Auth and access
@@ -81,19 +81,10 @@ The remaining files in this surface are thin `export * from ...` wrappers still 
 - `public/js/app-shell.js`
 - `public/js/auth.js`
 - `public/js/cart.js`
-- `public/js/catalog-service.js`
-- `public/js/image.js`
-- `public/js/order-ref.js`
-- `public/js/order-status.js`
-- `public/js/share.js`
-- `public/js/status-ui.js`
-- `public/js/supabase-client.js`
-- `public/js/sw-register.js`
-- `public/js/toast.js`
 
 Reason:
-- top-level public-looking compatibility paths with broad historical visibility;
-- retained intentionally after the controlled top-level cleanup because they still have higher historical visibility than the wrappers already retired.
+- top-level public-looking compatibility paths with the highest remaining historical visibility;
+- retained intentionally after the second controlled top-level cleanup because they are the last user-facing shell/auth/cart entrypoints still preserved.
 
 ### Internal Wrappers Already Retired
 - retired in the safe wrapper-removal pass:
@@ -140,7 +131,7 @@ Reason:
 `public/js/features/orders/orders-service.js` tolerates missing `order_number` (fallback query).
 
 ## Known technical debt / risks
-- a smaller top-level/component compatibility surface still exists even though `public/sw.js` now precaches modular real paths.
+- a minimal top-level/component compatibility surface still exists even though `public/sw.js` now precaches modular real paths.
 - Supabase config remains exposed in frontend runtime.
 - Status vocabulary inconsistency (ES/EN/legacy) can still surface at integration boundaries.
 - No automated tests (unit/integration/e2e).
@@ -156,7 +147,7 @@ Reason:
 
 ## Recommended next priorities
 1. Validate offline behavior on clean install/update across the main page set after the precache realignment.
-2. Review the remaining top-level wrappers in `Maintain Temporarily` and the component wrappers for the next controlled retirement pass.
+2. Review the remaining top-level wrappers in `Maintain Temporarily` together with the component wrappers for the final controlled retirement pass.
 3. Add CI checks to detect reintroduction of legacy imports.
 4. Add basic test coverage for Reserva/order creation paths.
 5. Document and validate full RLS strategy for all key tables.
