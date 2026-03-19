@@ -28,99 +28,34 @@ function buildSalesContextError(message) {
   return error;
 }
 
-async function fetchProfileDefaults(userId) {
+async function fetchResolvedSalesContext(userId) {
   const normalizedUserId = normalizeId(userId);
   if (!normalizedUserId) return null;
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, default_warehouse_id, default_point_of_sale_id")
-    .eq("id", normalizedUserId)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc("get_sales_context_resolved", {
+    p_user_id: normalizedUserId
+  });
 
   if (error) {
     const { session } = await getSessionSnapshot();
-    logSupabaseError({ source: "sales-context-service", action: "fetchProfileDefaults", table: "profiles", error, session, extra: { userId: normalizedUserId } });
+    logSupabaseError({
+      source: "sales-context-service",
+      action: "fetchResolvedSalesContext",
+      error,
+      session,
+      extra: {
+        userId: normalizedUserId,
+        rpc: "get_sales_context_resolved"
+      }
+    });
     return null;
+  }
+
+  if (Array.isArray(data)) {
+    return data[0] ?? null;
   }
 
   return data ?? null;
-}
-
-async function getReadableWarehouseById(warehouseId) {
-  const normalizedWarehouseId = normalizeId(warehouseId);
-  if (!normalizedWarehouseId) return null;
-
-  const { data, error } = await supabase
-    .from("warehouses")
-    .select("id, is_active")
-    .eq("id", normalizedWarehouseId)
-    .maybeSingle();
-
-  if (error) {
-    const { session } = await getSessionSnapshot();
-    logSupabaseError({ source: "sales-context-service", action: "getReadableWarehouseById", table: "warehouses", error, session, extra: { warehouseId: normalizedWarehouseId } });
-    return null;
-  }
-
-  if (!data?.id || data.is_active !== true) return null;
-  return data.id;
-}
-
-async function getReadablePointOfSaleById(pointOfSaleId) {
-  const normalizedPointOfSaleId = normalizeId(pointOfSaleId);
-  if (!normalizedPointOfSaleId) return null;
-
-  const { data, error } = await supabase
-    .from("points_of_sale")
-    .select("id, active")
-    .eq("id", normalizedPointOfSaleId)
-    .maybeSingle();
-
-  if (error) {
-    const { session } = await getSessionSnapshot();
-    logSupabaseError({ source: "sales-context-service", action: "getReadablePointOfSaleById", table: "points_of_sale", error, session, extra: { pointOfSaleId: normalizedPointOfSaleId } });
-    return null;
-  }
-
-  if (!data?.id || data.active !== true) return null;
-  return data.id;
-}
-
-async function getFallbackWarehouseId() {
-  const { data, error } = await supabase
-    .from("warehouses")
-    .select("id")
-    .eq("is_active", true)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    const { session } = await getSessionSnapshot();
-    logSupabaseError({ source: "sales-context-service", action: "getFallbackWarehouseId", table: "warehouses", error, session });
-    return null;
-  }
-
-  return data?.id ?? null;
-}
-
-async function getFallbackPointOfSaleId() {
-  const { data, error } = await supabase
-    .from("points_of_sale")
-    .select("id")
-    .eq("active", true)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    const { session } = await getSessionSnapshot();
-    logSupabaseError({ source: "sales-context-service", action: "getFallbackPointOfSaleId", table: "points_of_sale", error, session });
-    return null;
-  }
-
-  return data?.id ?? null;
 }
 
 function buildResolvedContext({ userId, warehouseId, pointOfSaleId, warehouseSource, pointOfSaleSource }) {
@@ -140,6 +75,16 @@ function buildResolvedContext({ userId, warehouseId, pointOfSaleId, warehouseSou
   };
 }
 
+function normalizeResolvedContextRow(row, fallbackUserId = null) {
+  return buildResolvedContext({
+    userId: normalizeId(row?.user_id) ?? normalizeId(fallbackUserId),
+    warehouseId: normalizeId(row?.warehouse_id),
+    pointOfSaleId: normalizeId(row?.point_of_sale_id),
+    warehouseSource: row?.warehouse_source ?? null,
+    pointOfSaleSource: row?.point_of_sale_source ?? null
+  });
+}
+
 export function clearSalesContextCache() {
   cachedContext = null;
   cachedContextUserId = null;
@@ -150,7 +95,6 @@ export async function getSalesContext(options = null) {
     ? options
     : { userId: options ?? null };
   const resolvedUserId = normalizeId(normalizedOptions.userId) || await getCurrentUserId();
-  const providedProfile = normalizedOptions.profile ?? null;
   const forceReload = normalizedOptions.forceReload === true;
 
   if (!resolvedUserId) {
@@ -167,37 +111,8 @@ export async function getSalesContext(options = null) {
     return cachedContext;
   }
 
-  const profile = providedProfile ?? await fetchProfileDefaults(resolvedUserId);
-  const defaultWarehouseId = normalizeId(profile?.default_warehouse_id);
-  const defaultPointOfSaleId = normalizeId(profile?.default_point_of_sale_id);
-
-  const [validatedDefaultWarehouseId, validatedDefaultPointOfSaleId] = await Promise.all([
-    getReadableWarehouseById(defaultWarehouseId),
-    getReadablePointOfSaleById(defaultPointOfSaleId)
-  ]);
-
-  let warehouseId = validatedDefaultWarehouseId;
-  let warehouseSource = validatedDefaultWarehouseId ? "profile.default_warehouse_id" : null;
-  let pointOfSaleId = validatedDefaultPointOfSaleId;
-  let pointOfSaleSource = validatedDefaultPointOfSaleId ? "profile.default_point_of_sale_id" : null;
-
-  if (!warehouseId) {
-    warehouseId = await getFallbackWarehouseId();
-    warehouseSource = warehouseId ? "shared_active_warehouse" : null;
-  }
-
-  if (!pointOfSaleId) {
-    pointOfSaleId = await getFallbackPointOfSaleId();
-    pointOfSaleSource = pointOfSaleId ? "shared_active_point_of_sale" : null;
-  }
-
-  cachedContext = buildResolvedContext({
-    userId: resolvedUserId,
-    warehouseId,
-    pointOfSaleId,
-    warehouseSource,
-    pointOfSaleSource
-  });
+  const resolvedContextRow = await fetchResolvedSalesContext(resolvedUserId);
+  cachedContext = normalizeResolvedContextRow(resolvedContextRow, resolvedUserId);
   cachedContextUserId = resolvedUserId;
 
   return cachedContext;

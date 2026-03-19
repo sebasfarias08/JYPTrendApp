@@ -5,7 +5,7 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 ## Resumen ejecutivo
 
 - Estado actual: funcional para operacion diaria (catalogo, carrito, Reserva, pedidos, clientes, productos, PWA basica).
-- Version de app en repo: `v1.7.1` (`public/version.json`, fecha `2026-03-19`).
+- Version de app en repo: `v1.7.2` (`public/version.json`, fecha `2026-03-19`).
 - Arquitectura: HTML multipagina + JavaScript ES Modules + Tailwind CDN + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Fuente de verdad backend: `docs/supabase-architecture-final.md`.
@@ -83,6 +83,9 @@ public/
 - Autenticacion y perfil:
   - `public/js/app/auth/auth-service.js` consulta `profiles`.
   - `public/js/app/auth/auth.js` expone guardas de sesion y perfil.
+- Sales context:
+  - `public/js/app/core/sales-context-service.js` resuelve `warehouse_id` y `point_of_sale_id` con una sola RPC a `public.get_sales_context_resolved(p_user_id uuid)`.
+  - se mantiene cache por usuario y el mismo contrato publico consumido por catalogo, producto y pedidos.
 - Autorizacion por rol:
   - `public/js/app/auth/permissions.js`
   - Roles validos: `admin`, `seller`, `viewer`.
@@ -99,6 +102,7 @@ public/
 - Vista de catalogo optimizada:
   - `public.v_catalog_variants_available` unifica `product_variants`, `products`, `categories` y `v_inventory_stock_by_variant`.
   - el filtro operativo se resuelve por `warehouse_id` y `point_of_sale_id` del `salesContext`.
+  - el `salesContext` ahora llega desde una sola RPC en lugar de multiples lecturas frontend sobre `profiles`, `warehouses` y `points_of_sale`.
   - esto reduce roundtrips al backend y evita combinar resultados en memoria del navegador.
 
 ## SQL y migraciones en repo
@@ -131,6 +135,7 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
   - ver `docs/project-context.md`.
 - Catalogo:
   - la carga principal ahora depende de una sola vista en Supabase para reducir latencia y trabajo en cliente.
+  - la resolucion previa de sales context en frontend fue reemplazada por una sola RPC a Supabase para evitar queries redundantes antes de leer el catalogo.
 
 ## Riesgos / deuda tecnica
 

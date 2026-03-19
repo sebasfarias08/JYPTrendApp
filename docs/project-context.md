@@ -6,7 +6,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 
 ## Current status
 - Functional and in active use.
-- App version in repo: `v1.7.1` (`public/version.json`, releasedAt `2026-03-19`).
+- App version in repo: `v1.7.2` (`public/version.json`, releasedAt `2026-03-19`).
 - Frontend-only app hosted as static site.
 
 ## Architecture
@@ -54,6 +54,9 @@ No legacy compatibility wrappers remain in the current repo state.
 ## Core business modules
 - Catalog: `public/index.html`, `public/js/features/catalog/catalog-service.js`
   - Current source: single query to `public.v_catalog_variants_available` filtered by `warehouse_id` and `point_of_sale_id` from `salesContext`.
+- Sales context: `public/js/app/core/sales-context-service.js`
+  - Current source: single RPC call to `public.get_sales_context_resolved(p_user_id uuid)`.
+  - Keeps the same public contract for `getSalesContext()`, `requireSalesContext()`, cache invalidation and unresolved-context errors.
 - Product detail/edit/share: `public/pages/producto.html`, `public/js/features/product/product-page.js`
 - Cart (localStorage): `public/js/features/checkout/cart.js`
 - Reserva: `public/pages/checkout.html`, `public/js/features/checkout/checkout-page.js`
@@ -125,6 +128,10 @@ Reason:
   - frontend now queries `public.v_catalog_variants_available` from `public/js/features/catalog/catalog-service.js`;
   - the view consolidates product variant data, category data and stock availability for the selected warehouse/POS;
   - this removes the previous client-side merge between `product_variants` and `v_inventory_stock_by_variant`.
+- Sales context resolution optimized to a single Supabase RPC:
+  - frontend now calls `public.get_sales_context_resolved(p_user_id uuid)` from `public/js/app/core/sales-context-service.js`;
+  - the RPC replaces previous multi-query frontend resolution over `profiles`, `warehouses` and `points_of_sale`;
+  - this removes redundant roundtrips before catalog and order flows consume the resolved warehouse/POS.
 
 ## SQL assets in repo
 - `database/20260319_create_v_catalog_variants_available.sql`
