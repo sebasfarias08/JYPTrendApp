@@ -11,20 +11,7 @@ export async function getProducts(options = null) {
 
   const { data, error } = await supabase
     .from("v_catalog_variants_available")
-    .select(`
-      id,
-      variant_id,
-      product_id,
-      display_name,
-      product_name,
-      variant_name,
-      price,
-      image_path,
-      categories,
-      stock_qty,
-      warehouse_id,
-      point_of_sale_id
-    `)
+    .select("*")
     .eq("warehouse_id", salesContext.warehouse_id)
     .eq("point_of_sale_id", salesContext.point_of_sale_id)
     .order("display_name", { ascending: true });
@@ -43,7 +30,12 @@ export async function getProducts(options = null) {
             name: row.categories?.name ?? null,
             slug: row.categories?.slug ?? null
           }
-        : null;
+        : row?.category_name || row?.category_slug
+          ? {
+              name: row?.category_name ?? null,
+              slug: row?.category_slug ?? null
+            }
+          : null;
       const stockQty = Number(row?.stock_qty ?? 0);
       const displayName = String(row?.display_name ?? "").trim() || productName;
       const warehouseId = row?.warehouse_id ?? salesContext.warehouse_id;

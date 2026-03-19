@@ -5,11 +5,18 @@ select
   pv.id,
   pv.id as variant_id,
   pv.product_id,
+  stock.warehouse_id,
+  stock.point_of_sale_id,
   coalesce(nullif(btrim(pv.variant_name), ''), nullif(btrim(p.name), ''), '') as display_name,
   coalesce(p.name, '') as product_name,
   coalesce(pv.variant_name, '') as variant_name,
   pv.sale_price as price,
+  pv.currency_code,
   coalesce(pv.image_path, '') as image_path,
+  p.category_id,
+  c.name as category_name,
+  c.slug as category_slug,
+  c."order" as category_order,
   case
     when c.id is null then null
     else jsonb_build_object(
@@ -18,8 +25,8 @@ select
     )
   end as categories,
   coalesce(stock.stock_qty, 0) as stock_qty,
-  stock.warehouse_id,
-  stock.point_of_sale_id
+  pv.active as variant_active,
+  p.active as product_active
 from public.product_variants as pv
 join public.products as p
   on p.id = pv.product_id
