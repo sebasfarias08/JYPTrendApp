@@ -6,7 +6,7 @@ La fuente de referencia principal es [README.md](/c:/01_DevSebas/JYPTrendApp/REA
 
 ## Estado actual
 
-- Version en repo: `v1.7.0` (`public/version.json`, fecha `2026-03-19`).
+- Version en repo: `v1.7.1` (`public/version.json`, fecha `2026-03-19`).
 - Frontend estatico en `public/` sin build step.
 - Estructura modular vigente:
   - `public/js/app/`
@@ -15,6 +15,9 @@ La fuente de referencia principal es [README.md](/c:/01_DevSebas/JYPTrendApp/REA
   - `public/js/vendor/`
 - Wrappers legacy mantenidos por compatibilidad:
   - ninguno en el estado actual del repo
+- Catalogo optimizado:
+  - `public/js/features/catalog/catalog-service.js` usa `public.v_catalog_variants_available` para resolver producto + categoria + stock en una sola consulta.
+  - migracion asociada: `database/20260319_create_v_catalog_variants_available.sql`
 
 ## Documentacion operativa
 

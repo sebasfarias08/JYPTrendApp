@@ -5,7 +5,7 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 ## Resumen ejecutivo
 
 - Estado actual: funcional para operacion diaria (catalogo, carrito, Reserva, pedidos, clientes, productos, PWA basica).
-- Version de app en repo: `v1.7.0` (`public/version.json`, fecha `2026-03-19`).
+- Version de app en repo: `v1.7.1` (`public/version.json`, fecha `2026-03-19`).
 - Arquitectura: HTML multipagina + JavaScript ES Modules + Tailwind CDN + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Fuente de verdad backend: `docs/supabase-architecture-final.md`.
@@ -94,8 +94,12 @@ public/
 - Fuente de verdad de stock: `inventory_movements` via views.
 - Implementado en frontend:
   - `public/js/features/inventory/stock-service.js` consulta `v_inventory_stock_by_product` y `v_inventory_stock_by_variant`.
-  - `public/js/features/catalog/catalog-service.js` enriquece productos con `stock_qty` real.
+  - `public/js/features/catalog/catalog-service.js` consulta `public.v_catalog_variants_available` y mantiene `stock_qty` real sin merge cliente adicional.
   - `public/index.html` muestra stock y deshabilita agregar al carrito si no hay stock.
+- Vista de catalogo optimizada:
+  - `public.v_catalog_variants_available` unifica `product_variants`, `products`, `categories` y `v_inventory_stock_by_variant`.
+  - el filtro operativo se resuelve por `warehouse_id` y `point_of_sale_id` del `salesContext`.
+  - esto reduce roundtrips al backend y evita combinar resultados en memoria del navegador.
 
 ## SQL y migraciones en repo
 
@@ -103,6 +107,7 @@ public/
 - `database/2026-02-20_customers_abm.sql`
 - `database/2026-03-07_enforce_canonical_statuses.sql`
 - `database/2026-03-07_fix_profiles_rls_recursion.sql`
+- `database/20260319_create_v_catalog_variants_available.sql`
 
 ## Como ejecutar local
 
@@ -124,6 +129,8 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
   - las referencias legacy que quedan en repo se limitan a documentacion historica de inventario y algunos comentarios de trazabilidad.
 - Inventario y recomendacion de wrappers legacy:
   - ver `docs/project-context.md`.
+- Catalogo:
+  - la carga principal ahora depende de una sola vista en Supabase para reducir latencia y trabajo en cliente.
 
 ## Riesgos / deuda tecnica
 

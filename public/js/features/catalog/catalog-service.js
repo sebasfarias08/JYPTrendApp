@@ -1,5 +1,4 @@
 import { supabase } from "../../app/core/supabase-client.js";
-import { getStockByVariant } from "../inventory/stock-service.js";
 import { requireSalesContext } from "../../app/core/sales-context-service.js";
 
 export async function getProducts(options = null) {
@@ -10,74 +9,60 @@ export async function getProducts(options = null) {
     forceReload: normalizedOptions.forceReload === true
   });
 
-  const [variantsResult, stockRows] = await Promise.all([
-    supabase
-      .from("product_variants")
-      .select(`
-        id,
-        product_id,
-        variant_name,
-        image_path,
-        sale_price,
-        active,
-        products!inner (
-          id,
-          name,
-          active,
-          categories (
-            name,
-            slug
-          )
-        )
-      `)
-      .eq("active", true)
-      .eq("products.active", true)
-      .order("variant_name", { ascending: true }),
-    getStockByVariant({
-      warehouseId: salesContext.warehouse_id,
-      pointOfSaleId: salesContext.point_of_sale_id
-    })
-  ]);
+  const { data, error } = await supabase
+    .from("v_catalog_variants_available")
+    .select(`
+      id,
+      variant_id,
+      product_id,
+      display_name,
+      product_name,
+      variant_name,
+      price,
+      image_path,
+      categories,
+      stock_qty,
+      warehouse_id,
+      point_of_sale_id
+    `)
+    .eq("warehouse_id", salesContext.warehouse_id)
+    .eq("point_of_sale_id", salesContext.point_of_sale_id)
+    .order("display_name", { ascending: true });
 
-  const { data, error } = variantsResult;
   if (error) {
-    console.error("getProducts (variants) error:", error);
+    console.error("getProducts (catalog) error:", error);
     throw error;
   }
 
-  const stockByVariantId = new Map();
-  for (const row of stockRows ?? []) {
-    const variantId = row?.variant_id ?? null;
-    if (!variantId) continue;
-    const current = Number(stockByVariantId.get(variantId) ?? 0);
-    const qty = Number(row?.stock_qty ?? 0);
-    stockByVariantId.set(variantId, current + (Number.isFinite(qty) ? qty : 0));
-  }
+  return (data ?? [])
+    .map((row) => {
+      const productName = String(row?.product_name ?? "").trim();
+      const variantId = row?.variant_id ?? row?.id ?? null;
+      const categories = row?.categories && typeof row.categories === "object"
+        ? {
+            name: row.categories?.name ?? null,
+            slug: row.categories?.slug ?? null
+          }
+        : null;
+      const stockQty = Number(row?.stock_qty ?? 0);
+      const displayName = String(row?.display_name ?? "").trim() || productName;
+      const warehouseId = row?.warehouse_id ?? salesContext.warehouse_id;
+      const pointOfSaleId = row?.point_of_sale_id ?? salesContext.point_of_sale_id;
 
-  const variants = (data ?? []).map((row) => {
-    const product = row?.products ?? {};
-    const productName = String(product?.name ?? "").trim();
-    const variantName = String(row?.variant_name ?? "").trim();
-    const stockQty = Number(stockByVariantId.get(row.id) ?? 0);
-    const displayName = variantName || productName;
-
-    return {
-      id: row.id,
-      variant_id: row.id,
-      product_id: row.product_id ?? product?.id ?? null,
-      name: displayName,
-      product_name: productName,
-      variant_name: variantName,
-      price: Number(row?.sale_price ?? 0),
-      image_path: row?.image_path ?? "",
-      categories: product?.categories ?? null,
-      stock_qty: stockQty,
-      warehouse_id: salesContext.warehouse_id,
-      point_of_sale_id: salesContext.point_of_sale_id
-    };
-  });
-
-  return variants
-    .filter((v) => Number(v.stock_qty ?? 0) > 0)
-    .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "es", { sensitivity: "base" }));
+      return {
+        id: row?.id ?? variantId,
+        variant_id: variantId,
+        product_id: row?.product_id ?? null,
+        name: displayName,
+        product_name: productName,
+        variant_name: String(row?.variant_name ?? "").trim(),
+        price: Number(row?.price ?? 0),
+        image_path: row?.image_path ?? "",
+        categories,
+        stock_qty: Number.isFinite(stockQty) ? stockQty : 0,
+        warehouse_id: warehouseId,
+        point_of_sale_id: pointOfSaleId
+      };
+    })
+    .filter((v) => Number(v.stock_qty ?? 0) > 0);
 }

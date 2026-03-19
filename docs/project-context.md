@@ -6,7 +6,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 
 ## Current status
 - Functional and in active use.
-- App version in repo: `v1.7.0` (`public/version.json`, releasedAt `2026-03-19`).
+- App version in repo: `v1.7.1` (`public/version.json`, releasedAt `2026-03-19`).
 - Frontend-only app hosted as static site.
 
 ## Architecture
@@ -53,6 +53,7 @@ No legacy compatibility wrappers remain in the current repo state.
 
 ## Core business modules
 - Catalog: `public/index.html`, `public/js/features/catalog/catalog-service.js`
+  - Current source: single query to `public.v_catalog_variants_available` filtered by `warehouse_id` and `point_of_sale_id` from `salesContext`.
 - Product detail/edit/share: `public/pages/producto.html`, `public/js/features/product/product-page.js`
 - Cart (localStorage): `public/js/features/checkout/cart.js`
 - Reserva: `public/pages/checkout.html`, `public/js/features/checkout/checkout-page.js`
@@ -118,6 +119,16 @@ Reason:
 - No automated tests (unit/integration/e2e).
 - No CI quality gates.
 - RLS documentation is still partial for some operational tables.
+
+## Recent data access changes
+- Catalog load optimized to a single Supabase view:
+  - frontend now queries `public.v_catalog_variants_available` from `public/js/features/catalog/catalog-service.js`;
+  - the view consolidates product variant data, category data and stock availability for the selected warehouse/POS;
+  - this removes the previous client-side merge between `product_variants` and `v_inventory_stock_by_variant`.
+
+## SQL assets in repo
+- `database/20260319_create_v_catalog_variants_available.sql`
+  - creates `public.v_catalog_variants_available` and grants read access for app roles.
 
 ## Operational conventions
 - Keep `README.md` in repo root.
