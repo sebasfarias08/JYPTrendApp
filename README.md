@@ -5,7 +5,7 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 ## Resumen ejecutivo
 
 - Estado actual: funcional para operacion diaria (catalogo, carrito, Reserva, pedidos, clientes, productos, PWA basica).
-- Version de app en repo: `v1.2.1` (`public/version.json`, fecha `2026-03-19`).
+- Version de app en repo: `v1.2.2` (`public/version.json`, fecha `2026-03-19`).
 - Arquitectura: HTML multipagina + JavaScript ES Modules + Tailwind CDN + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Fuente de verdad backend: `docs/supabase-architecture-final.md`.
@@ -69,9 +69,7 @@ public/
   - `public/js/vendor/`
 - Wrappers legacy conservados por compatibilidad:
   - `public/js/*.js`
-  - `public/js/services/*.js`
-  - `public/js/utils/*.js`
-  - `public/js/lib/supabase-client.js`
+  - `public/js/components/*.js`
 - Las paginas HTML activas ya importan modulos reales bajo `app/`, `features/` y `shared/`.
 - No eliminar wrappers sin revisar antes compatibilidad con URLs publicas historicas; `public/sw.js` ya precachea rutas modulares reales.
 
@@ -123,13 +121,14 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 - Version documental alineada con `public/version.json`.
 - Imports internos auditados:
   - no se detectaron modulos internos de `public/js/**/*.js` importando wrappers legacy cuando ya existe el modulo real;
-  - las referencias legacy encontradas en repo quedan concentradas en wrappers de compatibilidad y documentacion de inventario.
+  - los wrappers legacy retirados de `public/js/services/`, `public/js/utils/` y `public/js/lib/` no tenian uso en runtime ni dependian del precache;
+  - las referencias legacy que quedan en repo se concentran en wrappers top-level de `public/js/`, wrappers puntuales de `public/js/components/` y documentacion de inventario.
 - Inventario y recomendacion de wrappers legacy:
   - ver `docs/project-context.md`.
 
 ## Riesgos / deuda tecnica
 
-1. Los wrappers legacy siguen presentes en `public/js/`; antes de eliminarlos hay que validar que no queden consumidores externos o URLs publicas historicas.
+1. Los wrappers top-level legacy siguen presentes en `public/js/`; antes de eliminarlos hay que validar que no queden consumidores externos o URLs publicas historicas.
 2. Configuracion de Supabase aun expuesta en frontend (anon key/public URL).
 3. Uso de Tailwind Play CDN en produccion.
 4. Cobertura de testing automatizado baja o inexistente.
@@ -137,7 +136,7 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 
 ## Backlog recomendado
 
-1. Retirar wrappers clasificados como probablemente innecesarios en una ventana de deprecacion controlada.
-2. Revalidar offline en instalacion limpia y upgrade despues de la realineacion del precache.
+1. Revisar y retirar wrappers top-level legacy en una ventana de deprecacion controlada.
+2. Decidir el destino final de `public/js/components/address-autocomplete.js` y `public/js/components/dropdown.js`.
 3. Agregar una verificacion automatica de imports legacy en CI.
 4. Agregar tests de servicios Supabase criticos (auth, pedidos, stock).

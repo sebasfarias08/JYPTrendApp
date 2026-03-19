@@ -6,7 +6,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 
 ## Current status
 - Functional and in active use.
-- App version in repo: `v1.2.1` (`public/version.json`, releasedAt `2026-03-19`).
+- App version in repo: `v1.2.2` (`public/version.json`, releasedAt `2026-03-19`).
 - Frontend-only app hosted as static site.
 
 ## Architecture
@@ -30,9 +30,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 
 ### Legacy compatibility surface
 - `public/js/*.js`
-- `public/js/services/*.js`
-- `public/js/utils/*.js`
-- `public/js/lib/supabase-client.js`
+- `public/js/components/*.js`
 
 These files are mostly thin `export * from ...` wrappers kept for compatibility with historical import paths.
 
@@ -106,42 +104,48 @@ These files are mostly thin `export * from ...` wrappers kept for compatibility 
 - `public/js/supabase-client.js`
 - `public/js/sw-register.js`
 - `public/js/toast.js`
-- `public/js/services/sales-context-service.js`
-- `public/js/utils/argentina-phone.js`
-- `public/js/utils/runtime-config.js`
 
 Reason:
 - keep them on disk for historical compatibility until a dedicated removal pass verifies no external/public consumers remain.
 
 ### Probably unnecessary
-- `public/js/order-detail.js`
-- `public/js/orders.js`
-- `public/js/product-form-page.js`
-- `public/js/products-page.js`
-- `public/js/services/auth-service.js`
-- `public/js/services/catalog-service.js`
-- `public/js/services/customers-service.js`
-- `public/js/services/inventory-movement-service.js`
-- `public/js/services/logistics-inventory-service.js`
-- `public/js/services/order-service.js`
-- `public/js/services/orders-service.js`
-- `public/js/services/product-service.js`
-- `public/js/services/stock-service.js`
-- `public/js/services/storage-service.js`
-- `public/js/utils/permissions.js`
-- `public/js/lib/supabase-client.js`
+- retired in the safe wrapper-removal pass:
+  - `public/js/services/auth-service.js`
+  - `public/js/services/catalog-service.js`
+  - `public/js/services/customers-service.js`
+  - `public/js/services/inventory-movement-service.js`
+  - `public/js/services/logistics-inventory-service.js`
+  - `public/js/services/order-service.js`
+  - `public/js/services/orders-service.js`
+  - `public/js/services/product-service.js`
+  - `public/js/services/sales-context-service.js`
+  - `public/js/services/stock-service.js`
+  - `public/js/services/storage-service.js`
+  - `public/js/utils/argentina-phone.js`
+  - `public/js/utils/permissions.js`
+  - `public/js/utils/runtime-config.js`
+  - `public/js/lib/supabase-client.js`
+- still present but deferred because they are top-level public wrappers:
+  - `public/js/order-detail.js`
+  - `public/js/orders.js`
+  - `public/js/product-form-page.js`
+  - `public/js/products-page.js`
 
 Reason:
-- no internal JS imports found in the current module graph;
-- not referenced by HTML entrypoints;
-- not present in the current `public/sw.js` precache list.
+- retired files:
+  - not referenced by internal imports;
+  - not referenced by HTML entrypoints;
+  - not present in the current `public/sw.js` precache list;
+  - not considered important historical top-level public entrypoints.
+- deferred top-level files:
+  - still fit a later removal phase, but are more visible historical public URLs.
 
 ### Review manually
 - `public/js/components/address-autocomplete.js`
 - `public/js/components/dropdown.js`
 
 Reason:
-- they are wrappers outside the requested inventory folders, but `public/sw.js` still precaches one of them and they historically look like public import paths for shared UI components.
+- they are wrappers outside the main removal set and still look like plausible historical public UI paths.
 
 ## Compatibility behavior
 `public/js/features/orders/order-service.js` includes fallbacks for mixed database states:
@@ -152,7 +156,7 @@ Reason:
 `public/js/features/orders/orders-service.js` tolerates missing `order_number` (fallback query).
 
 ## Known technical debt / risks
-- compatibility wrappers still exist even though `public/sw.js` now precaches modular real paths.
+- top-level/component compatibility wrappers still exist even though `public/sw.js` now precaches modular real paths.
 - Supabase config remains exposed in frontend runtime.
 - Status vocabulary inconsistency (ES/EN/legacy) can still surface at integration boundaries.
 - No automated tests (unit/integration/e2e).
