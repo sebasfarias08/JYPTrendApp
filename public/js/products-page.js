@@ -2,6 +2,8 @@ import { getProductsForAdmin } from "./product-service.js";
 import { getStockByVariant, INVENTORY_CHANGED_EVENT } from "./services/stock-service.js";
 import { getImageUrl } from "./image.js";
 
+const CATALOG_SCROLL_POSITION_KEY = "catalog_scroll_position";
+
 function escapeHtml(str) {
   return String(str ?? "")
     .replaceAll("&", "&amp;")
@@ -44,9 +46,41 @@ export function initProductsPage() {
   const searchEl = document.getElementById("q");
   const showInactiveEl = document.getElementById("showInactive");
   const btnNewEl = document.getElementById("btnNewProduct");
+  const scrollContainerEl = document.querySelector("main.overflow-y-auto");
 
   let rows = [];
   const stockByVariantId = new Map();
+  let hasRestoredScroll = false;
+
+  function getCatalogScrollTop() {
+    return scrollContainerEl ? scrollContainerEl.scrollTop : window.scrollY;
+  }
+
+  function saveCatalogScrollPosition() {
+    sessionStorage.setItem(CATALOG_SCROLL_POSITION_KEY, String(getCatalogScrollTop()));
+  }
+
+  function restoreCatalogScrollPosition() {
+    if (hasRestoredScroll) return;
+
+    const storedValue = sessionStorage.getItem(CATALOG_SCROLL_POSITION_KEY);
+    const scrollTop = Number(storedValue);
+    if (!Number.isFinite(scrollTop) || scrollTop <= 0) {
+      hasRestoredScroll = true;
+      return;
+    }
+
+    hasRestoredScroll = true;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (scrollContainerEl) {
+          scrollContainerEl.scrollTo({ top: scrollTop, behavior: "auto" });
+          return;
+        }
+        window.scrollTo({ top: scrollTop, behavior: "auto" });
+      });
+    });
+  }
 
   function getProductVariantStock(product) {
     const variants = Array.isArray(product.product_variants) ? product.product_variants : [];
@@ -122,6 +156,8 @@ export function initProductsPage() {
         </a>
       `;
     }).join("");
+
+    restoreCatalogScrollPosition();
   }
 
   async function loadRows() {
@@ -143,6 +179,11 @@ export function initProductsPage() {
 
   btnNewEl.addEventListener("click", () => {
     location.href = buildFormUrl({ mode: "new" });
+  });
+  listEl.addEventListener("click", (event) => {
+    const link = event.target.closest("a[href]");
+    if (!link) return;
+    saveCatalogScrollPosition();
   });
   searchEl.addEventListener("input", renderList);
   showInactiveEl.addEventListener("change", renderList);
