@@ -6,7 +6,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 
 ## Current status
 - Functional and in active use.
-- App version in repo: `v1.5.0` (`public/version.json`, releasedAt `2026-03-19`).
+- App version in repo: `v1.7.0` (`public/version.json`, releasedAt `2026-03-19`).
 - Frontend-only app hosted as static site.
 
 ## Architecture
@@ -29,10 +29,9 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
   - vendored browser dependencies.
 
 ### Legacy compatibility surface
-- `public/js/*.js`
 - `public/js/components/*.js`
 
-The remaining files in this surface are thin `export * from ...` wrappers kept only for the smallest residual set of historical top-level paths and component paths.
+No legacy compatibility wrappers remain in the current repo state.
 
 ## Active import strategy
 - HTML entrypoints already import real modules under:
@@ -43,8 +42,7 @@ The remaining files in this surface are thin `export * from ...` wrappers kept o
   - no safe direct replacements were needed;
   - current internal imports already target real modules in the refactored structure.
 - Remaining legacy references found in repo:
-  - only a minimal set of compatibility wrappers still exists on disk for selected historical public URLs;
-  - documentation still tracks some legacy locations for cleanup planning.
+  - documentation still tracks retired legacy locations for cleanup history.
 
 ## Auth and access
 - Google OAuth (PKCE) via Supabase Auth.
@@ -77,13 +75,6 @@ The remaining files in this surface are thin `export * from ...` wrappers kept o
 
 ## Legacy wrapper inventory
 
-### Maintain Temporarily
-- `public/js/cart.js`
-
-Reason:
-- top-level public-looking compatibility path with the highest remaining historical visibility;
-- retained intentionally after the third controlled top-level cleanup because cart remains the last top-level runtime wrapper still preserved.
-
 ### Internal Wrappers Already Retired
 - retired in the safe wrapper-removal pass:
   - `public/js/order-detail.js`
@@ -113,13 +104,6 @@ Reason:
   - not present in the current `public/sw.js` precache list;
   - not considered important historical top-level public entrypoints.
 
-### Review manually
-- `public/js/components/address-autocomplete.js`
-- `public/js/components/dropdown.js`
-
-Reason:
-- they are wrappers outside the main removal set and still look like plausible historical public UI paths.
-
 ## Compatibility behavior
 `public/js/features/orders/order-service.js` includes fallbacks for mixed database states:
 - Retries insert without `customer_id` if column does not exist.
@@ -129,7 +113,6 @@ Reason:
 `public/js/features/orders/orders-service.js` tolerates missing `order_number` (fallback query).
 
 ## Known technical debt / risks
-- a minimal top-level/component compatibility surface still exists even though `public/sw.js` now precaches modular real paths.
 - Supabase config remains exposed in frontend runtime.
 - Status vocabulary inconsistency (ES/EN/legacy) can still surface at integration boundaries.
 - No automated tests (unit/integration/e2e).
@@ -145,7 +128,7 @@ Reason:
 
 ## Recommended next priorities
 1. Validate offline behavior on clean install/update across the main page set after the precache realignment.
-2. Review `public/js/cart.js` together with the component wrappers for the final controlled retirement pass.
+2. Add CI checks to detect reintroduction of legacy imports or wrapper files.
 3. Add CI checks to detect reintroduction of legacy imports.
 4. Add basic test coverage for Reserva/order creation paths.
 5. Document and validate full RLS strategy for all key tables.

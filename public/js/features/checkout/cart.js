@@ -1,4 +1,4 @@
-// public/js/cart.js
+// Checkout cart storage helpers.
 
 const CART_KEY = "jyp_cart_v1";
 

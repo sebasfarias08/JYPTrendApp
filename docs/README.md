@@ -6,7 +6,7 @@ La fuente de referencia principal es [README.md](/c:/01_DevSebas/JYPTrendApp/REA
 
 ## Estado actual
 
-- Version en repo: `v1.5.0` (`public/version.json`, fecha `2026-03-19`).
+- Version en repo: `v1.7.0` (`public/version.json`, fecha `2026-03-19`).
 - Frontend estatico en `public/` sin build step.
 - Estructura modular vigente:
   - `public/js/app/`
@@ -14,12 +14,11 @@ La fuente de referencia principal es [README.md](/c:/01_DevSebas/JYPTrendApp/REA
   - `public/js/shared/`
   - `public/js/vendor/`
 - Wrappers legacy mantenidos por compatibilidad:
-  - `public/js/*.js`
-  - `public/js/components/*.js`
+  - ninguno en el estado actual del repo
 
 ## Documentacion operativa
 
 - Contexto del proyecto: `docs/project-context.md`
 - Arquitectura backend/Supabase: `docs/supabase-architecture-final.md`
 - Riesgo vigente de compatibilidad:
-  - `public/sw.js` ya precachea rutas modulares reales; tras la tercera limpieza controlada solo queda una superficie legacy minima en `public/js/cart.js` y `public/js/components/`.
+  - `public/sw.js` ya precachea rutas modulares reales; el riesgo principal paso a ser la posible reintroduccion de imports o wrappers legacy.
