@@ -69,9 +69,9 @@
   <nav id="appShellBottom"></nav>
 
   <script type="module">
-    import { requireRole } from "/js/auth.js";
-    import { initCheckoutPage } from "/js/checkout-page.js";
-    import { initAppShell } from "/js/app-shell.js";
+    import { requireRole } from "/js/app/auth/auth.js";
+    import { initCheckoutPage } from "/js/features/checkout/checkout-page.js";
+    import { initAppShell } from "/js/app/shell/app-shell.js";
 
     const session = await requireRole(["admin", "seller"]);
     if (!session) throw new Error("Redirecting due role guard...");

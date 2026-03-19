@@ -20,8 +20,8 @@
   <nav id="appShellBottom"></nav>
 
   <script type="module">
-    import { getSession, onAuthChange } from "/js/auth.js";
-    import { initAppShell } from "/js/app-shell.js";
+    import { getSession, onAuthChange } from "/js/app/auth/auth.js";
+    import { initAppShell } from "/js/app/shell/app-shell.js";
 
     function sanitizeInternalPath(value, fallback = "/pages/home.html") {
       const raw = String(value || "").trim();

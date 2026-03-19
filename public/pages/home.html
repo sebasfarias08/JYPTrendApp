@@ -190,11 +190,11 @@
   <nav id="appShellBottom"></nav>
 
   <script type="module">
-    import { requireAuth } from "/js/auth.js";
-    import { initAppShell } from "/js/app-shell.js";
-    import * as ordersService from "/js/orders-service.js";
-    import * as orderStatusModule from "/js/order-status.js";
-    import { showToast } from "/js/toast.js";
+    import { requireAuth } from "/js/app/auth/auth.js";
+    import { initAppShell } from "/js/app/shell/app-shell.js";
+    import * as ordersService from "/js/features/orders/orders-service.js";
+    import * as orderStatusModule from "/js/shared/utils/order-status.js";
+    import { showToast } from "/js/shared/ui/toast.js";
     const normalizeStatus = orderStatusModule.normalizeStatus ?? ((status) => String(status ?? "").trim());
     const statusLabel = orderStatusModule.statusLabel ?? ((status) => String(status ?? ""));
 

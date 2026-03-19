@@ -114,10 +114,10 @@
   <nav id="appShellBottom"></nav>
 
   <script type="module">
-    import { requireAuth } from "/js/auth.js";
-    import { registerServiceWorker, applyUpdate } from "/js/sw-register.js";
-    import { initProductPage } from "/js/product-page.js";
-    import { initAppShell } from "/js/app-shell.js";
+    import { requireAuth } from "/js/app/auth/auth.js";
+    import { registerServiceWorker, applyUpdate } from "/js/app/core/sw-register.js";
+    import { initProductPage } from "/js/features/product/product-page.js";
+    import { initAppShell } from "/js/app/shell/app-shell.js";
 
     const session = await requireAuth();
     if (!session) throw new Error("Redirecting to login...");

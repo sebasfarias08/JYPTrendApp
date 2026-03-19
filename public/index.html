@@ -34,14 +34,14 @@
   <nav id="appShellBottom"></nav>
 
   <script type="module">
-    import { requireAuth } from "/js/auth.js";
-    import { registerServiceWorker, applyUpdate } from "/js/sw-register.js";
-    import { getProducts } from "/js/catalog-service.js";
-    import { getImageUrl } from "/js/image.js";
-    import { addToCart } from "/js/cart.js";
-    import { initAppShell } from "/js/app-shell.js";
-    import { INVENTORY_CHANGED_EVENT } from "/js/services/stock-service.js";
-    import { normalizeRole, ROLES } from "/js/utils/permissions.js";
+    import { requireAuth } from "/js/app/auth/auth.js";
+    import { registerServiceWorker, applyUpdate } from "/js/app/core/sw-register.js";
+    import { getProducts } from "/js/features/catalog/catalog-service.js";
+    import { getImageUrl } from "/js/shared/utils/image.js";
+    import { addToCart } from "/js/features/checkout/cart.js";
+    import { initAppShell } from "/js/app/shell/app-shell.js";
+    import { INVENTORY_CHANGED_EVENT } from "/js/features/inventory/stock-service.js";
+    import { normalizeRole, ROLES } from "/js/app/auth/permissions.js";
 
     let searchInputEl = null;
     const listEl = document.getElementById("list");

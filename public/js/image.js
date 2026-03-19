@@ -1,5 +1,2 @@
-import { getCatalogImageUrl } from "./services/storage-service.js";
-
-export function getImageUrl(path) {
-  return getCatalogImageUrl(path);
-}
+// TEMP compatibility wrapper. Real module moved to ./shared/utils/image.js
+export * from "./shared/utils/image.js";

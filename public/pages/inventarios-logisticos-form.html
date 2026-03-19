@@ -51,9 +51,9 @@
   <nav id="appShellBottom"></nav>
 
   <script type="module">
-    import { requireRole } from "/js/auth.js";
-    import { initAppShell } from "/js/app-shell.js";
-    import { initLogisticsInventoryFormPage } from "/js/logistics-inventory-form-page.js";
+    import { requireRole } from "/js/app/auth/auth.js";
+    import { initAppShell } from "/js/app/shell/app-shell.js";
+    import { initLogisticsInventoryFormPage } from "/js/features/inventory/logistics-inventory-form-page.js";
 
     const session = await requireRole(["admin"]);
     if (!session) throw new Error("Redirect login");

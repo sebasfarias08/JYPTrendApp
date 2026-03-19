@@ -34,10 +34,10 @@
   <nav id="appShellBottom"></nav>
 
   <script type="module">
-    import { requireAuth } from "/js/auth.js";
-    import { initAppShell } from "/js/app-shell.js";
-    import { registerServiceWorker, applyUpdate, requestSwVersion } from "/js/sw-register.js";
-    import { showToast } from "/js/toast.js";
+    import { requireAuth } from "/js/app/auth/auth.js";
+    import { initAppShell } from "/js/app/shell/app-shell.js";
+    import { registerServiceWorker, applyUpdate, requestSwVersion } from "/js/app/core/sw-register.js";
+    import { showToast } from "/js/shared/ui/toast.js";
 
     const session = await requireAuth();
     if (!session) throw new Error("Redirect login");

@@ -1,1 +1,2 @@
-export { supabase } from "./lib/supabase-client.js";
+// TEMP compatibility wrapper. Real module moved to ./app/core/supabase-client.js
+export * from "./app/core/supabase-client.js";
