@@ -6,7 +6,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 
 ## Current status
 - Functional and in active use.
-- App version in repo: `v1.4.0` (`public/version.json`, releasedAt `2026-03-19`).
+- App version in repo: `v1.5.0` (`public/version.json`, releasedAt `2026-03-19`).
 - Frontend-only app hosted as static site.
 
 ## Architecture
@@ -78,13 +78,11 @@ The remaining files in this surface are thin `export * from ...` wrappers kept o
 ## Legacy wrapper inventory
 
 ### Maintain Temporarily
-- `public/js/app-shell.js`
-- `public/js/auth.js`
 - `public/js/cart.js`
 
 Reason:
-- top-level public-looking compatibility paths with the highest remaining historical visibility;
-- retained intentionally after the second controlled top-level cleanup because they are the last user-facing shell/auth/cart entrypoints still preserved.
+- top-level public-looking compatibility path with the highest remaining historical visibility;
+- retained intentionally after the third controlled top-level cleanup because cart remains the last top-level runtime wrapper still preserved.
 
 ### Internal Wrappers Already Retired
 - retired in the safe wrapper-removal pass:
@@ -147,7 +145,7 @@ Reason:
 
 ## Recommended next priorities
 1. Validate offline behavior on clean install/update across the main page set after the precache realignment.
-2. Review the remaining top-level wrappers in `Maintain Temporarily` together with the component wrappers for the final controlled retirement pass.
+2. Review `public/js/cart.js` together with the component wrappers for the final controlled retirement pass.
 3. Add CI checks to detect reintroduction of legacy imports.
 4. Add basic test coverage for Reserva/order creation paths.
 5. Document and validate full RLS strategy for all key tables.

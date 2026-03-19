@@ -1,4 +1,4 @@
-// public/js/auth.js
+// Auth session and guard helpers.
 import {
   authDebugMeta,
   fetchCurrentProfile,

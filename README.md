@@ -5,7 +5,7 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 ## Resumen ejecutivo
 
 - Estado actual: funcional para operacion diaria (catalogo, carrito, Reserva, pedidos, clientes, productos, PWA basica).
-- Version de app en repo: `v1.4.0` (`public/version.json`, fecha `2026-03-19`).
+- Version de app en repo: `v1.5.0` (`public/version.json`, fecha `2026-03-19`).
 - Arquitectura: HTML multipagina + JavaScript ES Modules + Tailwind CDN + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Fuente de verdad backend: `docs/supabase-architecture-final.md`.
@@ -71,7 +71,7 @@ public/
   - `public/js/*.js`
   - `public/js/components/*.js`
 - Las paginas HTML activas ya importan modulos reales bajo `app/`, `features/` y `shared/`.
-- Tras la segunda limpieza controlada, los wrappers top-level restantes se reducen a `public/js/app-shell.js`, `public/js/auth.js` y `public/js/cart.js`; `public/sw.js` sigue precacheando solo rutas modulares reales.
+- Tras la tercera limpieza controlada, el unico wrapper top-level restante es `public/js/cart.js`; `public/sw.js` sigue precacheando solo rutas modulares reales.
 
 ## Integracion Supabase
 
@@ -121,8 +121,8 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 - Version documental alineada con `public/version.json`.
 - Imports internos auditados:
   - no se detectaron modulos internos de `public/js/**/*.js` importando wrappers legacy cuando ya existe el modulo real;
-  - los wrappers legacy retirados de `public/js/services/`, `public/js/utils/`, `public/js/lib/` y las dos tandas controladas de wrappers top-level no tenian uso en runtime ni dependian del precache;
-  - las referencias legacy que quedan en repo se concentran en `public/js/app-shell.js`, `public/js/auth.js`, `public/js/cart.js`, los wrappers de `public/js/components/` y documentacion de inventario.
+  - los wrappers legacy retirados de `public/js/services/`, `public/js/utils/`, `public/js/lib/` y las tres tandas controladas de wrappers top-level no tenian uso en runtime ni dependian del precache;
+  - las referencias legacy que quedan en repo se concentran en `public/js/cart.js`, los wrappers de `public/js/components/` y documentacion de inventario.
 - Inventario y recomendacion de wrappers legacy:
   - ver `docs/project-context.md`.
 
@@ -136,7 +136,7 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 
 ## Backlog recomendado
 
-1. Evaluar la retirada final de `public/js/app-shell.js`, `public/js/auth.js` y `public/js/cart.js`.
+1. Evaluar la retirada final de `public/js/cart.js`.
 2. Decidir el destino final de `public/js/components/address-autocomplete.js` y `public/js/components/dropdown.js`.
 3. Agregar una verificacion automatica de imports legacy en CI.
 4. Agregar tests de servicios Supabase criticos (auth, pedidos, stock).

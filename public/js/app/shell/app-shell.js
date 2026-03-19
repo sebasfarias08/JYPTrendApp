@@ -1,4 +1,4 @@
-// public/js/app-shell.js
+// App shell helpers.
 import { getCurrentProfile, getCurrentUser, signOut } from "../auth/auth.js";
 import {
   ROLES,
