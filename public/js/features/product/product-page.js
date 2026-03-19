@@ -1,6 +1,6 @@
 ﻿// public/js/product-page.js
 import { getProductById, getProductVariantById, updateProductById } from "./product-service.js";
-import { getImageUrl } from "../../shared/utils/image.js";
+import { getImageUrl, getProductDetailImageUrl } from "../../shared/utils/image.js";
 import { shareProduct, copyToClipboard, downloadImage } from "../../shared/utils/share.js";
 import { addToCart } from "../checkout/cart.js";
 import { showToast } from "../../shared/ui/toast.js";
@@ -115,7 +115,7 @@ export async function initProductPage(role = "viewer") {
 
   function renderProduct() {
     const imagePath = getDisplayImagePath();
-    const imageUrl = imagePath ? getImageUrl(imagePath) : "";
+    const imageUrl = imagePath ? getProductDetailImageUrl(imagePath) : "";
     setText("name", p.name);
     setText("price", `$ ${formatArs(p.price)}`);
     setText("category", p.categories?.name ? p.categories.name : "");

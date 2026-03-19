@@ -37,7 +37,7 @@
     import { requireAuth } from "/js/app/auth/auth.js";
     import { registerServiceWorker, applyUpdate } from "/js/app/core/sw-register.js";
     import { getProducts } from "/js/features/catalog/catalog-service.js";
-    import { getImageUrl } from "/js/shared/utils/image.js";
+    import { getCatalogCardImageUrl } from "/js/shared/utils/image.js";
     import { addToCart } from "/js/features/checkout/cart.js";
     import { initAppShell } from "/js/app/shell/app-shell.js";
     import { INVENTORY_CHANGED_EVENT } from "/js/features/inventory/stock-service.js";
@@ -49,6 +49,7 @@
     const statusLineEl = document.getElementById("statusLine");
     const CATALOG_SCROLL_KEY = "catalog_scroll_position";
     const mainScrollEl = document.getElementById("mainScroll");
+    const FIRST_VISIBLE_IMAGE_COUNT = 4;
 
     function saveCatalogScrollPosition() {
       if (!mainScrollEl) return;
@@ -141,17 +142,28 @@
       }
 
       emptyStateEl.classList.add("hidden");
-      listEl.innerHTML = rows.map((p) => {
-        const img = p.image_path ? getImageUrl(String(p.image_path).trim().replace(/^\/+/, "")) : "";
+      listEl.innerHTML = rows.map((p, index) => {
+        const img = p.image_path ? getCatalogCardImageUrl(String(p.image_path).trim().replace(/^\/+/, "")) : "";
         const stock = Number(p.stock_qty ?? 0);
         const hasStock = stock > 0;
         const productHref = `/pages/producto.html?id=${encodeURIComponent(p.product_id || "")}&variant_id=${encodeURIComponent(p.variant_id || p.id || "")}`;
+        const loading = index < FIRST_VISIBLE_IMAGE_COUNT ? "eager" : "lazy";
+        const fetchPriority = index === 0 ? "high" : loading === "lazy" ? "low" : "auto";
 
         return `
           <article class="px-3 py-2">
             <div class="flex items-center gap-3 card p-2.5">
               <a href="${productHref}" class="block shrink-0">
-                <img src="${img}" alt="${escapeHtml(p.name)}" class="w-[70px] h-[70px] rounded-lg border divider bg-surface-2 object-contain" />
+                <img
+                  src="${img}"
+                  alt="${escapeHtml(p.name)}"
+                  width="70"
+                  height="70"
+                  loading="${loading}"
+                  decoding="async"
+                  fetchpriority="${fetchPriority}"
+                  class="w-[70px] h-[70px] rounded-lg border divider bg-surface-2 object-contain"
+                />
               </a>
 
               <a href="${productHref}" class="min-w-0 flex-1">

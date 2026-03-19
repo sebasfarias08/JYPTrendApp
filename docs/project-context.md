@@ -6,7 +6,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 
 ## Current status
 - Functional and in active use.
-- App version in repo: `v1.7.2` (`public/version.json`, releasedAt `2026-03-19`).
+- App version in repo: `v1.7.3` (`public/version.json`, releasedAt `2026-03-19`).
 - Frontend-only app hosted as static site.
 
 ## Architecture
@@ -54,10 +54,12 @@ No legacy compatibility wrappers remain in the current repo state.
 ## Core business modules
 - Catalog: `public/index.html`, `public/js/features/catalog/catalog-service.js`
   - Current source: single query to `public.v_catalog_variants_available` filtered by `warehouse_id` and `point_of_sale_id` from `salesContext`.
+  - Phase 1 image optimization: transformed thumbnails from Supabase Storage, explicit image dimensions, async decoding, eager/high priority for the first image and lazy/low priority for the rest.
 - Sales context: `public/js/app/core/sales-context-service.js`
   - Current source: single RPC call to `public.get_sales_context_resolved(p_user_id uuid)`.
   - Keeps the same public contract for `getSalesContext()`, `requireSalesContext()`, cache invalidation and unresolved-context errors.
 - Product detail/edit/share: `public/pages/producto.html`, `public/js/features/product/product-page.js`
+  - Phase 1 image optimization: larger transformed image variant plus stable square layout and async decoding.
 - Cart (localStorage): `public/js/features/checkout/cart.js`
 - Reserva: `public/pages/checkout.html`, `public/js/features/checkout/checkout-page.js`
 - Order creation: `public/js/features/orders/order-service.js`
@@ -132,6 +134,10 @@ Reason:
   - frontend now calls `public.get_sales_context_resolved(p_user_id uuid)` from `public/js/app/core/sales-context-service.js`;
   - the RPC replaces previous multi-query frontend resolution over `profiles`, `warehouses` and `points_of_sale`;
   - this removes redundant roundtrips before catalog and order flows consume the resolved warehouse/POS.
+- Catalog/detail image delivery optimized incrementally:
+  - frontend now builds transformed public URLs for Supabase Storage from `public/js/shared/utils/storage-service.js` and `public/js/shared/utils/image.js`;
+  - catalog cards request smaller thumbnails and defer lower-priority images;
+  - product detail requests a larger transformed asset while preserving stable layout on mobile cold load.
 
 ## SQL assets in repo
 - `database/20260319_create_v_catalog_variants_available.sql`

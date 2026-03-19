@@ -18,7 +18,14 @@
   <header id="appShellTop"></header>
 
   <main class="flex-1 overflow-y-auto p-4 space-y-4 pb-[calc(env(safe-area-inset-bottom)+7rem)]">
-    <img id="img" class="w-full h-56 object-contain rounded-2xl border divider bg-surface" alt="" />
+    <img
+      id="img"
+      width="720"
+      height="720"
+      decoding="async"
+      class="w-full max-w-[28rem] mx-auto aspect-square object-contain rounded-2xl border divider bg-surface"
+      alt=""
+    />
 
     <section class="card p-4 space-y-3">
       <h1 id="name" class="text-xl font-semibold leading-tight"></h1>
