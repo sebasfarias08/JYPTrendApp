@@ -115,19 +115,12 @@ Reason:
 - no internal runtime references were found in the current repo state;
 - however, these are still top-level public URLs that may have been consumed externally or bookmarked historically.
 
-### Candidate For Future Removal
-- `public/js/order-detail.js`
-- `public/js/orders.js`
-- `public/js/product-form-page.js`
-- `public/js/products-page.js`
-
-Reason:
-- no internal runtime references were found in the current repo state;
-- they are not in the current precache list;
-- they appear less foundational than the broader compatibility surface above, so they fit a later selective retirement pass.
-
 ### Internal Wrappers Already Retired
 - retired in the safe wrapper-removal pass:
+  - `public/js/order-detail.js`
+  - `public/js/orders.js`
+  - `public/js/product-form-page.js`
+  - `public/js/products-page.js`
   - `public/js/services/auth-service.js`
   - `public/js/services/catalog-service.js`
   - `public/js/services/customers-service.js`
@@ -182,8 +175,8 @@ Reason:
   - `public/version.json` -> `version`
 
 ## Recommended next priorities
-1. Remove wrappers classified as probably unnecessary in a controlled compatibility pass.
-2. Validate offline behavior on clean install/update across the main page set after the precache realignment.
+1. Validate offline behavior on clean install/update across the main page set after the precache realignment.
+2. Review the remaining top-level wrappers in `Require External/Manual Validation` with external telemetry/bookmark/backlink evidence if available.
 3. Add CI checks to detect reintroduction of legacy imports.
 4. Add basic test coverage for Reserva/order creation paths.
 5. Document and validate full RLS strategy for all key tables.
