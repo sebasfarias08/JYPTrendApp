@@ -1,4 +1,4 @@
-// public/js/checkout-page.js
+// Checkout feature entrypoint.
 import { getCart, updateQty, updatePrice, clearCart, cartTotal } from "./cart.js";
 import { getImageUrl } from "../../shared/utils/image.js";
 import { createOrderWithItems } from "../orders/order-service.js";

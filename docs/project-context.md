@@ -6,7 +6,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 
 ## Current status
 - Functional and in active use.
-- App version in repo: `v1.2.2` (`public/version.json`, releasedAt `2026-03-19`).
+- App version in repo: `v1.3.0` (`public/version.json`, releasedAt `2026-03-19`).
 - Frontend-only app hosted as static site.
 
 ## Architecture
@@ -32,7 +32,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 - `public/js/*.js`
 - `public/js/components/*.js`
 
-These files are mostly thin `export * from ...` wrappers kept for compatibility with historical import paths.
+The remaining files in this surface are thin `export * from ...` wrappers still kept for selected historical top-level paths and component paths.
 
 ## Active import strategy
 - HTML entrypoints already import real modules under:
@@ -43,7 +43,7 @@ These files are mostly thin `export * from ...` wrappers kept for compatibility 
   - no safe direct replacements were needed;
   - current internal imports already target real modules in the refactored structure.
 - Remaining legacy references found in repo:
-  - compatibility wrappers still exist on disk for historical public URLs;
+  - a reduced set of compatibility wrappers still exists on disk for selected historical public URLs;
   - documentation still tracks some legacy locations for cleanup planning.
 
 ## Auth and access
@@ -93,27 +93,7 @@ These files are mostly thin `export * from ...` wrappers kept for compatibility 
 
 Reason:
 - top-level public-looking compatibility paths with broad historical visibility;
-- removing them without external telemetry or manual validation would be a higher compatibility risk than the internal wrappers already retired.
-
-### Require External/Manual Validation
-- `public/js/checkout-page.js`
-- `public/js/client-form-page.js`
-- `public/js/clients-page.js`
-- `public/js/customers-service.js`
-- `public/js/inventory-movement-form-page.js`
-- `public/js/inventory-movement-service.js`
-- `public/js/inventory-movements-page.js`
-- `public/js/logistics-inventories-page.js`
-- `public/js/logistics-inventory-form-page.js`
-- `public/js/logistics-inventory-service.js`
-- `public/js/order-service.js`
-- `public/js/orders-service.js`
-- `public/js/product-page.js`
-- `public/js/product-service.js`
-
-Reason:
-- no internal runtime references were found in the current repo state;
-- however, these are still top-level public URLs that may have been consumed externally or bookmarked historically.
+- retained intentionally after the controlled top-level cleanup because they still have higher historical visibility than the wrappers already retired.
 
 ### Internal Wrappers Already Retired
 - retired in the safe wrapper-removal pass:
@@ -160,7 +140,7 @@ Reason:
 `public/js/features/orders/orders-service.js` tolerates missing `order_number` (fallback query).
 
 ## Known technical debt / risks
-- top-level/component compatibility wrappers still exist even though `public/sw.js` now precaches modular real paths.
+- a smaller top-level/component compatibility surface still exists even though `public/sw.js` now precaches modular real paths.
 - Supabase config remains exposed in frontend runtime.
 - Status vocabulary inconsistency (ES/EN/legacy) can still surface at integration boundaries.
 - No automated tests (unit/integration/e2e).
@@ -176,7 +156,7 @@ Reason:
 
 ## Recommended next priorities
 1. Validate offline behavior on clean install/update across the main page set after the precache realignment.
-2. Review the remaining top-level wrappers in `Require External/Manual Validation` with external telemetry/bookmark/backlink evidence if available.
+2. Review the remaining top-level wrappers in `Maintain Temporarily` and the component wrappers for the next controlled retirement pass.
 3. Add CI checks to detect reintroduction of legacy imports.
 4. Add basic test coverage for Reserva/order creation paths.
 5. Document and validate full RLS strategy for all key tables.

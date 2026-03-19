@@ -6,7 +6,7 @@ La fuente de referencia principal es [README.md](/c:/01_DevSebas/JYPTrendApp/REA
 
 ## Estado actual
 
-- Version en repo: `v1.2.2` (`public/version.json`, fecha `2026-03-19`).
+- Version en repo: `v1.3.0` (`public/version.json`, fecha `2026-03-19`).
 - Frontend estatico en `public/` sin build step.
 - Estructura modular vigente:
   - `public/js/app/`
@@ -22,4 +22,4 @@ La fuente de referencia principal es [README.md](/c:/01_DevSebas/JYPTrendApp/REA
 - Contexto del proyecto: `docs/project-context.md`
 - Arquitectura backend/Supabase: `docs/supabase-architecture-final.md`
 - Riesgo vigente de compatibilidad:
-  - `public/sw.js` ya precachea rutas modulares reales, pero los wrappers top-level legacy siguen presentes y deben retirarse en una pasada separada.
+  - `public/sw.js` ya precachea rutas modulares reales; tras la limpieza controlada solo queda una superficie legacy reducida en `public/js/` y `public/js/components/`.
