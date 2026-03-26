@@ -68,6 +68,7 @@ function buildOrderCardModel(summaryRow, detailRow) {
     createdAt: new Date(summaryRow.created_at),
     customer: String(summaryRow.customer_name || detailRow?.customer_name || "Sin cliente"),
     status: normalizeStatus(summaryRow.order_status || "Reservado"),
+    paymentStatus: String(summaryRow.payment_status || "Pendiente"),
     qty: qty > 0 ? qty : 1,
     productName,
     total: Number(summaryRow.total ?? detailRow?.total ?? 0),
@@ -121,18 +122,28 @@ export async function initOrdersScreen({ containerId = "orders-container" } = {}
   const listWrap = document.getElementById("ordersListWrap");
 
   let allOrders = [];
-  let statusFilter = "all";
+  // Por defecto excluir "Finalizado" y "Cancelado"
+  let statusFilter = new Set(ORDER_STATUS.filter(status => status !== "Finalizado" && status !== "Cancelado"));
 
-  filterMenu.innerHTML = [
-    `<button data-status="all" class="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-50">All statuses</button>`,
-    ...ORDER_STATUS.map((status) => `<button data-status="${status}" class="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-50">${escapeHtml(statusUiLabel(status))}</button>`)
-  ].join("");
+  function renderFilterMenu() {
+    filterMenu.innerHTML = [
+      `<button data-status="reset" class="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-50 text-slate-600">Clear all</button>`,
+      ...ORDER_STATUS.map((status) => {
+        const isSelected = statusFilter.has(status);
+        const checkmark = isSelected ? `<span class="text-slate-900 font-semibold">✓</span>` : `<span class="text-slate-300">○</span>`;
+        const bgClass = isSelected ? "bg-blue-50" : "";
+        return `<button data-status="${status}" class="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-50 flex items-center gap-2 ${bgClass}">${checkmark}<span>${escapeHtml(statusUiLabel(status))}</span></button>`;
+      })
+    ].join("");
+  }
+
+  renderFilterMenu();
 
   function filteredOrders() {
     const q = String(searchInput?.value || "").toLowerCase().trim();
 
     return allOrders.filter((order) => {
-      if (statusFilter !== "all" && order.status !== statusFilter) return false;
+      if (statusFilter.size > 0 && !statusFilter.has(order.status)) return false;
       if (!q) return true;
 
       return (
@@ -170,7 +181,7 @@ export async function initOrdersScreen({ containerId = "orders-container" } = {}
               <div class="min-w-0 flex-1">
                 <div class="font-semibold text-sm text-slate-900 truncate">${escapeHtml(order.customer)}</div>
                 <div class="text-xs text-slate-500 mt-0.5">${escapeHtml(timeText)}</div>
-                <div class="text-xs text-slate-600 mt-1">${order.qty} pcs | ${escapeHtml(order.customer)}</div>
+                <div class="text-xs text-slate-600 mt-1">${order.qty} pcs | ${escapeHtml(order.paymentStatus)}</div>
               </div>
 
               <div class="text-right shrink-0">
@@ -197,12 +208,23 @@ export async function initOrdersScreen({ containerId = "orders-container" } = {}
     filterMenu?.classList.toggle("hidden");
   });
 
-  filterMenu?.querySelectorAll("[data-status]")?.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      statusFilter = btn.getAttribute("data-status") || "all";
-      filterMenu.classList.add("hidden");
-      renderOrders();
-    });
+  filterMenu?.addEventListener("click", (event) => {
+    const btn = event.target.closest("[data-status]");
+    if (!btn) return;
+
+    const status = btn.getAttribute("data-status");
+    
+    if (status === "reset") {
+      // Limpiar filtro (mostrar todos)
+      statusFilter.clear();
+    } else if (statusFilter.has(status)) {
+      statusFilter.delete(status);
+    } else {
+      statusFilter.add(status);
+    }
+
+    renderFilterMenu();
+    renderOrders();
   });
 
   document.addEventListener("click", (event) => {
