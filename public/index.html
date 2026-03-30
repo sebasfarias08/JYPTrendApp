@@ -39,11 +39,12 @@
     <div id="list" class="divide-y divider"></div>
     <div id="emptyState" class="hidden p-4 text-sm text-muted">No hay variantes para mostrar.</div>
     <div id="statusLine" class="p-3 text-xs text-subtle"></div>
-    <div id="paginationControls" class="flex items-center justify-between gap-2 p-3">
-      <button id="btnPrevPage" type="button" class="btn btn-secondary px-3 py-1 rounded">Anterior</button>
-      <div id="paginationInfo" class="text-xs text-subtle">Página 1</div>
-      <button id="btnNextPage" type="button" class="btn btn-secondary px-3 py-1 rounded">Siguiente</button>
+    <div id="loadingSpinner" class="hidden p-3 text-center">
+      <div class="inline-block w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-xs text-muted mt-2">Cargando más productos...</p>
     </div>
+    <div id="endMessage" class="hidden p-3 text-center text-xs text-muted">Mostrás todos los productos</div>
+    <div id="sentinel" class="h-4"></div>
   </main>
 
   <nav id="appShellBottom"></nav>
@@ -69,8 +70,10 @@
     let currentPage = 0;
     let totalItems = 0;
     let hasMore = true;
-    let products = [];
+    let allProducts = [];
     let isLoading = false;
+    let currentSearch = "";
+    let currentCategorySlug = selectedTab;
 
     function saveCatalogScrollPosition() {
       if (!mainScrollEl) return;
@@ -164,44 +167,25 @@
     }
 
     function setSkeleton() {
-      listEl.innerHTML = Array.from({ length: PAGE_SIZE }).map(() => {
-        return `
-          <article class="px-3 py-2">
-            <div class="flex items-center gap-3 card p-2.5 animate-pulse">
-              <div class="w-[70px] h-[70px] rounded-lg border bg-surface-2 skeleton"></div>
-              <div class="min-w-0 flex-1 space-y-2">
-                <div class="h-4 rounded bg-surface-2 skeleton w-32"></div>
-                <div class="h-3 rounded bg-surface-2 skeleton w-20"></div>
-                <div class="h-3 rounded bg-surface-2 skeleton w-24"></div>
-              </div>
-              <div class="w-14 flex flex-col items-end gap-2">
-                <div class="w-11 h-11 rounded-full bg-surface-2 skeleton"></div>
-              </div>
-            </div>
-          </article>
-        `;
-      }).join("");
-      emptyStateEl.classList.add("hidden");
+      const spinnerEl = document.getElementById("loadingSpinner");
+      spinnerEl.classList.remove("hidden");
       statusLineEl.textContent = "Cargando variantes...";
-      updatePaginationControls();
     }
 
-    function setPageStatus(filteredCount) {
-      const start = filteredCount > 0 ? currentPage * PAGE_SIZE + 1 : 0;
-      const end = filteredCount > 0 ? start + filteredCount - 1 : 0;
-      statusLineEl.textContent = `Mostrando ${start}-${end} de ${totalItems} variantes`;
+    function setPageStatus() {
+      statusLineEl.textContent = `Mostrando ${allProducts.length} de ${totalItems} variantes`;
     }
 
-    function renderList(rows) {
-      if (!rows.length) {
+    function renderList() {
+      if (!allProducts.length) {
         listEl.innerHTML = "";
         emptyStateEl.classList.remove("hidden");
-        setPageStatus(0);
+        setPageStatus();
         return;
       }
 
       emptyStateEl.classList.add("hidden");
-      listEl.innerHTML = rows.map((p, index) => {
+      listEl.innerHTML = allProducts.map((p, index) => {
         const imageUrls = p.image_path
           ? getCatalogCardImageUrls(String(p.image_path).trim().replace(/^\/+/, ""))
           : { transformedUrl: "", publicUrl: "" };
@@ -296,26 +280,24 @@
         });
       });
 
-      setPageStatus(rows.length);
-      updatePaginationControls();
+      setPageStatus();
+    }
     }
 
     function applyFilters() {
-      const q = (searchInputEl?.value || "").toLowerCase().trim();
-      const rows = products.filter((p) => {
-        const name = String(p.name ?? "").toLowerCase();
-        const slug = normalizeSlug(p.categories?.slug ?? p.categories?.name ?? "");
-
-        const matchTab = !selectedTab || slug === selectedTab;
-        const matchSearch = !q || name.includes(q);
-        return matchTab && matchSearch;
-      });
-
-      renderList(rows);
+      renderList();
     }
 
-    async function loadPage(page = 0) {
-      currentPage = Math.max(0, page);
+    async function resetAndLoad(search = "", categorySlug = selectedTab) {
+      currentPage = 0;
+      allProducts = [];
+      hasMore = true;
+      currentSearch = search;
+      currentCategorySlug = categorySlug;
+      document.getElementById("endMessage").classList.add("hidden");
+      await loadMore();
+    }
+      if (isLoading || !hasMore) return;
       isLoading = true;
       setSkeleton();
 
@@ -324,28 +306,28 @@
           userId: session.user.id,
           profile: session.profile,
           page: currentPage,
-          pageSize: PAGE_SIZE
+          pageSize: PAGE_SIZE,
+          search: currentSearch || undefined,
+          categorySlug: currentCategorySlug || undefined
         });
 
-        products = result.items || [];
+        const newItems = result.items || [];
+        allProducts = [...allProducts, ...newItems];
         totalItems = Number(result.total || 0);
         hasMore = Boolean(result.hasMore);
-        currentPage = Number(result.page || currentPage);
+        currentPage = Number(result.page || currentPage) + 1;
 
-        const hasPerfumes = products.some((p) => normalizeSlug(p.categories?.slug ?? p.categories?.name ?? "") === "perfumes");
+        const hasPerfumes = allProducts.some((p) => normalizeSlug(p.categories?.slug ?? p.categories?.name ?? "") === "perfumes");
         if (!hasPerfumes && selectedTab === "perfumes") {
-          const firstWithCategory = products.find((p) => normalizeSlug(p.categories?.slug ?? p.categories?.name ?? ""));
+          const firstWithCategory = allProducts.find((p) => normalizeSlug(p.categories?.slug ?? p.categories?.name ?? ""));
           selectedTab = normalizeSlug(firstWithCategory?.categories?.slug ?? firstWithCategory?.categories?.name ?? selectedTab);
         }
 
         updateTabUi();
-        applyFilters();
+        renderList();
       } catch (error) {
-        console.error("loadPage error:", error);
-        products = [];
-        totalItems = 0;
+        console.error("loadMore error:", error);
         hasMore = false;
-        currentPage = 0;
         listEl.innerHTML = "";
         emptyStateEl.classList.remove("hidden");
         emptyStateEl.textContent = String(
@@ -355,7 +337,10 @@
         statusLineEl.textContent = "Catalogo no disponible.";
       } finally {
         isLoading = false;
-        updatePaginationControls();
+        document.getElementById("loadingSpinner").classList.add("hidden");
+        if (!hasMore) {
+          document.getElementById("endMessage").classList.remove("hidden");
+        }
       }
     }
 
@@ -364,7 +349,7 @@
 
     initAppShell({
       title: "Perfumes",
-      onRefresh: () => loadPage(currentPage)
+      onRefresh: () => resetAndLoad(currentSearch, currentCategorySlug)
     });
 
     searchInputEl = document.getElementById("appShellSearchInput");
@@ -389,40 +374,44 @@
         }
 
         selectedTab = value;
-        currentPage = 0;
         history.replaceState({}, "", `/index.html?tab=${encodeURIComponent(value)}`);
         updateTabUi();
-        await loadPage(0);
+        await resetAndLoad(currentSearch, value);
       });
     });
 
-    document.getElementById("btnPrevPage")?.addEventListener("click", async () => {
-      if (currentPage <= 0 || isLoading) return;
-      await loadPage(currentPage - 1);
-      mainScrollEl.scrollTop = 0;
-    });
-
-    document.getElementById("btnNextPage")?.addEventListener("click", async () => {
-      if (!hasMore || isLoading) return;
-      await loadPage(currentPage + 1);
-      mainScrollEl.scrollTop = 0;
-    });
-
-    searchInputEl?.addEventListener("input", async () => {
-      currentPage = 0;
-      await loadPage(0);
+    let searchDebounceTimer = null;
+    searchInputEl?.addEventListener("input", () => {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(async () => {
+        const query = (searchInputEl?.value || "").trim();
+        await resetAndLoad(query, currentCategorySlug);
+      }, 300);
     });
 
     window.addEventListener("cart:changed", applyFilters);
     window.addEventListener(INVENTORY_CHANGED_EVENT, async () => {
-      await loadPage(currentPage);
+      await resetAndLoad(currentSearch, currentCategorySlug);
     });
     window.addEventListener("pagehide", () => {
       saveCatalogScrollPosition();
     });
 
-    await loadPage(0);
+    await resetAndLoad("", selectedTab);
     restoreCatalogScrollPosition();
+
+    // Infinite scroll with IntersectionObserver
+    const sentinelEl = document.getElementById("sentinel");
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      if (entry.isIntersecting && hasMore && !isLoading) {
+        loadMore();
+      }
+    }, {
+      root: mainScrollEl,
+      threshold: 0.1
+    });
+    observer.observe(sentinelEl);
   </script>
 </body>
 </html>

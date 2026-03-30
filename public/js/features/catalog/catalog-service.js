@@ -5,6 +5,8 @@ export async function getProducts(options = null) {
   const normalizedOptions = options && typeof options === "object" ? options : {};
   const page = Number.isInteger(normalizedOptions.page) && normalizedOptions.page >= 0 ? normalizedOptions.page : 0;
   const pageSize = Number.isInteger(normalizedOptions.pageSize) && normalizedOptions.pageSize > 0 ? normalizedOptions.pageSize : 50;
+  const search = typeof normalizedOptions.search === "string" && normalizedOptions.search.trim() ? normalizedOptions.search.trim() : null;
+  const categorySlug = typeof normalizedOptions.categorySlug === "string" && normalizedOptions.categorySlug.trim() ? normalizedOptions.categorySlug.trim() : null;
 
   const salesContext = await requireSalesContext({
     userId: normalizedOptions.userId ?? null,
@@ -15,11 +17,21 @@ export async function getProducts(options = null) {
   const offset = page * pageSize;
   const rangeEnd = offset + pageSize - 1;
 
-  const { data, error, count } = await supabase
+  let query = supabase
     .from("v_catalog_variants_available")
     .select("*", { count: "exact", head: false })
     .eq("warehouse_id", salesContext.warehouse_id)
-    .eq("point_of_sale_id", salesContext.point_of_sale_id)
+    .eq("point_of_sale_id", salesContext.point_of_sale_id);
+
+  if (categorySlug) {
+    query = query.eq("category_slug", categorySlug);
+  }
+
+  if (search) {
+    query = query.ilike("display_name", `%${search}%`);
+  }
+
+  const { data, error, count } = await query
     .order("display_name", { ascending: true })
     .range(offset, rangeEnd);
 
