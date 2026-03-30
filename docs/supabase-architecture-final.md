@@ -114,11 +114,13 @@ Relaciones principales observadas en el dump:
 ## 5. Entidades y campos clave
 
 ### Catalogo
+
 - `categories`: `id`, `name`, `slug`, `order`, `active`, timestamps.
 - `products`: `id`, `name`, `description`, `price`, `category_id`, `image_path`, `active`, timestamps.
 - `product_variants`: SKU/barcode, opciones, `cost_price`, `sale_price`, `currency_code`, `active`, `product_id`, `user_id`.
 
 ### Ventas
+
 - `customers`: incluye `address` (ademas de nombre, contacto, notas, `is_active`, `user_id`).
 - `orders`: cabecera comercial + snapshots cliente + montos (`subtotal`, `discount_amount`, `shipping_amount`, `tax_amount`, `grand_total`, `total`) + logistica (`warehouse_id`, `point_of_sale_id`).
 - `order_items`: lineas con snapshots (`product_name_snapshot`, `variant_name_snapshot`, `sku_snapshot`) y montos por linea.
@@ -126,12 +128,14 @@ Relaciones principales observadas en el dump:
 - `payment_allocations`: asignacion de pago a orden con unique `(payment_id, order_id)`.
 
 ### Operacion / inventario / compras
+
 - `inventory_movements`: fuente de verdad de stock (por `product_id`, opcional `variant_id`, `warehouse_id`, `point_of_sale_id`).
 - `cash_movements`: movimientos de caja por punto de venta.
 - `suppliers`, `purchase_orders`, `purchase_order_items`.
 - `warehouses`, `points_of_sale`.
 
 ### Seguridad/roles
+
 - `profiles`: `id`, `email`, `full_name`, `role`, `is_active`, timestamps.
 
 ## 6. Vistas para reporting
@@ -325,7 +329,7 @@ validate_order_item_stock
 
 #### Clasificación funcional
 
-**Gestión de roles**
+##### Gestión de roles
 
 ```txt
 current_app_role
@@ -337,7 +341,7 @@ Utilizadas por las políticas RLS y creación automática de perfiles.
 
 ---
 
-**Cálculo de montos**
+### Cálculo de montos
 
 ```txt
 order_items_set_subtotal
@@ -350,7 +354,7 @@ Gestionan cálculos automáticos de subtotales y totales.
 
 ---
 
-**Inventario**
+##### Inventario
 
 ```txt
 sync_inventory_from_order_item
@@ -372,7 +376,6 @@ refresh_mv_sales_by_product
 rls_auto_enable
 ```
 
-
 ## 8. RLS y politicas (estado real)
 
 - RLS esta habilitado en las 16 tablas de `public`.
@@ -392,7 +395,6 @@ rls_auto_enable
 - `warehouses`: politicas basadas en rol; `SELECT` para `admin/seller/viewer` y `INSERT/UPDATE/DELETE` solo admin.
 
 Importante: esta matriz corrige documentacion vieja que asumia owner-scope estricto para todas las entidades comerciales.
-
 
 ## 9. Constraints e indices destacados
 

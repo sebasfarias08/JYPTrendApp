@@ -80,4 +80,3 @@ Entregame la respuesta en español, con formato claro y orientado a ejecución.
 - Si quieres foco comercial, agrega al prompt: `Prioriza conversion, ticket promedio y retencion de clientes B2B`.
 - Si quieres foco tecnico, agrega: `Prioriza seguridad, calidad de datos y reduccion de deuda tecnica`.
 - Si quieres foco operativo, agrega: `Prioriza velocidad de vendedor en calle y tolerancia a mala conectividad`.
-

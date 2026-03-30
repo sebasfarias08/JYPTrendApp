@@ -1,15 +1,18 @@
 # Project Context - JYPTrendApp
 
 ## Purpose
+
 JYPTrendApp is a mobile-first sales web app for daily B2B operations.
 Main flow: catalog -> cart -> Reserva -> order tracking.
 
 ## Current status
+
 - Functional and in active use.
 - App version in repo: `v1.7.4` (`public/version.json`, releasedAt `2026-03-19`).
 - Frontend-only app hosted as static site.
 
 ## Architecture
+
 - Frontend: static multi-page app in `public/`.
 - UI: HTML + Tailwind Play CDN + custom CSS (`public/css/theme.css`).
 - Logic: vanilla JavaScript ES modules, no build step.
@@ -19,6 +22,7 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
 ## Frontend module layout
 
 ### Real modules
+
 - `public/js/app/`
   - auth/session, permissions, shell, app core services.
 - `public/js/features/`
@@ -29,11 +33,13 @@ Main flow: catalog -> cart -> Reserva -> order tracking.
   - vendored browser dependencies.
 
 ### Legacy compatibility surface
+
 - `public/js/components/*.js`
 
 No legacy compatibility wrappers remain in the current repo state.
 
 ## Active import strategy
+
 - HTML entrypoints already import real modules under:
   - `/js/app/**`
   - `/js/features/**`
@@ -45,6 +51,7 @@ No legacy compatibility wrappers remain in the current repo state.
   - documentation still tracks retired legacy locations for cleanup history.
 
 ## Auth and access
+
 - Google OAuth (PKCE) via Supabase Auth.
 - Auth guard in protected pages via `requireAuth()` from `public/js/app/auth/auth.js`.
 - Login flow:
@@ -52,6 +59,7 @@ No legacy compatibility wrappers remain in the current repo state.
   - `/pages/auth-callback.html`
 
 ## Core business modules
+
 - Catalog: `public/index.html`, `public/js/features/catalog/catalog-service.js`
   - Current source: single query to `public.v_catalog_variants_available` filtered by `warehouse_id` and `point_of_sale_id` from `salesContext`.
   - Phase 1 image optimization: transformed thumbnails from Supabase Storage, explicit image dimensions, async decoding, eager/high priority for the first image and lazy/low priority for the rest.
@@ -84,6 +92,7 @@ No legacy compatibility wrappers remain in the current repo state.
 ## Legacy wrapper inventory
 
 ### Internal Wrappers Already Retired
+
 - retired in the safe wrapper-removal pass:
   - `public/js/order-detail.js`
   - `public/js/orders.js`
@@ -106,6 +115,7 @@ No legacy compatibility wrappers remain in the current repo state.
   - `public/js/lib/supabase-client.js`
 
 Reason:
+
 - retired files:
   - not referenced by internal imports;
   - not referenced by HTML entrypoints;
@@ -113,7 +123,9 @@ Reason:
   - not considered important historical top-level public entrypoints.
 
 ## Compatibility behavior
+
 `public/js/features/orders/order-service.js` includes fallbacks for mixed database states:
+
 - Retries insert without `customer_id` if column does not exist.
 - Maps modern statuses to legacy values if check constraints fail.
 - Final fallback inserts without status fields to use DB defaults.
@@ -121,6 +133,7 @@ Reason:
 `public/js/features/orders/orders-service.js` tolerates missing `order_number` (fallback query).
 
 ## Known technical debt / risks
+
 - Supabase config remains exposed in frontend runtime.
 - Status vocabulary inconsistency (ES/EN/legacy) can still surface at integration boundaries.
 - No automated tests (unit/integration/e2e).
@@ -128,6 +141,7 @@ Reason:
 - RLS documentation is still partial for some operational tables.
 
 ## Recent data access changes
+
 - Catalog load optimized to a single Supabase view:
   - frontend now queries `public.v_catalog_variants_available` from `public/js/features/catalog/catalog-service.js`;
   - the view consolidates product variant data, category data and stock availability for the selected warehouse/POS;
@@ -143,10 +157,12 @@ Reason:
   - compatibility fallback now restores the original public URL when transformed image delivery is not supported by the project plan or fails at runtime.
 
 ## SQL assets in repo
+
 - `database/20260319_create_v_catalog_variants_available.sql`
   - creates `public.v_catalog_variants_available` and grants read access for app roles.
 
 ## Operational conventions
+
 - Keep `README.md` in repo root.
 - Keep strategic/aux docs in `docs/`.
 - Keep app version aligned between:
@@ -154,6 +170,7 @@ Reason:
   - `public/version.json` -> `version`
 
 ## Recommended next priorities
+
 1. Validate offline behavior on clean install/update across the main page set after the precache realignment.
 2. Add CI checks to detect reintroduction of legacy imports or wrapper files.
 3. Add CI checks to detect reintroduction of legacy imports.

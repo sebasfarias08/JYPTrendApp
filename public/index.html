@@ -296,6 +296,8 @@
       document.getElementById("endMessage").classList.add("hidden");
       await loadMore();
     }
+
+    async function loadMore() {
       if (isLoading || !hasMore) return;
       isLoading = true;
       setSkeleton();
@@ -341,6 +343,7 @@
           document.getElementById("endMessage").classList.remove("hidden");
         }
       }
+    }
 
     const session = await requireAuth();
     if (!session) throw new Error("Redirecting to login...");
