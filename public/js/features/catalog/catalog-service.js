@@ -3,25 +3,32 @@ import { requireSalesContext } from "../../app/core/sales-context-service.js";
 
 export async function getProducts(options = null) {
   const normalizedOptions = options && typeof options === "object" ? options : {};
+  const page = Number.isInteger(normalizedOptions.page) && normalizedOptions.page >= 0 ? normalizedOptions.page : 0;
+  const pageSize = Number.isInteger(normalizedOptions.pageSize) && normalizedOptions.pageSize > 0 ? normalizedOptions.pageSize : 50;
+
   const salesContext = await requireSalesContext({
     userId: normalizedOptions.userId ?? null,
     profile: normalizedOptions.profile ?? null,
     forceReload: normalizedOptions.forceReload === true
   });
 
-  const { data, error } = await supabase
+  const offset = page * pageSize;
+  const rangeEnd = offset + pageSize - 1;
+
+  const { data, error, count } = await supabase
     .from("v_catalog_variants_available")
-    .select("*")
+    .select("*", { count: "exact", head: false })
     .eq("warehouse_id", salesContext.warehouse_id)
     .eq("point_of_sale_id", salesContext.point_of_sale_id)
-    .order("display_name", { ascending: true });
+    .order("display_name", { ascending: true })
+    .range(offset, rangeEnd);
 
   if (error) {
     console.error("getProducts (catalog) error:", error);
     throw error;
   }
 
-  return (data ?? [])
+  const processedItems = (data ?? [])
     .map((row) => {
       const productName = String(row?.product_name ?? "").trim();
       const variantId = row?.variant_id ?? row?.id ?? null;
@@ -57,4 +64,15 @@ export async function getProducts(options = null) {
       };
     })
     .filter((v) => Number(v.stock_qty ?? 0) > 0);
+
+  const total = Number.isFinite(count) ? count : (processedItems.length || 0);
+  const hasMore = offset + processedItems.length < total;
+
+  return {
+    items: processedItems,
+    total,
+    page,
+    pageSize,
+    hasMore
+  };
 }
