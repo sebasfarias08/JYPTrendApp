@@ -73,7 +73,7 @@
     let allProducts = [];
     let isLoading = false;
     let currentSearch = "";
-    let currentCategorySlug = selectedTab;
+    let currentCategorySlug;
 
     function saveCatalogScrollPosition() {
       if (!mainScrollEl) return;
@@ -113,6 +113,8 @@
     if (tabFromUrl && TABS[tabFromUrl]) {
       selectedTab = tabFromUrl;
     }
+
+    currentCategorySlug = selectedTab;
 
     function fmtMoney(value) {
       const n = Number(value ?? 0);
