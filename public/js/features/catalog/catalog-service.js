@@ -69,6 +69,7 @@ export async function getProducts(options = null) {
         variant_name: String(row?.variant_name ?? "").trim(),
         price: Number(row?.price ?? 0),
         image_path: row?.image_path ?? "",
+        thumbnail_path: row?.thumbnail_path ?? row?.image_path ?? "",
         categories,
         stock_qty: Number.isFinite(stockQty) ? stockQty : 0,
         warehouse_id: warehouseId,

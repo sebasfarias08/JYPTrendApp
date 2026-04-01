@@ -86,7 +86,12 @@ export async function initProductPage(role = "viewer") {
         product_id: p.product_id ?? p.id ?? null,
         variant_name: p.variant_name ?? p.name ?? "",
         sale_price: Number(p.price ?? 0),
-        image_path: p.image_path ?? "",
+        image_path: String(
+          p.front_image_path ||
+          p.gallery_images?.[0]?.path ||
+          p.thumbnail_path ||
+          ""
+        ).trim(),
         active: p.active !== false
       };
     }
@@ -95,7 +100,12 @@ export async function initProductPage(role = "viewer") {
 
   function getPreferredVariantImagePath() {
     if (isVariantMode) {
-      return String(p.image_path || p.product_image_path || "").trim();
+      return String(
+        p.front_image_path ||
+        p.gallery_images?.[0]?.path ||
+        p.thumbnail_path ||
+        ""
+      ).trim();
     }
     const activeVariants = (p.product_variants ?? []).filter((variant) => variant?.active !== false);
     const withImage = activeVariants.find((variant) => String(variant?.image_path || "").trim());
@@ -133,6 +143,39 @@ export async function initProductPage(role = "viewer") {
     setText("category", p.categories?.name ? p.categories.name : "");
     setText("desc", p.description || "");
     setSrc("img", imageUrls.transformedUrl, p.name, imageUrls.publicUrl);
+
+    const galleryEl = document.getElementById("gallery");
+
+    if (galleryEl) {
+      const images = p.gallery_images ?? [];
+
+      galleryEl.innerHTML = images
+        .map((img, index) => `
+          <button
+            type="button"
+            class="shrink-0 border rounded-xl overflow-hidden bg-white"
+            data-gallery-image="${img.path}"
+          >
+            <img
+              src="${getImageUrl(img.path)}"
+              alt="${p.name} ${index + 1}"
+              class="w-20 h-20 object-cover"
+              loading="lazy"
+            />
+          </button>
+        `)
+        .join("");
+
+      galleryEl.querySelectorAll("[data-gallery-image]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const path = btn.getAttribute("data-gallery-image");
+          if (!path) return;
+
+          const imageUrls = getProductDetailImageUrls(path);
+          setSrc("img", imageUrls.transformedUrl, p.name, imageUrls.publicUrl);
+        });
+      });
+    }
   }
 
   function openEditModal() {

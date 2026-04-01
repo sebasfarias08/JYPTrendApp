@@ -1,4 +1,5 @@
 schema_name,table_name,constraint_name,constraint_type,columns
+public,cash_movements,cash_movements_mp_operation_id_key,u,mp_operation_id
 public,cash_movements,cash_movements_pkey,p,id
 public,categories,categories_pkey,p,id
 public,customers,customers_pkey,p,id
@@ -9,6 +10,7 @@ public,payment_allocations,payment_allocations_unique_payment_order,u,"payment_i
 public,payment_allocations,payment_allocations_pkey,p,id
 public,payments,payments_pkey,p,id
 public,points_of_sale,points_of_sale_pkey,p,id
+public,product_variant_images,product_variant_images_pkey,p,id
 public,product_variants,product_variants_pkey,p,id
 public,products,products_pkey,p,id
 public,profiles,profiles_pkey,p,id

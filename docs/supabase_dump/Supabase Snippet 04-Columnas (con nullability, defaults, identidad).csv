@@ -13,6 +13,10 @@ public,cash_movements,11,reference_id,uuid,uuid,YES,null,NO,null
 public,cash_movements,12,notes,text,text,YES,null,NO,null
 public,cash_movements,13,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,cash_movements,14,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,cash_movements,15,mp_operation_id,character varying,varchar,YES,null,NO,null
+public,cash_movements,16,sender_name,character varying,varchar,YES,null,NO,null
+public,cash_movements,17,sender_cbu_cvu,character varying,varchar,YES,null,NO,null
+public,cash_movements,18,sender_cuil_cuit,character varying,varchar,YES,null,NO,null
 public,categories,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,categories,2,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,categories,3,name,text,text,YES,null,NO,null
@@ -128,6 +132,14 @@ public,points_of_sale,5,description,text,text,YES,null,NO,null
 public,points_of_sale,6,active,boolean,bool,NO,true,NO,null
 public,points_of_sale,7,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,points_of_sale,8,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,product_variant_images,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,product_variant_images,2,variant_id,uuid,uuid,NO,null,NO,null
+public,product_variant_images,3,image_path,text,text,NO,null,NO,null
+public,product_variant_images,4,image_type,text,text,NO,'gallery'::text,NO,null
+public,product_variant_images,5,is_primary,boolean,bool,NO,false,NO,null
+public,product_variant_images,6,sort_order,integer,int4,NO,0,NO,null
+public,product_variant_images,7,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,product_variant_images,8,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,product_variants,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,product_variants,2,product_id,uuid,uuid,NO,null,NO,null
 public,product_variants,3,user_id,uuid,uuid,NO,null,NO,null
@@ -205,6 +217,23 @@ public,suppliers,7,notes,text,text,YES,null,NO,null
 public,suppliers,8,is_active,boolean,bool,NO,true,NO,null
 public,suppliers,9,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,suppliers,10,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,v_catalog_variants_available,1,variant_id,uuid,uuid,YES,null,NO,null
+public,v_catalog_variants_available,2,product_id,uuid,uuid,YES,null,NO,null
+public,v_catalog_variants_available,3,warehouse_id,uuid,uuid,YES,null,NO,null
+public,v_catalog_variants_available,4,point_of_sale_id,uuid,uuid,YES,null,NO,null
+public,v_catalog_variants_available,5,product_name,text,text,YES,null,NO,null
+public,v_catalog_variants_available,6,variant_name,text,text,YES,null,NO,null
+public,v_catalog_variants_available,7,display_name,text,text,YES,null,NO,null
+public,v_catalog_variants_available,8,image_path,text,text,YES,null,NO,null
+public,v_catalog_variants_available,9,price,numeric,numeric,YES,null,NO,null
+public,v_catalog_variants_available,10,currency_code,text,text,YES,null,NO,null
+public,v_catalog_variants_available,11,category_id,uuid,uuid,YES,null,NO,null
+public,v_catalog_variants_available,12,category_name,text,text,YES,null,NO,null
+public,v_catalog_variants_available,13,category_slug,text,text,YES,null,NO,null
+public,v_catalog_variants_available,14,category_order,smallint,int2,YES,null,NO,null
+public,v_catalog_variants_available,15,stock_qty,numeric,numeric,YES,null,NO,null
+public,v_catalog_variants_available,16,variant_active,boolean,bool,YES,null,NO,null
+public,v_catalog_variants_available,17,product_active,boolean,bool,YES,null,NO,null
 public,v_inventory_stock_by_product,1,product_id,uuid,uuid,YES,null,NO,null
 public,v_inventory_stock_by_product,2,warehouse_id,uuid,uuid,YES,null,NO,null
 public,v_inventory_stock_by_product,3,point_of_sale_id,uuid,uuid,YES,null,NO,null

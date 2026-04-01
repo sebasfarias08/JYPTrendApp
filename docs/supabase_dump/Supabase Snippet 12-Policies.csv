@@ -2,6 +2,7 @@ schema_name,table_name,policy_name,permissive,roles,cmd,using_expression,with_ch
 public,cash_movements,cash_movements_delete_own,PERMISSIVE,{authenticated},DELETE,(auth.uid() = user_id),null
 public,cash_movements,cash_movements_insert_own,PERMISSIVE,{authenticated},INSERT,null,(auth.uid() = user_id)
 public,cash_movements,cash_movements_select_own,PERMISSIVE,{authenticated},SELECT,(auth.uid() = user_id),null
+public,cash_movements,cash_movements_service_role_all,PERMISSIVE,{service_role},ALL,true,true
 public,cash_movements,cash_movements_update_own,PERMISSIVE,{authenticated},UPDATE,(auth.uid() = user_id),(auth.uid() = user_id)
 public,categories,categories_admin_write,PERMISSIVE,{authenticated},ALL,"(EXISTS ( SELECT 1
    FROM profiles p
@@ -47,6 +48,10 @@ public,points_of_sale,points_of_sale_delete_admin_only,PERMISSIVE,{authenticated
 public,points_of_sale,points_of_sale_insert_admin_only,PERMISSIVE,{authenticated},INSERT,null,(current_app_role() = 'admin'::text)
 public,points_of_sale,points_of_sale_select_all_auth,PERMISSIVE,{authenticated},SELECT,"(current_app_role() = ANY (ARRAY['admin'::text, 'seller'::text, 'viewer'::text]))",null
 public,points_of_sale,points_of_sale_update_admin_only,PERMISSIVE,{authenticated},UPDATE,(current_app_role() = 'admin'::text),(current_app_role() = 'admin'::text)
+public,product_variant_images,only admin can manage variant images,PERMISSIVE,{authenticated},ALL,(current_app_role() = 'admin'::text),(current_app_role() = 'admin'::text)
+public,product_variant_images,public can read active variant images,PERMISSIVE,"{anon,authenticated}",SELECT,"(EXISTS ( SELECT 1
+   FROM product_variants pv
+  WHERE ((pv.id = product_variant_images.variant_id) AND (pv.active = true))))",null
 public,product_variants,product_variants_admin_write,PERMISSIVE,{authenticated},ALL,"(EXISTS ( SELECT 1
    FROM profiles p
   WHERE ((p.id = auth.uid()) AND (lower(p.role) = 'admin'::text) AND (p.is_active = true))))","(EXISTS ( SELECT 1

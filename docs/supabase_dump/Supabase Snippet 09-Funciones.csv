@@ -14,6 +14,68 @@ AS $function$
   ), 'none')
 $function$
 "
+public,get_sales_context_resolved,p_user_id uuid,"TABLE(user_id uuid, warehouse_id uuid, point_of_sale_id uuid, warehouse_source text, point_of_sale_source text, is_valid boolean)",sql,"CREATE OR REPLACE FUNCTION public.get_sales_context_resolved(p_user_id uuid)
+ RETURNS TABLE(user_id uuid, warehouse_id uuid, point_of_sale_id uuid, warehouse_source text, point_of_sale_source text, is_valid boolean)
+ LANGUAGE sql
+AS $function$
+with profile_defaults as (
+  select
+    p.id as user_id,
+    p.default_warehouse_id,
+    p.default_point_of_sale_id
+  from public.profiles p
+  where p.id = p_user_id
+),
+validated_defaults as (
+  select
+    pd.user_id,
+    w.id as validated_warehouse_id,
+    pos.id as validated_point_of_sale_id
+  from profile_defaults pd
+  left join public.warehouses w
+    on w.id = pd.default_warehouse_id
+   and w.is_active = true
+  left join public.points_of_sale pos
+    on pos.id = pd.default_point_of_sale_id
+   and pos.active = true
+),
+fallback_warehouse as (
+  select w.id
+  from public.warehouses w
+  where w.is_active = true
+  order by w.created_at asc
+  limit 1
+),
+fallback_point_of_sale as (
+  select p.id
+  from public.points_of_sale p
+  where p.active = true
+  order by p.created_at asc
+  limit 1
+)
+select
+  vd.user_id,
+  coalesce(vd.validated_warehouse_id, fw.id) as warehouse_id,
+  coalesce(vd.validated_point_of_sale_id, fp.id) as point_of_sale_id,
+  case
+    when vd.validated_warehouse_id is not null then 'profile.default_warehouse_id'
+    when fw.id is not null then 'shared_active_warehouse'
+    else null
+  end as warehouse_source,
+  case
+    when vd.validated_point_of_sale_id is not null then 'profile.default_point_of_sale_id'
+    when fp.id is not null then 'shared_active_point_of_sale'
+    else null
+  end as point_of_sale_source,
+  (
+    coalesce(vd.validated_warehouse_id, fw.id) is not null
+    and coalesce(vd.validated_point_of_sale_id, fp.id) is not null
+  ) as is_valid
+from validated_defaults vd
+cross join fallback_warehouse fw
+cross join fallback_point_of_sale fp;
+$function$
+"
 public,get_user_role,,text,sql,"CREATE OR REPLACE FUNCTION public.get_user_role()
  RETURNS text
  LANGUAGE sql

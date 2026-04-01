@@ -188,8 +188,8 @@
 
       emptyStateEl.classList.add("hidden");
       listEl.innerHTML = allProducts.map((p, index) => {
-        const imageUrls = p.image_path
-          ? getCatalogCardImageUrls(String(p.image_path).trim().replace(/^\/+/, ""))
+        const imageUrls = p.thumbnail_path
+          ? getCatalogCardImageUrls(String(p.thumbnail_path).trim().replace(/^\/+/, ""))
           : { transformedUrl: "", publicUrl: "" };
         const stock = Number(p.stock_qty ?? 0);
         const hasStock = stock > 0;
@@ -229,7 +229,7 @@
                   data-add-variant-id="${escapeHtml(p.variant_id ?? "")}"
                   data-add-name="${escapeHtml(p.name)}"
                   data-add-price="${Number(p.price ?? 0)}"
-                  data-add-image="${escapeHtml(p.image_path ?? "")}"
+                  data-add-image="${escapeHtml(p.thumbnail_path ?? p.image_path ?? "")}"
                   data-add-warehouse-id="${escapeHtml(p.warehouse_id ?? "")}"
                   data-add-point-of-sale-id="${escapeHtml(p.point_of_sale_id ?? "")}"
                   class="btn btn-primary w-11 h-11 rounded-full p-0 ${hasStock ? "" : "opacity-50 cursor-not-allowed"}"

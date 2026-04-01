@@ -46,24 +46,55 @@ function mapProduct(row) {
 
 function mapVariantDetail(row) {
   if (!row) return null;
+
   const product = row.products ?? {};
-  const variantName = String(row.variant_name ?? "").trim();
-  const productName = String(product.name ?? "").trim();
+
+  const images = Array.isArray(row.product_variant_images)
+    ? [...row.product_variant_images].sort((a, b) => {
+        if (a.is_primary !== b.is_primary) {
+          return a.is_primary ? -1 : 1;
+        }
+        return Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0);
+      })
+    : [];
+
+  const thumbnail = images.find(
+    (img) => img.image_type === "thumbnail"
+  );
+
+  const galleryImages = images
+    .filter((img) => img.image_type === "gallery")
+    .sort((a, b) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0));
 
   return {
     id: product.id ?? row.product_id ?? null,
     product_id: row.product_id ?? product.id ?? null,
     variant_id: row.id,
-    name: variantName || productName,
-    product_name: productName,
-    variant_name: variantName,
+    sku: row.sku ?? "",
+    name:
+      String(row.variant_name ?? "").trim() ||
+      String(product.name ?? "").trim(),
+    product_name: product.name ?? "",
+    variant_name: row.variant_name ?? "",
     description: product.description ?? "",
     price: Number(row.sale_price ?? product.price ?? 0),
     base_price: Number(product.price ?? 0),
-    image_path: row.image_path ?? product.image_path ?? "",
-    product_image_path: product.image_path ?? "",
+
+    thumbnail_path: thumbnail?.image_path ?? "",
+
+    front_image_path:
+      galleryImages.find((img) => Number(img.sort_order) === 1)?.image_path ??
+      galleryImages[0]?.image_path ??
+      thumbnail?.image_path ??
+      "",
+
+    gallery_images: galleryImages.map((img) => ({
+      path: img.image_path,
+      order: Number(img.sort_order ?? 0)
+    })),
+
     active: row.active !== false && product.active !== false,
-    category_id: product.category_id ?? product.categories?.id ?? null,
+    category_id: product.category_id ?? null,
     categories: product.categories ?? null,
     created_at: row.created_at ?? null,
     updated_at: row.updated_at ?? null
@@ -128,6 +159,13 @@ export async function getProductVariantById(id, { includeInactive = false } = {}
       active,
       created_at,
       updated_at,
+      product_variant_images (
+        id,
+        image_path,
+        image_type,
+        is_primary,
+        sort_order
+      ),
       products!inner (
         id,
         name,

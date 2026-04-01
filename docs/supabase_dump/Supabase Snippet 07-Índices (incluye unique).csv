@@ -1,10 +1,12 @@
 schema_name,table_name,index_name,index_definition
+public,cash_movements,cash_movements_mp_operation_id_key,CREATE UNIQUE INDEX cash_movements_mp_operation_id_key ON public.cash_movements USING btree (mp_operation_id)
 public,cash_movements,cash_movements_pkey,CREATE UNIQUE INDEX cash_movements_pkey ON public.cash_movements USING btree (id)
 public,cash_movements,idx_cash_movements_order_id,CREATE INDEX idx_cash_movements_order_id ON public.cash_movements USING btree (order_id)
 public,cash_movements,idx_cash_movements_payment_id,CREATE INDEX idx_cash_movements_payment_id ON public.cash_movements USING btree (payment_id)
 public,cash_movements,idx_cash_movements_pos_created_at,"CREATE INDEX idx_cash_movements_pos_created_at ON public.cash_movements USING btree (point_of_sale_id, created_at DESC)"
 public,cash_movements,idx_cash_movements_user_created_at,"CREATE INDEX idx_cash_movements_user_created_at ON public.cash_movements USING btree (user_id, created_at DESC)"
 public,categories,categories_pkey,CREATE UNIQUE INDEX categories_pkey ON public.categories USING btree (id)
+public,categories,idx_categories_slug_active,"CREATE INDEX idx_categories_slug_active ON public.categories USING btree (slug, active)"
 public,customers,customers_address_trgm_idx,CREATE INDEX customers_address_trgm_idx ON public.customers USING gin (address_formatted gin_trgm_ops)
 public,customers,customers_full_name_phone_uidx,"CREATE UNIQUE INDEX customers_full_name_phone_uidx ON public.customers USING btree (lower(btrim(full_name)), lower(btrim(COALESCE(phone, ''::text)))) WHERE (is_active = true)"
 public,customers,customers_lat_lng_idx,"CREATE INDEX customers_lat_lng_idx ON public.customers USING btree (address_lat, address_lng)"
@@ -48,12 +50,19 @@ public,points_of_sale,idx_points_of_sale_user_active,"CREATE INDEX idx_points_of
 public,points_of_sale,points_of_sale_pkey,CREATE UNIQUE INDEX points_of_sale_pkey ON public.points_of_sale USING btree (id)
 public,points_of_sale,points_of_sale_user_code_unique_idx,"CREATE UNIQUE INDEX points_of_sale_user_code_unique_idx ON public.points_of_sale USING btree (user_id, lower(code)) WHERE (code IS NOT NULL)"
 public,points_of_sale,points_of_sale_user_name_unique_idx,"CREATE UNIQUE INDEX points_of_sale_user_name_unique_idx ON public.points_of_sale USING btree (user_id, lower(name))"
+public,product_variant_images,idx_product_variant_images_primary,CREATE UNIQUE INDEX idx_product_variant_images_primary ON public.product_variant_images USING btree (variant_id) WHERE (is_primary = true)
+public,product_variant_images,idx_product_variant_images_variant,"CREATE INDEX idx_product_variant_images_variant ON public.product_variant_images USING btree (variant_id, sort_order)"
+public,product_variant_images,product_variant_images_pkey,CREATE UNIQUE INDEX product_variant_images_pkey ON public.product_variant_images USING btree (id)
+public,product_variants,idx_product_variants_active,CREATE INDEX idx_product_variants_active ON public.product_variants USING btree (active)
 public,product_variants,idx_product_variants_product_active,"CREATE INDEX idx_product_variants_product_active ON public.product_variants USING btree (product_id, active)"
+public,product_variants,idx_product_variants_sku,CREATE INDEX idx_product_variants_sku ON public.product_variants USING btree (sku)
 public,product_variants,idx_product_variants_user_active,"CREATE INDEX idx_product_variants_user_active ON public.product_variants USING btree (user_id, active)"
 public,product_variants,product_variants_barcode_unique_idx,CREATE UNIQUE INDEX product_variants_barcode_unique_idx ON public.product_variants USING btree (lower(barcode)) WHERE (barcode IS NOT NULL)
 public,product_variants,product_variants_pkey,CREATE UNIQUE INDEX product_variants_pkey ON public.product_variants USING btree (id)
 public,product_variants,product_variants_product_name_unique_idx,"CREATE UNIQUE INDEX product_variants_product_name_unique_idx ON public.product_variants USING btree (product_id, lower(variant_name))"
 public,product_variants,product_variants_sku_unique_idx,CREATE UNIQUE INDEX product_variants_sku_unique_idx ON public.product_variants USING btree (lower(sku)) WHERE (sku IS NOT NULL)
+public,products,idx_products_active,CREATE INDEX idx_products_active ON public.products USING btree (active)
+public,products,idx_products_category_active,"CREATE INDEX idx_products_category_active ON public.products USING btree (category_id, active)"
 public,products,products_pkey,CREATE UNIQUE INDEX products_pkey ON public.products USING btree (id)
 public,profiles,idx_profiles_default_point_of_sale_id,CREATE INDEX idx_profiles_default_point_of_sale_id ON public.profiles USING btree (default_point_of_sale_id)
 public,profiles,idx_profiles_default_warehouse_id,CREATE INDEX idx_profiles_default_warehouse_id ON public.profiles USING btree (default_warehouse_id)

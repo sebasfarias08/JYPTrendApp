@@ -1,4 +1,5 @@
 table_name
+v_catalog_variants_available
 v_inventory_stock_by_product
 v_inventory_stock_by_variant
 v_order_payment_summary
