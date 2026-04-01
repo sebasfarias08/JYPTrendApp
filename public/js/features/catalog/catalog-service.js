@@ -40,6 +40,38 @@ export async function getProducts(options = null) {
     throw error;
   }
 
+  const variantIds = (data ?? [])
+    .map((row) => row?.variant_id ?? row?.id ?? null)
+    .filter(Boolean);
+
+  let thumbnailsByVariantId = new Map();
+  if (variantIds.length) {
+    const { data: variantImages, error: variantImagesError } = await supabase
+      .from("product_variant_images")
+      .select("variant_id, image_path, image_type, is_primary, sort_order")
+      .in("variant_id", variantIds)
+      .eq("image_type", "thumbnail");
+
+    if (variantImagesError) {
+      console.error("getProducts (catalog thumbnails) error:", variantImagesError);
+    } else {
+      thumbnailsByVariantId = variantImages
+        .sort((a, b) => {
+          if (a.is_primary !== b.is_primary) {
+            return a.is_primary ? -1 : 1;
+          }
+          return Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0);
+        })
+        .reduce((map, img) => {
+          const key = String(img.variant_id);
+          if (!map.has(key)) {
+            map.set(key, img.image_path ?? "");
+          }
+          return map;
+        }, new Map());
+    }
+  }
+
   const processedItems = (data ?? [])
     .map((row) => {
       const productName = String(row?.product_name ?? "").trim();
@@ -69,7 +101,7 @@ export async function getProducts(options = null) {
         variant_name: String(row?.variant_name ?? "").trim(),
         price: Number(row?.price ?? 0),
         image_path: row?.image_path ?? "",
-        thumbnail_path: row?.thumbnail_path ?? row?.image_path ?? "",
+        thumbnail_path: thumbnailsByVariantId.get(String(variantId)) ?? row?.image_path ?? "",
         categories,
         stock_qty: Number.isFinite(stockQty) ? stockQty : 0,
         warehouse_id: warehouseId,

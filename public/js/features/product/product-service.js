@@ -63,7 +63,7 @@ function mapVariantDetail(row) {
   );
 
   const galleryImages = images
-    .filter((img) => img.image_type === "gallery")
+    .filter((img) => img.image_type !== "thumbnail")
     .sort((a, b) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0));
 
   return {
