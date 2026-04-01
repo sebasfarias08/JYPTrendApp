@@ -73,6 +73,12 @@ function normalizeQty(value) {
   return Number.isFinite(qty) ? qty : 0;
 }
 
+function normalizeUnitPrice(value) {
+  const price = Number(value ?? 0);
+  if (!Number.isFinite(price) || price < 0) return 0;
+  return Math.round(price);
+}
+
 function mapQtyByVariant(items = []) {
   const map = new Map();
   for (const item of items ?? []) {
@@ -106,7 +112,7 @@ function buildDraftItemFromOrderItem(item) {
     sku: item?.sku_snapshot || "",
     image_path: variant?.image_path || product?.image_path || "",
     qty: Math.max(1, normalizeQty(item?.qty ?? 1)),
-    unit_price: Number(item?.unit_price ?? 0)
+    unit_price: normalizeUnitPrice(item?.unit_price ?? 0)
   };
 }
 
@@ -122,7 +128,7 @@ function buildDraftItemFromCatalogRow(row) {
     sku: row?.sku || "",
     image_path: row?.image_path || "",
     qty: 1,
-    unit_price: Number(row?.price ?? 0)
+    unit_price: normalizeUnitPrice(row?.price ?? 0)
   };
 }
 
@@ -193,6 +199,15 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
       return;
     }
     editDraftItems[index] = { ...item, qty: normalized };
+  }
+
+  function setDraftItemUnitPrice(index, nextPrice) {
+    const item = editDraftItems[index];
+    if (!item) return;
+    editDraftItems[index] = {
+      ...item,
+      unit_price: normalizeUnitPrice(nextPrice)
+    };
   }
 
   function addCatalogItem(variantId) {
@@ -353,9 +368,18 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
                   <span class="w-10 text-center text-sm font-semibold text-slate-900">${qty}</span>
                   <button type="button" data-inc-draft-index="${index}" class="w-10 h-10 text-slate-700 ${canIncrease ? "" : "opacity-40"}" ${canIncrease ? "" : "disabled"}>+</button>
                 </div>
-                <div class="text-right">
-                  <div class="text-xs text-slate-500">Precio unitario</div>
-                  <div class="text-sm font-semibold text-slate-900">${currencyFmt.format(item.unit_price ?? 0)}</div>
+                <div class="min-w-[8.5rem] text-right">
+                  <label class="block text-xs text-slate-500 mb-1" for="draftUnitPrice${index}">Precio unitario</label>
+                  <input
+                    id="draftUnitPrice${index}"
+                    type="number"
+                    inputmode="numeric"
+                    min="0"
+                    step="1"
+                    value="${escapeHtml(String(normalizeUnitPrice(item.unit_price ?? 0)))}"
+                    data-unit-price-index="${index}"
+                    class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 text-right outline-none focus:border-slate-400"
+                  />
                   <div class="text-xs text-slate-500 mt-1">Linea: ${currencyFmt.format(lineTotal)}</div>
                 </div>
               </div>
@@ -583,6 +607,15 @@ export async function initOrderDetailScreen({ containerId = "order-detail-contai
         removeDraftItem(Number(button.getAttribute("data-remove-draft-index")));
         renderOrderDetail(order);
       });
+    });
+    root.querySelectorAll("[data-unit-price-index]").forEach((input) => {
+      const syncPrice = () => {
+        const index = Number(input.getAttribute("data-unit-price-index"));
+        setDraftItemUnitPrice(index, input.value);
+        renderOrderDetail(order);
+      };
+      input.addEventListener("change", syncPrice);
+      input.addEventListener("blur", syncPrice);
     });
 
     const orderDropdown = createDropdown({
