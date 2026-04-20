@@ -1,7 +1,7 @@
-import { getImageUrl } from "../../shared/utils/image.js";
+import { getCatalogCardImageUrl } from "../../shared/utils/image.js";
 import { formatOrderRef, matchesOrderQuery } from "../../shared/utils/order-ref.js";
 import * as orderStatusModule from "../../shared/utils/order-status.js";
-import { getMyOrders, getOrderDetail } from "./orders-service.js";
+import { getMyOrdersPage, getOrderDetail } from "./orders-service.js";
 
 const ORDER_STATUS = orderStatusModule.ORDER_STATUS ?? ["Reservado", "Preparado", "Entregado", "Finalizado", "Cancelado"];
 const normalizeStatus = orderStatusModule.normalizeStatus ?? ((status) => String(status ?? "").trim());
@@ -23,6 +23,14 @@ function statusUiLabel(status) {
 function formatArs(value) {
   const n = Number(value ?? 0);
   return new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(n);
+}
+
+function debounce(fn, wait = 180) {
+  let timer = 0;
+  return (...args) => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => fn(...args), wait);
+  };
 }
 
 function statusBadgeClass(status) {
@@ -61,18 +69,23 @@ function buildOrderCardModel(summaryRow, detailRow) {
   const qty = items.reduce((sum, item) => sum + Number(item?.qty ?? 0), 0);
   const productName = String(product?.name || "Order Items");
   const imagePath = String(product?.image_path || "").trim().replace(/^\/+/, "");
+  const customer = String(summaryRow.customer_name || detailRow?.customer_name || "Sin cliente");
+  const ref = formatOrderRef(summaryRow);
+  const paymentStatus = String(summaryRow.payment_status || "Pendiente");
 
   return {
     id: summaryRow.id,
-    ref: formatOrderRef(summaryRow),
+    ref,
     createdAt: new Date(summaryRow.created_at),
-    customer: String(summaryRow.customer_name || detailRow?.customer_name || "Sin cliente"),
+    customer,
     status: normalizeStatus(summaryRow.order_status || "Reservado"),
-    paymentStatus: String(summaryRow.payment_status || "Pendiente"),
+    paymentStatus,
     qty: qty > 0 ? qty : 1,
     productName,
     total: Number(summaryRow.total ?? detailRow?.total ?? 0),
-    imageUrl: imagePath ? getImageUrl(imagePath) : "",
+    imageUrl: imagePath ? getCatalogCardImageUrl(imagePath) : "",
+    isDetailLoaded: Boolean(detailRow),
+    searchText: `${customer} ${ref} ${String(summaryRow.order_number || "")} ${productName}`.toLowerCase(),
     searchSource: {
       ...summaryRow,
       customer_name: summaryRow.customer_name || detailRow?.customer_name || "",
@@ -113,6 +126,12 @@ export async function initOrdersScreen({ containerId = "orders-container" } = {}
       </div>
 
       <div id="ordersListWrap" class="space-y-4"></div>
+
+      <div class="pt-1">
+        <button id="ordersLoadMoreBtn" type="button" class="hidden w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm">
+          Cargar mas pedidos
+        </button>
+      </div>
     </section>
   `;
 
@@ -120,8 +139,16 @@ export async function initOrdersScreen({ containerId = "orders-container" } = {}
   const filterBtn = document.getElementById("ordersFilterBtn");
   const filterMenu = document.getElementById("ordersFilterMenu");
   const listWrap = document.getElementById("ordersListWrap");
+  const loadMoreBtn = document.getElementById("ordersLoadMoreBtn");
 
+  const PAGE_SIZE = 30;
+  const DETAIL_BATCH_SIZE = 4;
+  let totalOrders = 0;
+  let isLoadingPage = false;
+  let isLoadingDetails = false;
   let allOrders = [];
+  const orderMap = new Map();
+  const pendingDetailIds = new Set();
   // Por defecto excluir "Finalizado" y "Cancelado"
   let statusFilter = new Set(ORDER_STATUS.filter(status => status !== "Finalizado" && status !== "Cancelado"));
 
@@ -139,6 +166,32 @@ export async function initOrdersScreen({ containerId = "orders-container" } = {}
 
   renderFilterMenu();
 
+  function mergeOrders(rows = []) {
+    rows.forEach((row) => {
+      const current = orderMap.get(String(row.id));
+      if (current) {
+        const next = {
+          ...current,
+          ...row,
+          searchText: `${row.customer} ${row.ref} ${current.searchSource?.order_number || ""} ${row.productName}`.toLowerCase()
+        };
+        orderMap.set(String(row.id), next);
+      } else {
+        orderMap.set(String(row.id), row);
+      }
+    });
+
+    allOrders = Array.from(orderMap.values()).sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  function updateLoadMoreButton() {
+    if (!loadMoreBtn) return;
+    const hasMore = allOrders.length < totalOrders;
+    loadMoreBtn.classList.toggle("hidden", !hasMore);
+    loadMoreBtn.disabled = isLoadingPage;
+    loadMoreBtn.textContent = isLoadingPage ? "Cargando..." : "Cargar mas pedidos";
+  }
+
   function filteredOrders() {
     const q = String(searchInput?.value || "").toLowerCase().trim();
 
@@ -148,7 +201,7 @@ export async function initOrdersScreen({ containerId = "orders-container" } = {}
 
       return (
         matchesOrderQuery(order.searchSource, q) ||
-        order.productName.toLowerCase().includes(q)
+        order.searchText.includes(q)
       );
     });
   }
@@ -157,6 +210,7 @@ export async function initOrdersScreen({ containerId = "orders-container" } = {}
     const rows = filteredOrders();
     if (!rows.length) {
       listWrap.innerHTML = `<div class="text-sm text-slate-500 bg-white rounded-xl shadow-sm p-4">No orders match your search/filter.</div>`;
+      updateLoadMoreButton();
       return;
     }
 
@@ -175,13 +229,14 @@ export async function initOrdersScreen({ containerId = "orders-container" } = {}
           <a href="/pages/pedido-detalle.html?id=${encodeURIComponent(order.id)}" class="block bg-white rounded-xl shadow-sm p-3">
             <div class="flex items-start gap-3">
               <div class="w-14 h-14 rounded-lg shrink-0 bg-slate-100 overflow-hidden">
-                ${order.imageUrl ? `<img src="${escapeHtml(order.imageUrl)}" alt="${escapeHtml(order.productName)}" class="w-full h-full object-cover" />` : ""}
+                ${order.imageUrl ? `<img src="${escapeHtml(order.imageUrl)}" alt="${escapeHtml(order.productName)}" class="w-full h-full object-cover" loading="lazy" decoding="async" />` : ""}
               </div>
 
               <div class="min-w-0 flex-1">
                 <div class="font-semibold text-sm text-slate-900 truncate">${escapeHtml(order.customer)}</div>
                 <div class="text-xs text-slate-500 mt-0.5">${escapeHtml(timeText)}</div>
                 <div class="text-xs text-slate-600 mt-1">${order.qty} pcs | ${escapeHtml(order.paymentStatus)}</div>
+                ${order.isDetailLoaded ? "" : `<div class="text-[11px] text-slate-400 mt-1">Cargando detalle...</div>`}
               </div>
 
               <div class="text-right shrink-0">
@@ -202,6 +257,64 @@ export async function initOrdersScreen({ containerId = "orders-container" } = {}
     }
 
     listWrap.innerHTML = sections.join("");
+    updateLoadMoreButton();
+  }
+
+  async function loadOrderDetailsIncrementally(orderIds = []) {
+    orderIds.forEach((id) => pendingDetailIds.add(String(id)));
+    if (!pendingDetailIds.size || isLoadingDetails) return;
+    isLoadingDetails = true;
+
+    try {
+      while (pendingDetailIds.size) {
+        const batch = Array.from(pendingDetailIds).slice(0, DETAIL_BATCH_SIZE);
+        batch.forEach((id) => pendingDetailIds.delete(String(id)));
+        const detailRows = await Promise.all(batch.map((id) => getOrderDetail(id)));
+
+        const enriched = batch
+          .map((id, index) => {
+            const current = orderMap.get(String(id));
+            if (!current) return null;
+            return buildOrderCardModel(current.searchSource, detailRows[index]);
+          })
+          .filter(Boolean);
+
+        if (enriched.length) {
+          mergeOrders(enriched);
+          renderOrders();
+        }
+      }
+    } finally {
+      isLoadingDetails = false;
+    }
+  }
+
+  async function loadNextPage() {
+    if (isLoadingPage) return;
+    isLoadingPage = true;
+    updateLoadMoreButton();
+
+    try {
+      const { rows, total } = await getMyOrdersPage({
+        limit: PAGE_SIZE,
+        offset: allOrders.length
+      });
+
+      totalOrders = total;
+
+      const models = rows.map((row) => buildOrderCardModel(row, null));
+      mergeOrders(models);
+      renderOrders();
+
+      const pendingDetails = models
+        .filter((order) => !order.isDetailLoaded)
+        .map((order) => order.id);
+
+      void loadOrderDetailsIncrementally(pendingDetails);
+    } finally {
+      isLoadingPage = false;
+      updateLoadMoreButton();
+    }
   }
 
   filterBtn?.addEventListener("click", () => {
@@ -233,13 +346,10 @@ export async function initOrdersScreen({ containerId = "orders-container" } = {}
     filterMenu.classList.add("hidden");
   });
 
-  searchInput?.addEventListener("input", renderOrders);
+  const debouncedRenderOrders = debounce(renderOrders, 180);
+  searchInput?.addEventListener("input", debouncedRenderOrders);
+  loadMoreBtn?.addEventListener("click", loadNextPage);
 
   listWrap.innerHTML = `<div class="text-sm text-slate-500 bg-white rounded-xl shadow-sm p-4">Loading orders...</div>`;
-
-  const summary = await getMyOrders({ limit: 80 });
-  const details = await Promise.all(summary.map((row) => getOrderDetail(row.id)));
-  allOrders = summary.map((row, idx) => buildOrderCardModel(row, details[idx])).sort((a, b) => b.createdAt - a.createdAt);
-
-  renderOrders();
+  await loadNextPage();
 }
