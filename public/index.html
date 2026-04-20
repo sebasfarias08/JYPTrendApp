@@ -64,6 +64,7 @@
     const emptyStateEl = document.getElementById("emptyState");
     const statusLineEl = document.getElementById("statusLine");
     const CATALOG_SCROLL_KEY = "catalog_scroll_position";
+    const CATALOG_NAV_KEY = "catalog_navigation_snapshot";
     const mainScrollEl = document.getElementById("mainScroll");
     const FIRST_VISIBLE_IMAGE_COUNT = 4;
     const PAGE_SIZE = 50;
@@ -78,6 +79,20 @@
     function saveCatalogScrollPosition() {
       if (!mainScrollEl) return;
       sessionStorage.setItem(CATALOG_SCROLL_KEY, String(mainScrollEl.scrollTop));
+    }
+
+    function saveCatalogNavigationSnapshot() {
+      const snapshot = {
+        selectedTab,
+        search: currentSearch,
+        items: allProducts.map((product) => ({
+          product_id: product.product_id ?? "",
+          variant_id: product.variant_id ?? product.id ?? "",
+          name: product.name ?? ""
+        }))
+      };
+
+      sessionStorage.setItem(CATALOG_NAV_KEY, JSON.stringify(snapshot));
     }
 
     function restoreCatalogScrollPosition() {
@@ -282,6 +297,7 @@
         });
       });
 
+      saveCatalogNavigationSnapshot();
       setPageStatus();
     }
 

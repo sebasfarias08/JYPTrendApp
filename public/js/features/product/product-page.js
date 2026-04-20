@@ -7,6 +7,10 @@ import { showToast } from "../../shared/ui/toast.js";
 import { canManageInventory } from "../../app/auth/permissions.js";
 import { requireSalesContext } from "../../app/core/sales-context-service.js";
 
+const CATALOG_NAV_KEY = "catalog_navigation_snapshot";
+const SWIPE_MIN_DISTANCE = 60;
+const SWIPE_MAX_VERTICAL_DRIFT = 90;
+
 function formatArs(value) {
   const n = Number(value ?? 0);
   return new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(n);
@@ -32,6 +36,35 @@ function setSrc(id, src, alt = "", fallbackSrc = "") {
       delete el.dataset.fallbackSrc;
       el.onerror = null;
     }
+  }
+}
+
+function readCatalogNavigationSnapshot() {
+  try {
+    const raw = sessionStorage.getItem(CATALOG_NAV_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    const items = Array.isArray(parsed?.items)
+      ? parsed.items
+          .map((item) => ({
+            product_id: String(item?.product_id ?? ""),
+            variant_id: String(item?.variant_id ?? ""),
+            name: String(item?.name ?? "")
+          }))
+          .filter((item) => item.product_id || item.variant_id)
+      : [];
+
+    if (!items.length) return null;
+
+    return {
+      selectedTab: String(parsed?.selectedTab ?? ""),
+      search: String(parsed?.search ?? ""),
+      items
+    };
+  } catch (error) {
+    console.warn("readCatalogNavigationSnapshot error:", error);
+    return null;
   }
 }
 
@@ -72,6 +105,9 @@ export async function initProductPage(role = "viewer") {
   const editImagePathEl = document.getElementById("editImagePath");
   const btnAddCartEl = document.getElementById("btnAddCart");
   const isVariantMode = Boolean(variantId);
+  const navigationSnapshot = readCatalogNavigationSnapshot();
+  const mainEl = document.querySelector("main");
+  let activeTouch = null;
 
   function getSingleActiveVariant() {
     const activeVariants = (p.product_variants ?? []).filter((variant) => variant?.active !== false);
@@ -124,6 +160,83 @@ export async function initProductPage(role = "viewer") {
     const imagePath = getDisplayImagePath();
     const imageUrl = imagePath ? getImageUrl(imagePath) : "";
     return { shareUrl, shareText, imageUrl };
+  }
+
+  function getCurrentNavigationIndex() {
+    if (!navigationSnapshot?.items?.length) return -1;
+
+    const currentVariantId = String(p.variant_id ?? variantId ?? "");
+    const currentProductId = String(p.product_id ?? p.id ?? id ?? "");
+
+    return navigationSnapshot.items.findIndex((item) => {
+      if (currentVariantId && item.variant_id) {
+        return item.variant_id === currentVariantId;
+      }
+      return item.product_id === currentProductId;
+    });
+  }
+
+  function buildProductUrl(item) {
+    const query = new URLSearchParams();
+    if (item.product_id) query.set("id", item.product_id);
+    if (item.variant_id) query.set("variant_id", item.variant_id);
+    return `/pages/producto.html?${query.toString()}`;
+  }
+
+  function goToAdjacentProduct(direction) {
+    const currentIndex = getCurrentNavigationIndex();
+    if (currentIndex < 0) return false;
+
+    const nextIndex = currentIndex + direction;
+    const target = navigationSnapshot.items[nextIndex];
+    if (!target) return false;
+
+    location.href = buildProductUrl(target);
+    return true;
+  }
+
+  function shouldIgnoreSwipeTarget(target) {
+    return Boolean(
+      target?.closest?.(
+        "#gallery, button, a, input, textarea, select, [role='dialog'], #productEditModalDialog"
+      )
+    );
+  }
+
+  function bindSwipeNavigation() {
+    if (!mainEl || !navigationSnapshot?.items?.length || navigationSnapshot.items.length < 2) return;
+
+    mainEl.addEventListener("touchstart", (event) => {
+      const touch = event.changedTouches?.[0];
+      if (!touch || shouldIgnoreSwipeTarget(event.target)) {
+        activeTouch = null;
+        return;
+      }
+
+      activeTouch = {
+        startX: touch.clientX,
+        startY: touch.clientY
+      };
+    }, { passive: true });
+
+    mainEl.addEventListener("touchend", (event) => {
+      const touch = event.changedTouches?.[0];
+      if (!touch || !activeTouch) return;
+
+      const deltaX = touch.clientX - activeTouch.startX;
+      const deltaY = touch.clientY - activeTouch.startY;
+      activeTouch = null;
+
+      if (Math.abs(deltaY) > SWIPE_MAX_VERTICAL_DRIFT) return;
+      if (Math.abs(deltaX) < SWIPE_MIN_DISTANCE) return;
+
+      if (deltaX < 0) {
+        goToAdjacentProduct(1);
+        return;
+      }
+
+      goToAdjacentProduct(-1);
+    }, { passive: true });
   }
 
   function fillEditForm() {
@@ -191,6 +304,7 @@ export async function initProductPage(role = "viewer") {
   }
 
   renderProduct();
+  bindSwipeNavigation();
   closeEditModal();
   if (btnEditProductEl) {
     btnEditProductEl.classList.toggle("hidden", !canManageInventory(role));
