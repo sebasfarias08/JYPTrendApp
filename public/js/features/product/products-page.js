@@ -49,7 +49,6 @@ export function initProductsPage() {
   const scrollContainerEl = document.querySelector("main.overflow-y-auto");
 
   let isLoading = false; // Estado de carga
-  let rows = [];
   const stockByVariantId = new Map();
 
   function showSkeletons() {

@@ -50,7 +50,6 @@ export function initClientsPage(session = null) {
   const canManage = canManageCustomers(role);
 
   let isLoading = false; // Estado de carga
-  let rows = [];
 
   function showSkeletons() {
     const skeletons = Array.from({ length: 6 }, () => `
