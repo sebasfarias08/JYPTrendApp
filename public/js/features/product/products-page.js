@@ -76,7 +76,6 @@ export function initProductsPage() {
   }
 
   let items = [];
-  const stockByVariantId = new Map();
   let hasRestoredScroll = false;
 
   function getCatalogScrollTop() {
