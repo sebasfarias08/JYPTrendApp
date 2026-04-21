@@ -48,6 +48,34 @@ export function initProductsPage() {
   const btnNewEl = document.getElementById("btnNewProduct");
   const scrollContainerEl = document.querySelector("main.overflow-y-auto");
 
+  let isLoading = false; // Estado de carga
+  let rows = [];
+  const stockByVariantId = new Map();
+
+  function showSkeletons() {
+    const skeletons = Array.from({ length: 6 }, () => `
+      <div class="card p-3 skeleton-card">
+        <div class="skeleton skeleton-text w-3/4 mb-2"></div>
+        <div class="flex items-start gap-3">
+          <div class="w-14 h-14 rounded-xl bg-surface-2 skeleton shrink-0"></div>
+          <div class="min-w-0 flex-1">
+            <div class="skeleton skeleton-text w-full mb-1"></div>
+            <div class="skeleton skeleton-text w-2/3 mb-1"></div>
+            <div class="skeleton skeleton-text w-1/2 mb-1"></div>
+            <div class="skeleton skeleton-text w-1/3"></div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    listEl.innerHTML = skeletons;
+    emptyEl.classList.add("hidden");
+    countEl.textContent = "Cargando productos...";
+  }
+
+  function hideSkeletons() {
+    // No hacer nada, renderList se encargará
+  }
+
   let rows = [];
   const stockByVariantId = new Map();
   let hasRestoredScroll = false;
@@ -130,7 +158,24 @@ export function initProductsPage() {
       const stockTotal = getProductVariantStock(p);
 
       return `
-        <a href="${buildFormUrl({ id: p.id, mode: "view" })}" class="block card p-3 transition hover-surface-2">
+        <a href="${buildFormUrl({ id: p.id, mode: "view" })}" class="block card p-3 transition hover-surface-2 fade-in">
+          <div class="mb-2 text-xs text-muted">
+            Variantes activas: <span class="font-semibold">${activeVariants.length}</span>
+            ${labels.length ? ` | ${labels.join(" | ")}` : ""}
+          </div>
+          <div class="flex items-start gap-3">
+            <img
+              src="${p.image_path ? getImageUrl(String(p.image_path).trim().replace(/^\/+/, "")) : ""}"
+              class="w-14 h-14 rounded-xl border divider bg-surface-2 object-contain shrink-0"
+              alt="${escapeHtml(p.name)}"
+            />
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold break-words">${escapeHtml(p.name)}</div>
+              <div class="text-sm text-muted">Precio base: $ ${formatArs(p.price)}</div>
+              <div class="text-sm text-muted">Precio variantes: ${variantPriceSummary(activeVariants)}</div>
+              <div class="text-sm text-muted">Stock variantes: ${stockTotal}</div>
+              <div class="text-sm text-muted">${escapeHtml(p.categories?.name || "Sin categoria")}</div>
+              ${p.image_path ? `<div class="text-xs text-subtle mt-1 break-all">${escapeHtml(p.image_path)}</div>` : ""}
           <div class="mb-2 text-xs text-muted">
             Variantes activas: <span class="font-semibold">${activeVariants.length}</span>
             ${labels.length ? ` | ${labels.join(" | ")}` : ""}
@@ -161,23 +206,39 @@ export function initProductsPage() {
   }
 
   async function loadRows() {
-    const [products, stockRows] = await Promise.all([
-      getProductsForAdmin({ includeInactive: true }),
-      getStockByVariant()
-    ]);
+    if (isLoading) return; // Prevenir carga múltiple
+    isLoading = true;
 
-    rows = products;
-    stockByVariantId.clear();
-    for (const row of stockRows ?? []) {
-      const variantId = row?.variant_id ?? null;
-      if (!variantId) continue;
-      stockByVariantId.set(variantId, Number(row?.stock_qty ?? 0));
+    showSkeletons();
+
+    try {
+      const [products, stockRows] = await Promise.all([
+        getProductsForAdmin({ includeInactive: true }),
+        getStockByVariant()
+      ]);
+
+      rows = products;
+      stockByVariantId.clear();
+      for (const row of stockRows ?? []) {
+        const variantId = row?.variant_id ?? null;
+        if (!variantId) continue;
+        stockByVariantId.set(variantId, Number(row?.stock_qty ?? 0));
+      }
+
+      renderList();
+    } catch (error) {
+      console.error('Error loading products:', error);
+      listEl.innerHTML = '<div class="text-center text-danger p-4">Error al cargar productos. Intente nuevamente.</div>';
+      countEl.textContent = "Error al cargar";
+    } finally {
+      isLoading = false;
     }
-
-    renderList();
   }
 
   btnNewEl.addEventListener("click", () => {
+    if (btnNewEl.disabled) return; // Prevenir doble-clic
+    btnNewEl.disabled = true;
+    btnNewEl.classList.add('loading');
     location.href = buildFormUrl({ mode: "new" });
   });
   listEl.addEventListener("click", (event) => {

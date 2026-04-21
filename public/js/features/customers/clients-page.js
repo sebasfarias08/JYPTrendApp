@@ -49,6 +49,27 @@ export function initClientsPage(session = null) {
   const role = normalizeRole(session?.profile?.role || document.body.dataset.role || ROLES.VIEWER);
   const canManage = canManageCustomers(role);
 
+  let isLoading = false; // Estado de carga
+  let rows = [];
+
+  function showSkeletons() {
+    const skeletons = Array.from({ length: 6 }, () => `
+      <div class="card p-3 skeleton-card">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-surface-2 skeleton shrink-0"></div>
+          <div class="min-w-0 flex-1">
+            <div class="skeleton skeleton-text w-3/4 mb-1"></div>
+            <div class="skeleton skeleton-text w-1/2 mb-1"></div>
+            <div class="skeleton skeleton-text w-1/3"></div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    listEl.innerHTML = skeletons;
+    emptyEl.classList.add("hidden");
+    countEl.textContent = "Cargando clientes...";
+  }
+
   if (mode === "new") {
     location.replace(buildFormUrl({ mode: "new", returnTo: returnTo || "" }));
     return;
@@ -130,8 +151,21 @@ export function initClientsPage(session = null) {
   }
 
   async function loadRows() {
-    rows = await getCustomers({ includeInactive: true });
-    renderList();
+    if (isLoading) return; // Prevenir carga múltiple
+    isLoading = true;
+
+    showSkeletons();
+
+    try {
+      rows = await getCustomers({ includeInactive: true });
+      renderList();
+    } catch (error) {
+      console.error('Error loading clients:', error);
+      listEl.innerHTML = '<div class="text-center text-danger p-4">Error al cargar clientes. Intente nuevamente.</div>';
+      countEl.textContent = "Error al cargar";
+    } finally {
+      isLoading = false;
+    }
   }
 
   btnNewClientEl.classList.toggle("hidden", !canManage);
@@ -140,6 +174,9 @@ export function initClientsPage(session = null) {
       showToast("No tenes permisos para crear clientes.", { type: "warning", duration: 2400 });
       return;
     }
+    if (btnNewClientEl.disabled) return; // Prevenir doble-clic
+    btnNewClientEl.disabled = true;
+    btnNewClientEl.classList.add('loading');
     location.href = buildFormUrl({ mode: "new" });
   });
   searchEl.addEventListener("input", renderList);

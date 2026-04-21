@@ -335,9 +335,13 @@ export function initCheckoutPage(session) {
     submitting = isBusy;
     [btnSubmit, btnSubmitSticky].filter(Boolean).forEach((btn) => {
       btn.disabled = isBusy;
-      btn.classList.toggle("opacity-60", isBusy);
-      btn.classList.toggle("cursor-not-allowed", isBusy);
-      btn.textContent = isBusy ? "Enviando..." : "Confirmar pedido";
+      if (isBusy) {
+        btn.classList.add("loading");
+        btn.textContent = "Enviando...";
+      } else {
+        btn.classList.remove("loading");
+        btn.textContent = "Confirmar pedido";
+      }
     });
     if (!isBusy) setSubmitAvailability();
   }
