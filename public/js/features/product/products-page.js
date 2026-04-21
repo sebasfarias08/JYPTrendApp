@@ -75,7 +75,7 @@ export function initProductsPage() {
     // No hacer nada, renderList se encargará
   }
 
-  let rows = [];
+  let items = [];
   const stockByVariantId = new Map();
   let hasRestoredScroll = false;
 
@@ -120,7 +120,7 @@ export function initProductsPage() {
     const q = (searchEl.value || "").trim().toLowerCase();
     const includeInactive = showInactiveEl.checked;
 
-    const filtered = rows.filter((p) => {
+    const filtered = items.filter((p) => {
       if (!includeInactive && !p.active) return false;
       if (!q) return true;
 
@@ -216,7 +216,7 @@ export function initProductsPage() {
         getStockByVariant()
       ]);
 
-      rows = products;
+      items = products;
       stockByVariantId.clear();
       for (const row of stockRows ?? []) {
         const variantId = row?.variant_id ?? null;

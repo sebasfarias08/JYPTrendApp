@@ -74,13 +74,13 @@ export function initClientsPage(session = null) {
     return;
   }
 
-  let rows = [];
+  let clients = [];
 
   function renderList() {
     const q = (searchEl.value || "").trim().toLowerCase();
     const includeInactive = showInactiveEl.checked;
 
-    const filtered = rows.filter((c) => {
+    const filtered = clients.filter((c) => {
       if (!includeInactive && !c.is_active) return false;
       if (!q) return true;
 
@@ -156,7 +156,7 @@ export function initClientsPage(session = null) {
     showSkeletons();
 
     try {
-      rows = await getCustomers({ includeInactive: true });
+      clients = await getCustomers({ includeInactive: true });
       renderList();
     } catch (error) {
       console.error('Error loading clients:', error);
