@@ -234,6 +234,13 @@ public,v_catalog_variants_available,14,category_order,smallint,int2,YES,null,NO,
 public,v_catalog_variants_available,15,stock_qty,numeric,numeric,YES,null,NO,null
 public,v_catalog_variants_available,16,variant_active,boolean,bool,YES,null,NO,null
 public,v_catalog_variants_available,17,product_active,boolean,bool,YES,null,NO,null
+public,v_catalog_variants_web,1,nombre,text,text,YES,null,NO,null
+public,v_catalog_variants_web,2,marca,text,text,YES,null,NO,null
+public,v_catalog_variants_web,3,tamano,text,text,YES,null,NO,null
+public,v_catalog_variants_web,4,categoria,text,text,YES,null,NO,null
+public,v_catalog_variants_web,5,stock,numeric,numeric,YES,null,NO,null
+public,v_catalog_variants_web,6,listaUnidad,numeric,numeric,YES,null,NO,null
+public,v_catalog_variants_web,7,imagen,text,text,YES,null,NO,null
 public,v_inventory_stock_by_product,1,product_id,uuid,uuid,YES,null,NO,null
 public,v_inventory_stock_by_product,2,warehouse_id,uuid,uuid,YES,null,NO,null
 public,v_inventory_stock_by_product,3,point_of_sale_id,uuid,uuid,YES,null,NO,null
