@@ -1,0 +1,46 @@
+import { supabase } from "../../app/core/supabase-client.js";
+import { getSessionSnapshot, logSupabaseError } from "../../app/auth/auth-service.js";
+
+async function logError(action, error, extra = null) {
+  const { session } = await getSessionSnapshot();
+  logSupabaseError({ source: "finance/payments-service", action, error, session, extra });
+}
+
+export async function getPendingCustomerPayments(limit = 8) {
+  const { data, error } = await supabase
+    .from("orders_financial_status")
+    .select("*")
+    .gt("balance", 0)
+    .order("due_date", { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    await logError("getPendingCustomerPayments", error);
+    return [];
+  }
+
+  return data ?? [];
+}
+
+export async function createCustomerPayment({ order_id, amount, account_id, payment_method, note }) {
+  const payload = {
+    order_id: order_id ?? null,
+    amount: Number(amount ?? 0),
+    account_id: account_id ?? null,
+    payment_method: String(payment_method ?? "").trim() || null,
+    note: String(note ?? "").trim() || null
+  };
+
+  const { data, error } = await supabase
+    .from("payments")
+    .insert(payload)
+    .select("*")
+    .single();
+
+  if (error) {
+    await logError("createCustomerPayment", error, payload);
+    return { ok: false, error };
+  }
+
+  return { ok: true, data };
+}

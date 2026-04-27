@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F8FA" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <title>Transacciones</title>
+  <script src="/js/vendor/tailwindcss-playcdn.js"></script>
+  <link rel="stylesheet" href="/css/theme.css" />
+  <style>
+    .transaction-row { border-radius: 22px; border: 1px solid #e2e8f0; background: #ffffff; }
+  </style>
+</head>
+
+<body class="h-screen overflow-hidden flex flex-col bg-slate-50">
+  <header id="appShellTop"></header>
+
+  <main class="flex-1 overflow-y-auto px-4 py-5 space-y-5 pb-[calc(env(safe-area-inset-bottom)+5rem)]">
+    <section class="space-y-3">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-sm text-slate-500">Finanzas</p>
+          <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Transacciones</h1>
+        </div>
+        <a href="/pages/finance.html" class="text-sm font-semibold text-blue-600">Volver al panel</a>
+      </div>
+      <p class="text-sm text-slate-500">Historial unificado de movimientos financieros.</p>
+    </section>
+
+    <section class="space-y-3">
+      <div id="transactionsList" class="space-y-3"></div>
+    </section>
+  </main>
+
+  <nav id="appShellBottom"></nav>
+
+  <script type="module">
+    import { requireAuth } from "/js/app/auth/auth.js";
+    import { initAppShell } from "/js/app/shell/app-shell.js";
+    import { getFinancialMovements } from "/js/features/finance/transactions-service.js";
+    import { showToast } from "/js/shared/ui/toast.js";
+
+    const session = await requireAuth();
+    if (!session) throw new Error("Redirect login");
+
+    initAppShell({ title: "Transacciones" });
+
+    const transactionsList = document.getElementById("transactionsList");
+
+    function formatMoney(value) {
+      return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(Number(value ?? 0));
+    }
+
+    function renderTransaction(row) {
+      const date = new Date(row.movement_date || row.date || row.created_at || null);
+      const label = isNaN(date.getTime()) ? "Sin fecha" : date.toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" });
+      const amount = Number(row.amount ?? 0);
+      const type = String(row.type || row.movement_type || "").toLowerCase();
+      const account = row.account_name || row.account_id || "-";
+      const description = row.description || row.note || row.reference || "Sin descripción";
+      const tone = type.includes("expense") || type.includes("salida") ? "text-rose-600" : "text-emerald-600";
+
+      return `
+        <article class="transaction-row p-4 shadow-sm">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-slate-900">${description}</p>
+              <p class="mt-1 text-xs text-slate-500">${account} · ${label}</p>
+            </div>
+            <p class="text-lg font-semibold ${tone}">${formatMoney(amount)}</p>
+          </div>
+        </article>
+      `;
+    }
+
+    async function loadTransactions() {
+      transactionsList.innerHTML = "<p class='py-4 text-sm text-slate-500'>Cargando transacciones...</p>";
+      const movements = await getFinancialMovements(100);
+      if (!movements.length) {
+        transactionsList.innerHTML = "<p class='py-4 text-sm text-slate-500'>No hay transacciones disponibles.</p>";
+        return;
+      }
+      transactionsList.innerHTML = movements.map(renderTransaction).join("");
+    }
+
+    try {
+      await loadTransactions();
+    } catch (error) {
+      showToast("No se pudo cargar las transacciones.", { type: "error" });
+      transactionsList.innerHTML = "<p class='py-4 text-sm text-slate-500'>Error al cargar transacciones.</p>";
+      console.error(error);
+    }
+  </script>
+</body>
+</html>

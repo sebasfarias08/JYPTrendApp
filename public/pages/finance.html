@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F8FA" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <title>Finanzas</title>
+  <script src="/js/vendor/tailwindcss-playcdn.js"></script>
+  <link rel="stylesheet" href="/css/theme.css" />
+  <style>
+    .finance-stat { border-radius: 24px; border: 1px solid #e2e8f0; background: #ffffff; }
+    .finance-action { border-radius: 18px; box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08); }
+  </style>
+</head>
+
+<body class="h-screen overflow-hidden flex flex-col bg-slate-50">
+  <header id="appShellTop"></header>
+
+  <main class="flex-1 overflow-y-auto px-4 py-5 space-y-5 pb-[calc(env(safe-area-inset-bottom)+5rem)]">
+    <section class="space-y-4">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-sm text-slate-500">Finanzas</p>
+          <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Resumen</h1>
+        </div>
+        <a href="/pages/finance-expenses.html" class="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Registrar movimiento</a>
+      </div>
+
+      <div class="grid gap-3 sm:grid-cols-2">
+        <article class="finance-stat p-5">
+          <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Balance total</p>
+          <p id="dashboardTotalBalance" class="mt-3 text-3xl font-semibold text-slate-900">Cargando...</p>
+        </article>
+        <article class="finance-stat p-5">
+          <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Cuentas</p>
+          <p id="dashboardAccountsCount" class="mt-3 text-3xl font-semibold text-slate-900">-</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900">Cuentas</h2>
+          <p class="text-sm text-slate-500">Saldo actual por cuenta</p>
+        </div>
+        <a href="/pages/finance-accounts.html" class="text-sm font-semibold text-blue-600">Ver todas</a>
+      </div>
+      <div id="dashboardAccountCards" class="grid gap-3"></div>
+    </section>
+
+    <section class="space-y-4">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900">Flujo de caja</h2>
+          <p class="text-sm text-slate-500">Últimos 7 días</p>
+        </div>
+        <a href="/pages/finance-transactions.html" class="text-sm font-semibold text-blue-600">Ver transacciones</a>
+      </div>
+      <div id="dashboardCashFlow" class="finance-stat p-4"></div>
+    </section>
+
+    <section class="space-y-4">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900">Pagos pendientes</h2>
+          <p class="text-sm text-slate-500">Clientes y proveedores</p>
+        </div>
+      </div>
+      <div class="grid gap-3">
+        <div class="finance-stat p-4">
+          <h3 class="text-sm font-semibold text-slate-900">Clientes</h3>
+          <div id="dashboardPendingCustomers" class="mt-4"></div>
+        </div>
+        <div class="finance-stat p-4">
+          <h3 class="text-sm font-semibold text-slate-900">Proveedores</h3>
+          <div id="dashboardPendingSuppliers" class="mt-4"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav id="appShellBottom"></nav>
+
+  <script type="module">
+    import { requireAuth } from "/js/app/auth/auth.js";
+    import { initAppShell } from "/js/app/shell/app-shell.js";
+    import { initFinanceDashboard } from "/js/features/finance/finance-dashboard.js";
+
+    const session = await requireAuth();
+    if (!session) throw new Error("Redirect login");
+
+    initAppShell({ title: "Finanzas", onRefresh: initFinanceDashboard });
+    await initFinanceDashboard();
+
+    const accountCountEl = document.getElementById("dashboardAccountsCount");
+    if (accountCountEl) {
+      const observer = new MutationObserver(() => {
+        const cards = document.querySelectorAll("#dashboardAccountCards > article");
+        accountCountEl.textContent = String(cards.length);
+      });
+      observer.observe(document.getElementById("dashboardAccountCards"), { childList: true });
+    }
+  </script>
+</body>
+</html>

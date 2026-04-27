@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F8FA" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <title>Movimientos</title>
+  <script src="/js/vendor/tailwindcss-playcdn.js"></script>
+  <link rel="stylesheet" href="/css/theme.css" />
+  <style>
+    .finance-form { border-radius: 24px; border: 1px solid #e2e8f0; background: #ffffff; }
+  </style>
+</head>
+
+<body class="h-screen overflow-hidden flex flex-col bg-slate-50">
+  <header id="appShellTop"></header>
+
+  <main class="flex-1 overflow-y-auto px-4 py-5 space-y-5 pb-[calc(env(safe-area-inset-bottom)+5rem)]">
+    <section class="space-y-3">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-sm text-slate-500">Finanzas</p>
+          <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Registrar movimiento</h1>
+        </div>
+        <a href="/pages/finance.html" class="text-sm font-semibold text-blue-600">Volver al panel</a>
+      </div>
+      <p class="text-sm text-slate-500">Registra pagos, gastos y transferencias rápidamente.</p>
+    </section>
+
+    <section class="space-y-4">
+      <article class="finance-form p-5 shadow-sm">
+        <h2 class="text-lg font-semibold text-slate-900">Registrar gasto</h2>
+        <form id="expenseForm" class="mt-4 space-y-4">
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label class="block">
+              <span class="text-sm font-medium text-slate-700">Categoría</span>
+              <input id="expenseCategory" class="input mt-1 w-full" placeholder="Ej: Servicios" required />
+            </label>
+            <label class="block">
+              <span class="text-sm font-medium text-slate-700">Cuenta</span>
+              <select id="expenseAccount" class="input mt-1 w-full" required></select>
+            </label>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label class="block">
+              <span class="text-sm font-medium text-slate-700">Importe</span>
+              <input id="expenseAmount" type="number" min="0" step="0.01" class="input mt-1 w-full" placeholder="0" required />
+            </label>
+            <label class="block">
+              <span class="text-sm font-medium text-slate-700">Contraparte</span>
+              <input id="expenseCounterparty" class="input mt-1 w-full" placeholder="Proveedor o cliente" />
+            </label>
+          </div>
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">Descripción</span>
+            <textarea id="expenseDescription" rows="3" class="input mt-1 w-full" placeholder="Descripción del gasto"></textarea>
+          </label>
+          <button type="submit" class="w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700">Guardar gasto</button>
+        </form>
+      </article>
+
+      <article class="finance-form p-5 shadow-sm">
+        <h2 class="text-lg font-semibold text-slate-900">Registrar transferencia</h2>
+        <form id="transferForm" class="mt-4 space-y-4">
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label class="block">
+              <span class="text-sm font-medium text-slate-700">De cuenta</span>
+              <select id="transferFromAccount" class="input mt-1 w-full" required></select>
+            </label>
+            <label class="block">
+              <span class="text-sm font-medium text-slate-700">A cuenta</span>
+              <select id="transferToAccount" class="input mt-1 w-full" required></select>
+            </label>
+          </div>
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">Importe</span>
+            <input id="transferAmount" type="number" min="0" step="0.01" class="input mt-1 w-full" required />
+          </label>
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">Nota</span>
+            <textarea id="transferNote" rows="2" class="input mt-1 w-full" placeholder="Motivo de la transferencia"></textarea>
+          </label>
+          <button type="submit" class="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">Registrar transferencia</button>
+        </form>
+      </article>
+
+      <article class="finance-form p-5 shadow-sm">
+        <h2 class="text-lg font-semibold text-slate-900">Registrar pago de cliente</h2>
+        <form id="customerPaymentForm" class="mt-4 space-y-4">
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">ID de pedido</span>
+            <input id="customerPaymentOrderId" class="input mt-1 w-full" placeholder="Ingrese el ID del pedido" required />
+          </label>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label class="block">
+              <span class="text-sm font-medium text-slate-700">Importe</span>
+              <input id="customerPaymentAmount" type="number" min="0" step="0.01" class="input mt-1 w-full" required />
+            </label>
+            <label class="block">
+              <span class="text-sm font-medium text-slate-700">Método</span>
+              <select id="customerPaymentMethod" class="input mt-1 w-full" required>
+                <option value="">Elige un método</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Transferencia">Transferencia</option>
+              </select>
+            </label>
+          </div>
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">Cuenta</span>
+            <select id="customerPaymentAccount" class="input mt-1 w-full" required></select>
+          </label>
+          <button type="submit" class="w-full rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700">Registrar pago cliente</button>
+        </form>
+      </article>
+
+      <article class="finance-form p-5 shadow-sm">
+        <h2 class="text-lg font-semibold text-slate-900">Registrar pago a proveedor</h2>
+        <form id="supplierPaymentForm" class="mt-4 space-y-4">
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">ID de orden de compra</span>
+            <input id="supplierPaymentOrderId" class="input mt-1 w-full" placeholder="Ingrese el ID de orden" required />
+          </label>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label class="block">
+              <span class="text-sm font-medium text-slate-700">Importe</span>
+              <input id="supplierPaymentAmount" type="number" min="0" step="0.01" class="input mt-1 w-full" required />
+            </label>
+            <label class="block">
+              <span class="text-sm font-medium text-slate-700">Método</span>
+              <select id="supplierPaymentMethod" class="input mt-1 w-full" required>
+                <option value="">Elige un método</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Transferencia">Transferencia</option>
+              </select>
+            </label>
+          </div>
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">Cuenta</span>
+            <select id="supplierPaymentAccount" class="input mt-1 w-full" required></select>
+          </label>
+          <button type="submit" class="w-full rounded-2xl bg-amber-500 px-4 py-3 text-sm font-semibold text-white hover:bg-amber-600">Registrar pago proveedor</button>
+        </form>
+      </article>
+    </section>
+  </main>
+
+  <nav id="appShellBottom"></nav>
+
+  <script type="module">
+    import { requireAuth } from "/js/app/auth/auth.js";
+    import { initAppShell } from "/js/app/shell/app-shell.js";
+    import { getAccountOptions } from "/js/features/finance/accounts-service.js";
+    import { createExpense } from "/js/features/finance/expenses-service.js";
+    import { createTransfer } from "/js/features/finance/transfers-service.js";
+    import { createCustomerPayment } from "/js/features/finance/payments-service.js";
+    import { createSupplierPayment } from "/js/features/finance/suppliers-payments-service.js";
+    import { showToast } from "/js/shared/ui/toast.js";
+
+    const session = await requireAuth();
+    if (!session) throw new Error("Redirect login");
+
+    initAppShell({ title: "Registrar movimiento" });
+
+    const accountSelectors = [
+      document.getElementById("expenseAccount"),
+      document.getElementById("transferFromAccount"),
+      document.getElementById("transferToAccount"),
+      document.getElementById("customerPaymentAccount"),
+      document.getElementById("supplierPaymentAccount")
+    ];
+
+    function buildAccountOptions(accounts) {
+      return accounts.map((account) => `<option value="${account.account_id}">${account.account_name} — ${account.currency}</option>`).join("");
+    }
+
+    async function loadAccounts() {
+      const accounts = await getAccountOptions();
+      if (!accounts.length) {
+        accountSelectors.forEach((select) => {
+          if (select) select.innerHTML = '<option value="">No hay cuentas</option>';
+        });
+        return;
+      }
+      const options = `<option value="">Selecciona una cuenta</option>${buildAccountOptions(accounts)}`;
+      accountSelectors.forEach((select) => {
+        if (select) select.innerHTML = options;
+      });
+    }
+
+    function disableButton(button, disabled) {
+      if (!button) return;
+      button.disabled = disabled;
+      button.classList.toggle("opacity-60", disabled);
+    }
+
+    async function handleSubmit(event, callback, successMessage) {
+      event.preventDefault();
+      const button = event.submitter;
+      disableButton(button, true);
+      try {
+        const result = await callback();
+        if (result.ok) {
+          event.target.reset();
+          showToast(successMessage, { type: "success" });
+        } else {
+          showToast(result.error?.message || "Error al guardar.", { type: "error" });
+          console.error(result.error);
+        }
+      } catch (error) {
+        showToast("Error en la operación.", { type: "error" });
+        console.error(error);
+      } finally {
+        disableButton(button, false);
+      }
+    }
+
+    document.getElementById("expenseForm")?.addEventListener("submit", async (event) => {
+      await handleSubmit(event, async () => {
+        return createExpense({
+          category: document.getElementById("expenseCategory").value,
+          description: document.getElementById("expenseDescription").value,
+          amount: document.getElementById("expenseAmount").value,
+          account_id: document.getElementById("expenseAccount").value,
+          counterparty: document.getElementById("expenseCounterparty").value
+        });
+      }, "Gasto registrado con éxito.");
+    });
+
+    document.getElementById("transferForm")?.addEventListener("submit", async (event) => {
+      await handleSubmit(event, async () => {
+        return createTransfer({
+          from_account_id: document.getElementById("transferFromAccount").value,
+          to_account_id: document.getElementById("transferToAccount").value,
+          amount: document.getElementById("transferAmount").value,
+          note: document.getElementById("transferNote").value
+        });
+      }, "Transferencia registrada con éxito.");
+    });
+
+    document.getElementById("customerPaymentForm")?.addEventListener("submit", async (event) => {
+      await handleSubmit(event, async () => {
+        return createCustomerPayment({
+          order_id: document.getElementById("customerPaymentOrderId").value,
+          amount: document.getElementById("customerPaymentAmount").value,
+          account_id: document.getElementById("customerPaymentAccount").value,
+          payment_method: document.getElementById("customerPaymentMethod").value
+        });
+      }, "Pago de cliente registrado con éxito.");
+    });
+
+    document.getElementById("supplierPaymentForm")?.addEventListener("submit", async (event) => {
+      await handleSubmit(event, async () => {
+        return createSupplierPayment({
+          purchase_order_id: document.getElementById("supplierPaymentOrderId").value,
+          amount: document.getElementById("supplierPaymentAmount").value,
+          account_id: document.getElementById("supplierPaymentAccount").value,
+          payment_method: document.getElementById("supplierPaymentMethod").value
+        });
+      }, "Pago a proveedor registrado con éxito.");
+    });
+
+    await loadAccounts();
+  </script>
+</body>
+</html>
