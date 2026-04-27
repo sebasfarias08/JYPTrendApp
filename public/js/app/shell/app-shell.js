@@ -6,6 +6,7 @@ import {
   canManageInventory,
   canViewAdminPanel,
   canViewReports,
+  canViewFinance,
   normalizeRole
 } from "../auth/permissions.js";
 
@@ -19,7 +20,7 @@ const TAB_LINKS = {
 
 const MENU_ITEMS = [
   { label: "Home", href: "/pages/home.html", icon: "home", visible: canViewReports },
-  { label: "Finanzas", href: "/pages/finance.html", icon: "dollar", visible: canViewReports },
+  { label: "Finanzas", href: "/pages/finance.html", icon: "dollar", visible: canViewFinance },
   { label: "Catalogo", href: "/index.html?tab=perfumes", icon: "list" },
   { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history", visible: canViewReports },
   { label: "Clientes", href: "/pages/clientes.html", icon: "users", visible: () => true },

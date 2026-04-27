@@ -33,6 +33,10 @@ export function canViewAdminPanel(role) {
   return normalizeRole(role) === ROLES.ADMIN;
 }
 
+export function canViewFinance(role) {
+  return normalizeRole(role) === ROLES.ADMIN;
+}
+
 export function canViewReports(role) {
   const normalized = normalizeRole(role);
   return normalized === ROLES.ADMIN || normalized === ROLES.SELLER;

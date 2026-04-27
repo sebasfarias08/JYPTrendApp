@@ -1,5 +1,5 @@
 /* public/sw.js */
-const APP_VERSION = "v1.8.5";
+const APP_VERSION = "v1.8.6";
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 
@@ -57,6 +57,13 @@ const PRECACHE_URLS = [
   "/js/features/product/product-page.js",
   "/js/features/product/product-service.js",
   "/js/features/product/products-page.js",
+  "/js/features/finance/accounts-service.js",
+  "/js/features/finance/payments-service.js",
+  "/js/features/finance/expenses-service.js",
+  "/js/features/finance/suppliers-payments-service.js",
+  "/js/features/finance/transfers-service.js",
+  "/js/features/finance/transactions-service.js",
+  "/js/features/finance/finance-dashboard.js",
 
   "/js/shared/ui/address-autocomplete.js",
   "/js/shared/ui/toast.js",
