@@ -174,23 +174,6 @@ export function initProductsPage() {
               <div class="text-sm text-muted">Stock variantes: ${stockTotal}</div>
               <div class="text-sm text-muted">${escapeHtml(p.categories?.name || "Sin categoria")}</div>
               ${p.image_path ? `<div class="text-xs text-subtle mt-1 break-all">${escapeHtml(p.image_path)}</div>` : ""}
-          <div class="mb-2 text-xs text-muted">
-            Variantes activas: <span class="font-semibold">${activeVariants.length}</span>
-            ${labels.length ? ` | ${labels.join(" | ")}` : ""}
-          </div>
-          <div class="flex items-start gap-3">
-            <img
-              src="${p.image_path ? getImageUrl(String(p.image_path).trim().replace(/^\/+/, "")) : ""}"
-              class="w-14 h-14 rounded-xl border divider bg-surface-2 object-contain shrink-0"
-              alt="${escapeHtml(p.name)}"
-            />
-            <div class="min-w-0 flex-1">
-              <div class="font-semibold break-words">${escapeHtml(p.name)}</div>
-              <div class="text-sm text-muted">Precio base: $ ${formatArs(p.price)}</div>
-              <div class="text-sm text-muted">Precio variantes: ${variantPriceSummary(activeVariants)}</div>
-              <div class="text-sm text-muted">Stock variantes: ${stockTotal}</div>
-              <div class="text-sm text-muted">${escapeHtml(p.categories?.name || "Sin categoria")}</div>
-              ${p.image_path ? `<div class="text-xs text-subtle mt-1 break-all">${escapeHtml(p.image_path)}</div>` : ""}
               <div class="mt-2">
                 <span class="${p.active ? "badge badge-success" : "badge badge-neutral"}">${p.active ? "Activo" : "Inactivo"}</span>
               </div>
