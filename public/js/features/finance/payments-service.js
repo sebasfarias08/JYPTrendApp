@@ -11,7 +11,7 @@ export async function getPendingCustomerPayments(limit = 8) {
     .from("orders_financial_status")
     .select("*")
     .gt("balance", 0)
-    .order("due_date", { ascending: true })
+    .order("id", { ascending: true })
     .limit(limit);
 
   if (error) {

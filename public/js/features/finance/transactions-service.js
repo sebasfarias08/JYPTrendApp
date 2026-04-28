@@ -14,8 +14,8 @@ export async function getCashFlowLast7Days() {
   const { data, error } = await supabase
     .from("financial_movements")
     .select("*")
-    .gte("movement_date", isoDate)
-    .order("movement_date", { ascending: true });
+    .gte("created_at", isoDate)
+    .order("created_at", { ascending: true });
 
   if (error) {
     await logError("getCashFlowLast7Days", error, { fromDate: isoDate });
@@ -29,7 +29,7 @@ export async function getFinancialMovements(limit = 100) {
   const { data, error } = await supabase
     .from("financial_movements")
     .select("*")
-    .order("movement_date", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) {

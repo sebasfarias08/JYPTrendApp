@@ -1,22 +1,12 @@
 table_schema,table_name,ordinal_position,column_name,data_type,udt_name,is_nullable,column_default,is_identity,identity_generation
-public,cash_movements,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
-public,cash_movements,2,user_id,uuid,uuid,NO,null,NO,null
-public,cash_movements,3,point_of_sale_id,uuid,uuid,NO,null,NO,null
-public,cash_movements,4,movement_type,text,text,NO,null,NO,null
-public,cash_movements,5,payment_method,text,text,NO,null,NO,null
-public,cash_movements,6,amount,numeric,numeric,NO,null,NO,null
-public,cash_movements,7,currency_code,text,text,NO,'ARS'::text,NO,null
-public,cash_movements,8,order_id,uuid,uuid,YES,null,NO,null
-public,cash_movements,9,payment_id,uuid,uuid,YES,null,NO,null
-public,cash_movements,10,reference_type,text,text,YES,null,NO,null
-public,cash_movements,11,reference_id,uuid,uuid,YES,null,NO,null
-public,cash_movements,12,notes,text,text,YES,null,NO,null
-public,cash_movements,13,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
-public,cash_movements,14,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
-public,cash_movements,15,mp_operation_id,character varying,varchar,YES,null,NO,null
-public,cash_movements,16,sender_name,character varying,varchar,YES,null,NO,null
-public,cash_movements,17,sender_cbu_cvu,character varying,varchar,YES,null,NO,null
-public,cash_movements,18,sender_cuil_cuit,character varying,varchar,YES,null,NO,null
+public,account_balance,1,id,uuid,uuid,YES,null,NO,null
+public,account_balance,2,name,text,text,YES,null,NO,null
+public,account_balance,3,balance,numeric,numeric,YES,null,NO,null
+public,accounts,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,accounts,2,name,text,text,NO,null,NO,null
+public,accounts,3,type,USER-DEFINED,account_type,NO,null,NO,null
+public,accounts,4,currency,text,text,YES,'ARS'::text,NO,null
+public,accounts,5,created_at,timestamp without time zone,timestamp,YES,now(),NO,null
 public,categories,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,categories,2,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,categories,3,name,text,text,YES,null,NO,null
@@ -40,6 +30,24 @@ public,customers,13,address_notes,text,text,YES,null,NO,null
 public,customers,14,address_place_id,text,text,YES,null,NO,null
 public,customers,15,address_lat,double precision,float8,YES,null,NO,null
 public,customers,16,address_lng,double precision,float8,YES,null,NO,null
+public,expense_categories,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,expense_categories,2,name,text,text,NO,null,NO,null
+public,expenses,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,expenses,2,category_id,uuid,uuid,YES,null,NO,null
+public,expenses,3,description,text,text,YES,null,NO,null
+public,expenses,4,counterparty,text,text,YES,null,NO,null
+public,expenses,5,amount,numeric,numeric,NO,null,NO,null
+public,expenses,6,account_id,uuid,uuid,YES,null,NO,null
+public,expenses,7,expense_date,date,date,NO,CURRENT_DATE,NO,null
+public,expenses,8,created_at,timestamp without time zone,timestamp,YES,now(),NO,null
+public,financial_movements,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,financial_movements,2,type,USER-DEFINED,finance_movement_type,NO,null,NO,null
+public,financial_movements,3,amount,numeric,numeric,NO,null,NO,null
+public,financial_movements,4,account_id,uuid,uuid,YES,null,NO,null
+public,financial_movements,5,related_order_id,uuid,uuid,YES,null,NO,null
+public,financial_movements,6,related_payment_id,uuid,uuid,YES,null,NO,null
+public,financial_movements,7,description,text,text,YES,null,NO,null
+public,financial_movements,8,created_at,timestamp without time zone,timestamp,YES,now(),NO,null
 public,inventory_movements,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,inventory_movements,2,user_id,uuid,uuid,NO,null,NO,null
 public,inventory_movements,3,product_id,uuid,uuid,NO,null,NO,null
@@ -54,6 +62,11 @@ public,inventory_movements,11,created_at,timestamp with time zone,timestamptz,NO
 public,inventory_movements,12,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,inventory_movements,13,variant_id,uuid,uuid,YES,null,NO,null
 public,inventory_movements,14,warehouse_id,uuid,uuid,YES,null,NO,null
+public,order_financials,1,order_id,uuid,uuid,NO,null,NO,null
+public,order_financials,2,total_amount,numeric,numeric,NO,null,NO,null
+public,order_financials,3,total_paid,numeric,numeric,YES,0,NO,null
+public,order_financials,4,balance,numeric,numeric,YES,null,NO,null
+public,order_financials,5,updated_at,timestamp without time zone,timestamp,YES,now(),NO,null
 public,order_items,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,order_items,2,order_id,uuid,uuid,NO,null,NO,null
 public,order_items,3,product_id,uuid,uuid,NO,null,NO,null
@@ -103,27 +116,19 @@ public,orders,30,customer_email_snapshot,text,text,YES,null,NO,null
 public,orders,31,customer_address_snapshot,text,text,YES,null,NO,null
 public,orders,32,warehouse_id,uuid,uuid,YES,null,NO,null
 public,orders,33,is_active,boolean,bool,NO,true,NO,null
-public,payment_allocations,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
-public,payment_allocations,2,user_id,uuid,uuid,NO,null,NO,null
-public,payment_allocations,3,payment_id,uuid,uuid,NO,null,NO,null
-public,payment_allocations,4,order_id,uuid,uuid,NO,null,NO,null
-public,payment_allocations,5,amount,numeric,numeric,NO,null,NO,null
-public,payment_allocations,6,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
-public,payment_allocations,7,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,orders_financial_status,1,id,uuid,uuid,YES,null,NO,null
+public,orders_financial_status,2,order_number,bigint,int8,YES,null,NO,null
+public,orders_financial_status,3,grand_total,numeric,numeric,YES,null,NO,null
+public,orders_financial_status,4,total_paid,numeric,numeric,YES,null,NO,null
+public,orders_financial_status,5,balance,numeric,numeric,YES,null,NO,null
+public,orders_financial_status,6,payment_status,text,text,YES,null,NO,null
 public,payments,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,payments,2,order_id,uuid,uuid,NO,null,NO,null
-public,payments,3,customer_id,uuid,uuid,YES,null,NO,null
-public,payments,4,user_id,uuid,uuid,NO,null,NO,null
-public,payments,5,amount,numeric,numeric,NO,null,NO,null
-public,payments,6,currency_code,text,text,NO,'ARS'::text,NO,null
-public,payments,7,payment_method,text,text,NO,null,NO,null
-public,payments,8,payment_status,text,text,NO,'PENDIENTE'::text,NO,null
-public,payments,9,payment_date,timestamp with time zone,timestamptz,NO,now(),NO,null
-public,payments,10,reference_number,text,text,YES,null,NO,null
-public,payments,11,external_reference,text,text,YES,null,NO,null
-public,payments,12,notes,text,text,YES,null,NO,null
-public,payments,13,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
-public,payments,14,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,payments,3,amount,numeric,numeric,NO,null,NO,null
+public,payments,4,payment_method,USER-DEFINED,payment_method_type,YES,null,NO,null
+public,payments,5,account_id,uuid,uuid,YES,null,NO,null
+public,payments,6,paid_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,payments,7,created_at,timestamp without time zone,timestamp,YES,now(),NO,null
 public,points_of_sale,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,points_of_sale,2,user_id,uuid,uuid,NO,null,NO,null
 public,points_of_sale,3,name,text,text,NO,null,NO,null
@@ -178,6 +183,11 @@ public,profiles,6,created_at,timestamp with time zone,timestamptz,NO,now(),NO,nu
 public,profiles,7,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,profiles,8,default_warehouse_id,uuid,uuid,YES,null,NO,null
 public,profiles,9,default_point_of_sale_id,uuid,uuid,YES,null,NO,null
+public,purchase_financials,1,purchase_order_id,uuid,uuid,NO,null,NO,null
+public,purchase_financials,2,total_amount,numeric,numeric,NO,null,NO,null
+public,purchase_financials,3,total_paid,numeric,numeric,YES,0,NO,null
+public,purchase_financials,4,balance,numeric,numeric,YES,null,NO,null
+public,purchase_financials,5,updated_at,timestamp without time zone,timestamp,YES,now(),NO,null
 public,purchase_order_items,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,purchase_order_items,2,purchase_order_id,uuid,uuid,NO,null,NO,null
 public,purchase_order_items,3,product_id,uuid,uuid,NO,null,NO,null
@@ -207,6 +217,13 @@ public,purchase_orders,14,discount_amount,numeric,numeric,NO,0,NO,null
 public,purchase_orders,15,shipping_amount,numeric,numeric,NO,0,NO,null
 public,purchase_orders,16,tax_amount,numeric,numeric,NO,0,NO,null
 public,purchase_orders,17,total,numeric,numeric,NO,0,NO,null
+public,supplier_payments,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,supplier_payments,2,purchase_order_id,uuid,uuid,YES,null,NO,null
+public,supplier_payments,3,supplier_id,uuid,uuid,YES,null,NO,null
+public,supplier_payments,4,amount,numeric,numeric,NO,null,NO,null
+public,supplier_payments,5,account_id,uuid,uuid,YES,null,NO,null
+public,supplier_payments,6,paid_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,supplier_payments,7,created_at,timestamp without time zone,timestamp,YES,now(),NO,null
 public,suppliers,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
 public,suppliers,2,user_id,uuid,uuid,NO,null,NO,null
 public,suppliers,3,name,text,text,NO,null,NO,null
@@ -217,6 +234,11 @@ public,suppliers,7,notes,text,text,YES,null,NO,null
 public,suppliers,8,is_active,boolean,bool,NO,true,NO,null
 public,suppliers,9,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
 public,suppliers,10,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,transfers,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,transfers,2,from_account_id,uuid,uuid,YES,null,NO,null
+public,transfers,3,to_account_id,uuid,uuid,YES,null,NO,null
+public,transfers,4,amount,numeric,numeric,NO,null,NO,null
+public,transfers,5,created_at,timestamp without time zone,timestamp,YES,now(),NO,null
 public,v_catalog_variants_available,1,variant_id,uuid,uuid,YES,null,NO,null
 public,v_catalog_variants_available,2,product_id,uuid,uuid,YES,null,NO,null
 public,v_catalog_variants_available,3,warehouse_id,uuid,uuid,YES,null,NO,null
@@ -250,12 +272,6 @@ public,v_inventory_stock_by_variant,2,variant_id,uuid,uuid,YES,null,NO,null
 public,v_inventory_stock_by_variant,3,warehouse_id,uuid,uuid,YES,null,NO,null
 public,v_inventory_stock_by_variant,4,point_of_sale_id,uuid,uuid,YES,null,NO,null
 public,v_inventory_stock_by_variant,5,stock_qty,numeric,numeric,YES,null,NO,null
-public,v_order_payment_summary,1,order_id,uuid,uuid,YES,null,NO,null
-public,v_order_payment_summary,2,user_id,uuid,uuid,YES,null,NO,null
-public,v_order_payment_summary,3,order_number,bigint,int8,YES,null,NO,null
-public,v_order_payment_summary,4,order_total,numeric,numeric,YES,null,NO,null
-public,v_order_payment_summary,5,allocated_paid_amount,numeric,numeric,YES,null,NO,null
-public,v_order_payment_summary,6,pending_amount,numeric,numeric,YES,null,NO,null
 public,v_order_summary,1,id,uuid,uuid,YES,null,NO,null
 public,v_order_summary,2,user_id,uuid,uuid,YES,null,NO,null
 public,v_order_summary,3,order_number,bigint,int8,YES,null,NO,null

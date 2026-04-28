@@ -11,7 +11,7 @@ export async function getPendingSupplierPayments(limit = 8) {
     .from("purchase_financials")
     .select("*")
     .gt("balance", 0)
-    .order("due_date", { ascending: true })
+    .order("updated_at", { ascending: true })
     .limit(limit);
 
   if (error) {

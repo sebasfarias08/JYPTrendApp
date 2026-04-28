@@ -22,7 +22,7 @@ export async function getAccountBalances() {
   const { data, error } = await supabase
     .from("account_balance")
     .select("*")
-    .order("account_name", { ascending: true });
+    .order("name", { ascending: true });
 
   if (error) {
     await logError("getAccountBalances", error);
