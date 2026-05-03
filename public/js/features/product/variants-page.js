@@ -121,30 +121,34 @@ export function initVariantsPage() {
       const product = v.products ?? {};
       const stock = stockByVariantId.get(v.id) ?? 0;
       const imagePath = v.image_path || product.image_path || "";
+      const movementUrl = `/pages/movimientos-inventario-form.html?mode=new&variant=${encodeURIComponent(v.id)}`;
 
       return `
-        <a href="${buildFormUrl({ id: v.id, mode: "view" })}" class="block card p-3 transition hover-surface-2 fade-in">
-          <div class="mb-2 text-xs text-muted">
-            <span class="font-semibold">${escapeHtml(product.name || "Sin producto")}</span>
-          </div>
-          <div class="flex items-start gap-3">
-            <img
-              src="${imagePath ? getImageUrl(String(imagePath).trim().replace(/^\/+/, "")) : ""}"
-              class="w-14 h-14 rounded-xl border divider bg-surface-2 object-contain shrink-0"
-              alt="${escapeHtml(v.variant_name || v.sku)}"
-            />
-            <div class="min-w-0 flex-1">
-              <div class="font-semibold break-words">${escapeHtml(v.variant_name || "Sin nombre")}</div>
-              <div class="text-sm text-muted">SKU: ${escapeHtml(v.sku || "N/A")}</div>
-              <div class="text-sm text-muted">Código: ${escapeHtml(v.barcode || "N/A")}</div>
-              <div class="text-sm text-muted">Precio: $ ${formatArs(v.sale_price || product.price || 0)}</div>
-              <div class="text-sm text-muted">Stock: ${stock}</div>
-              <div class="mt-2">
-                <span class="${v.active ? "badge badge-success" : "badge badge-neutral"}">${v.active ? "Activo" : "Inactivo"}</span>
+        <div class="card p-3 fade-in space-y-3">
+          <a href="${buildFormUrl({ id: v.id, mode: "view" })}" class="block transition hover-surface-2">
+            <div class="mb-2 text-xs text-muted">
+              <span class="font-semibold">${escapeHtml(product.name || "Sin producto")}</span>
+            </div>
+            <div class="flex items-start gap-3">
+              <img
+                src="${imagePath ? getImageUrl(String(imagePath).trim().replace(/^\/+/, "")) : ""}"
+                class="w-14 h-14 rounded-xl border divider bg-surface-2 object-contain shrink-0"
+                alt="${escapeHtml(v.variant_name || v.sku)}"
+              />
+              <div class="min-w-0 flex-1">
+                <div class="font-semibold break-words">${escapeHtml(v.variant_name || "Sin nombre")}</div>
+                <div class="text-sm text-muted">SKU: ${escapeHtml(v.sku || "N/A")}</div>
+                <div class="text-sm text-muted">Código: ${escapeHtml(v.barcode || "N/A")}</div>
+                <div class="text-sm text-muted">Precio: $ ${formatArs(v.sale_price || product.price || 0)}</div>
+                <div class="text-sm text-muted">Stock: ${stock}</div>
+                <div class="mt-2">
+                  <span class="${v.active ? "badge badge-success" : "badge badge-neutral"}">${v.active ? "Activo" : "Inactivo"}</span>
+                </div>
               </div>
             </div>
-          </div>
-        </a>
+          </a>
+          <a href="${movementUrl}" class="btn btn-secondary btn-sm w-full">Cargar Inventario</a>
+        </div>
       `;
     }).join("");
 

@@ -91,6 +91,7 @@ export function initInventoryMovementFormPage() {
   const id = params.get("id");
   const mode = params.get("mode");
   const returnTo = safeReturnPath(params.get("returnTo"));
+  const prefilledVariantId = params.get("variant");
   const isExisting = Boolean(id);
   const isViewMode = isExisting && mode === "view";
   const isEditMode = isExisting && !isViewMode;
@@ -347,6 +348,29 @@ export function initInventoryMovementFormPage() {
     renderLocationOptions();
     referenceTypeEl.value = "MANUAL";
     applyPageMode();
+    
+    // Pre-fill variant if coming from variantes page
+    if (!isExisting && prefilledVariantId && mode === "new") {
+      let foundProduct = null;
+      let foundVariant = null;
+      
+      for (const product of products) {
+        const variant = Array.isArray(product.product_variants) 
+          ? product.product_variants.find(v => v.id === prefilledVariantId)
+          : null;
+        if (variant) {
+          foundProduct = product;
+          foundVariant = variant;
+          break;
+        }
+      }
+      
+      if (foundProduct && foundVariant) {
+        productEl.value = foundProduct.id;
+        renderVariantOptions(foundVariant.id, foundProduct.id);
+      }
+    }
+    
     await loadForEdit();
   })();
 }
