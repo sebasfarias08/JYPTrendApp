@@ -25,6 +25,7 @@ const MENU_ITEMS = [
   { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history", visible: canViewReports },
   { label: "Clientes", href: "/pages/clientes.html", icon: "users", visible: () => true },
   { label: "Productos", href: "/pages/productos.html", icon: "inventory", visible: canManageInventory },
+  { label: "Variantes", href: "/pages/variantes.html", icon: "package", visible: canManageInventory },
   { label: "Parametros", href: null, icon: "settings", visible: canViewAdminPanel },
   { label: "Inventario", href: "/pages/inventarios-logisticos.html", icon: "inventory", visible: canManageInventory },
   { label: "About", href: "/pages/about.html", icon: "info", visible: canViewReports },
