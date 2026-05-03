@@ -1,4 +1,15 @@
 schema_name,function_name,args,returns,language,function_definition
+public,create_order_financial,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.create_order_financial()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+begin
+    insert into public.order_financials (order_id, total_amount)
+    values (new.id, new.grand_total);
+    return new;
+end;
+$function$
+"
 public,current_app_role,,text,sql,"CREATE OR REPLACE FUNCTION public.current_app_role()
  RETURNS text
  LANGUAGE sql
@@ -176,6 +187,29 @@ public,gtrgm_union,"internal, internal",gtrgm,c,"CREATE OR REPLACE FUNCTION publ
  IMMUTABLE PARALLEL SAFE STRICT
 AS '$libdir/pg_trgm', $function$gtrgm_union$function$
 "
+public,handle_expense,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.handle_expense()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+begin
+
+    insert into public.financial_movements (
+        type,
+        amount,
+        account_id,
+        description
+    )
+    values (
+        'expense',
+        new.amount,
+        new.account_id,
+        new.description
+    );
+
+    return new;
+end;
+$function$
+"
 public,handle_new_user_profile,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.handle_new_user_profile()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -194,6 +228,108 @@ begin
   on conflict (id) do nothing;
 
   return new;
+end;
+$function$
+"
+public,handle_payment,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.handle_payment()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+declare
+    v_total numeric;
+    v_paid numeric;
+begin
+
+    -- 1. registrar movimiento financiero
+    insert into public.financial_movements (
+        type,
+        amount,
+        account_id,
+        related_order_id,
+        related_payment_id,
+        description
+    )
+    values (
+        'income',
+        new.amount,
+        new.account_id,
+        new.order_id,
+        new.id,
+        'Pago de pedido'
+    );
+
+    -- 2. actualizar resumen
+    update public.order_financials
+    set total_paid = total_paid + new.amount,
+        updated_at = now()
+    where order_id = new.order_id;
+
+    -- 3. recalcular estado en orders
+    select total_amount, total_paid
+    into v_total, v_paid
+    from public.order_financials
+    where order_id = new.order_id;
+
+    update public.orders
+    set payment_status = case
+        when v_paid = 0 then 'Pendiente'
+        when v_paid < v_total then 'Parcial'
+        else 'Finalizado'
+    end
+    where id = new.order_id;
+
+    return new;
+end;
+$function$
+"
+public,handle_supplier_payment,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.handle_supplier_payment()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+declare
+    v_total numeric;
+    v_paid numeric;
+begin
+
+    -- 1. egreso financiero
+    insert into public.financial_movements (
+        type,
+        amount,
+        account_id,
+        description
+    )
+    values (
+        'expense',
+        new.amount,
+        new.account_id,
+        'Pago a proveedor'
+    );
+
+    -- 2. actualizar cuentas por pagar
+    update public.purchase_financials
+    set total_paid = total_paid + new.amount,
+        updated_at = now()
+    where purchase_order_id = new.purchase_order_id;
+
+    return new;
+end;
+$function$
+"
+public,handle_transfer,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.handle_transfer()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+begin
+
+    -- salida
+    insert into public.financial_movements (type, amount, account_id, description)
+    values ('transfer', new.amount, new.from_account_id, 'Transferencia salida');
+
+    -- entrada
+    insert into public.financial_movements (type, amount, account_id, description)
+    values ('transfer', new.amount, new.to_account_id, 'Transferencia entrada');
+
+    return new;
 end;
 $function$
 "
@@ -694,6 +830,34 @@ begin
     if new.phone is not null then
         new.phone := normalize_phone_ar(new.phone);
     end if;
+
+    return new;
+end;
+$function$
+"
+public,update_order_financial_total,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.update_order_financial_total()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+begin
+    update public.order_financials
+    set total_amount = new.grand_total,
+        updated_at = now()
+    where order_id = new.id;
+
+    return new;
+end;
+$function$
+"
+public,update_purchase_financial_total,,trigger,plpgsql,"CREATE OR REPLACE FUNCTION public.update_purchase_financial_total()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+begin
+    update public.purchase_financials
+    set total_amount = new.total,
+        updated_at = now()
+    where purchase_order_id = new.id;
 
     return new;
 end;
