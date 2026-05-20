@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F8FA" />
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <title>Reporte de pedidos</title>
+  <script src="/js/vendor/tailwindcss-playcdn.js"></script>
+  <link rel="stylesheet" href="/css/theme.css" />
+</head>
+
+<body class="h-screen overflow-hidden flex flex-col bg-slate-100">
+  <header id="appShellTop"></header>
+
+  <main class="flex-1 overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+7rem)]">
+    <div id="orders-report-container" class="max-w-6xl mx-auto p-4"></div>
+  </main>
+
+  <nav id="appShellBottom"></nav>
+
+  <script type="module">
+    import { requireAuth } from "/js/app/auth/auth.js";
+    import { initAppShell } from "/js/app/shell/app-shell.js";
+    import { initOrdersReportScreen } from "/js/features/orders/orders-report.js";
+
+    const session = await requireAuth();
+    if (!session) throw new Error("Redirect login");
+
+    initAppShell({
+      title: "Reporte de pedidos",
+      onRefresh: async () => location.reload()
+    });
+
+    await initOrdersReportScreen({ containerId: "orders-report-container" });
+  </script>
+</body>
+</html>

@@ -78,6 +78,69 @@ export async function getMyOrdersPage({ limit = 30, offset = 0 } = {}) {
   };
 }
 
+export async function getOrdersReportPage({ limit = 20, offset = 0 } = {}) {
+  const from = Math.max(0, Number(offset) || 0);
+  const to = from + Math.max(1, Number(limit) || 20) - 1;
+
+  const { data, error, count } = await supabase
+    .from("orders")
+    .select(`
+      id,
+      order_number,
+      created_at,
+      order_status,
+      payment_status,
+      customer_name,
+      customer_name_snapshot,
+      customer_phone,
+      customer_phone_snapshot,
+      customer_email_snapshot,
+      subtotal,
+      discount_amount,
+      shipping_amount,
+      tax_amount,
+      grand_total,
+      total,
+      notes,
+      order_items (
+        id,
+        qty,
+        unit_price,
+        subtotal,
+        product_name_snapshot,
+        variant_name_snapshot,
+        sku_snapshot,
+        products (
+          name
+        ),
+        product_variants (
+          variant_name
+        )
+      )
+    `, { count: "exact" })
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    const { session } = await getSessionSnapshot();
+    logSupabaseError({
+      source: "orders-service",
+      action: "getOrdersReportPage",
+      table: "orders",
+      error,
+      session,
+      extra: { limit, offset }
+    });
+    return { rows: [], total: 0 };
+  }
+
+  return {
+    rows: data ?? [],
+    total: Number(count ?? 0)
+  };
+}
+
 export async function getMyOpenOrders({ limit = 80, sellerOnly = false, userId = null } = {}) {
   const resolvedUserId = sellerOnly
     ? (String(userId || "").trim() || (await getSessionSnapshot()).session?.user?.id || null)

@@ -23,6 +23,7 @@ const MENU_ITEMS = [
   { label: "Finanzas", href: "/pages/finance.html", icon: "dollar", visible: canViewFinance },
   { label: "Catalogo", href: "/index.html?tab=perfumes", icon: "list" },
   { label: "Historial Pedidos", href: "/pages/pedidos.html", icon: "history", visible: canViewReports },
+  { label: "Reporte Pedidos", href: "/pages/pedidos-reporte.html", icon: "layoutList", visible: canViewReports },
   { label: "Clientes", href: "/pages/clientes.html", icon: "users", visible: () => true },
   { label: "Productos", href: "/pages/productos.html", icon: "inventory", visible: canManageInventory },
   { label: "Variantes", href: "/pages/variantes.html", icon: "package", visible: canManageInventory },
