@@ -1,5 +1,5 @@
 /* public/sw.js */
-const APP_VERSION = "v1.8.9";
+const APP_VERSION = "v1.8.10";
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 
@@ -10,6 +10,7 @@ const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/version.json",
   "/css/theme.css",
+  "/css/tailwind.css",
 
   "/pages/login.html",
   "/pages/auth-callback.html",
@@ -76,8 +77,6 @@ const PRECACHE_URLS = [
   "/js/shared/utils/runtime-config.js",
   "/js/shared/utils/share.js",
   "/js/shared/utils/storage-service.js",
-  "/js/vendor/tailwindcss-playcdn.js",
-
   "/assets/icons/icon-192.png",
   "/assets/icons/icon-512.png"
 ];

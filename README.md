@@ -1,12 +1,12 @@
 # JYPTrendApp
 
-App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `public/` que consume Supabase (Auth, Postgres y Storage) sin build step.
+App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `public/` que consume Supabase (Auth, Postgres y Storage) y compila Tailwind en un CSS estatico.
 
 ## Resumen ejecutivo
 
-- Estado actual: funcional para operacion diaria (catalogo, carrito, Reserva, pedidos, clientes, productos, PWA basica).
-- Version de app en repo: `v1.7.5` (`public/version.json`, fecha `2026-03-29`).
-- Arquitectura: HTML multipagina + JavaScript ES Modules + Tailwind CDN + Supabase JS CDN.
+- Estado actual: funcional para operacion diaria (catalogo, carrito, Reserva, pedidos, clientes, productos, variantes, inventario, logistica, finanzas, reportes y PWA basica).
+- Version de app en repo: `v1.8.10` (`public/version.json`, fecha `2026-05-30`).
+- Arquitectura: HTML multipagina + JavaScript ES Modules + Tailwind CSS compilado + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Fuente de verdad backend: `docs/supabase-architecture-final.md`.
 
@@ -15,7 +15,7 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 - Frontend:
   - HTML multipagina en `public/pages/*.html` + `public/index.html`.
   - CSS tema en `public/css/theme.css`.
-  - Tailwind Play CDN en `public/js/vendor/tailwindcss-playcdn.js`.
+  - Tailwind compilado en `public/css/tailwind.css`.
   - JavaScript ES Modules sin empaquetador.
 - Backend:
   - Supabase Postgres (tablas + views + RLS).
@@ -45,18 +45,16 @@ public/
       catalog/
       checkout/
       customers/
+      finance/
       inventory/
       orders/
       product/
     shared/
       ui/
       utils/
-    vendor/
-      tailwindcss-playcdn.js
-    services/   # wrappers legacy
-    utils/      # wrappers legacy
-    lib/        # wrapper legacy
-    *.js        # wrappers legacy / entrypoints historicos
+  css/
+    theme.css
+    tailwind.css
   pages/*.html
 ```
 
@@ -66,11 +64,52 @@ public/
   - `public/js/app/`
   - `public/js/features/`
   - `public/js/shared/`
-  - `public/js/vendor/`
-- Wrappers legacy conservados por compatibilidad:
-  - `public/js/components/*.js`
 - Las paginas HTML activas ya importan modulos reales bajo `app/`, `features/` y `shared/`.
 - Tras el cierre final de wrappers legacy, ya no quedan wrappers en `public/js/` ni en `public/js/components/`; `public/sw.js` sigue precacheando solo rutas modulares reales.
+
+### Build CSS
+
+```bash
+npm install
+npm run build:css
+```
+
+El comando genera `public/css/tailwind.css` a partir de `src/styles/tailwind.css` y `tailwind.config.js`.
+
+## Funcionalidades principales
+
+- Catalogo mobile:
+  - `public/index.html`
+  - `public/js/features/catalog/catalog-service.js`
+  - tabs por categoria (`perfumes`, `botellas`, `importados`, `outlet`) y busqueda.
+- Carrito y Reserva:
+  - `public/js/features/checkout/cart.js`
+  - `public/pages/checkout.html`
+  - `public/js/features/checkout/checkout-page.js`
+- Pedidos y reportes:
+  - historial: `public/pages/pedidos.html`
+  - detalle: `public/pages/pedido-detalle.html`
+  - reporte: `public/pages/pedidos-reporte.html`
+  - servicios: `public/js/features/orders/`
+- Clientes:
+  - listado y ABM en `public/pages/clientes.html` y `public/pages/cliente-form.html`.
+  - servicio en `public/js/features/customers/customers-service.js`.
+- Productos y variantes:
+  - productos: `public/pages/productos.html`, `public/pages/productos-form.html`.
+  - variantes: `public/pages/variantes.html`.
+  - detalle/edicion rapida: `public/pages/producto.html`.
+  - servicios en `public/js/features/product/`.
+- Inventario y logistica:
+  - stock real desde `inventory_movements` mediante views.
+  - movimientos de inventario en `public/pages/movimientos-inventario.html` y `public/pages/movimientos-inventario-form.html`.
+  - depositos y puntos de venta en `public/pages/inventarios-logisticos.html` y `public/pages/inventarios-logisticos-form.html`.
+  - servicios en `public/js/features/inventory/`.
+- Finanzas:
+  - dashboard en `public/pages/finance.html`.
+  - cuentas en `public/pages/finance-accounts.html`.
+  - registro de gastos, transferencias y pagos en `public/pages/finance-expenses.html`.
+  - transacciones en `public/pages/finance-transactions.html`.
+  - servicios en `public/js/features/finance/`.
 
 ## Integracion Supabase
 
@@ -90,6 +129,9 @@ public/
   - `public/js/app/auth/permissions.js`
   - Roles validos: `admin`, `seller`, `viewer`.
   - Rol desconocido -> fallback seguro `viewer`.
+  - Finanzas e inventario se exponen desde la navegacion solo para `admin`.
+  - Productos, variantes, depositos, puntos de venta y movimientos de inventario requieren rol `admin` en sus paginas.
+  - Checkout requiere rol `admin` o `seller`.
 
 ## Catalogo y stock real
 
@@ -110,17 +152,16 @@ public/
   - el `salesContext` ahora llega desde una sola RPC en lugar de multiples lecturas frontend sobre `profiles`, `warehouses` y `points_of_sale`.
   - esto reduce roundtrips al backend y evita combinar resultados en memoria del navegador.
 
-## SQL y migraciones en repo
-
-- `database/2026-02-19_add_order_number.sql`
-- `database/2026-02-20_customers_abm.sql`
-- `database/2026-03-07_enforce_canonical_statuses.sql`
-- `database/2026-03-07_fix_profiles_rls_recursion.sql`
-- `database/20260319_create_v_catalog_variants_available.sql`
-
 ## Como ejecutar local
 
-No hay `package.json` ni build. Servir la carpeta `public/` con un servidor estatico:
+Instalar dependencias y compilar Tailwind:
+
+```powershell
+npm install
+npm run build:css
+```
+
+Despues servir la carpeta `public/` con un servidor estatico:
 
 ```powershell
 npx serve public
@@ -148,7 +189,7 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 
 1. Ya no quedan wrappers legacy de runtime en el repo; el riesgo residual pasa a ser evitar su reintroduccion.
 2. Configuracion de Supabase aun expuesta en frontend (anon key/public URL).
-3. Uso de Tailwind Play CDN en produccion.
+3. Mantener `public/css/tailwind.css` compilado antes de publicar cambios de clases Tailwind.
 4. Cobertura de testing automatizado baja o inexistente.
 5. Falta CI con quality gates.
 
