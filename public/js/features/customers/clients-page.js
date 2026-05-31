@@ -3,6 +3,7 @@ import {
 } from "./customers-service.js";
 import { canManageCustomers, normalizeRole, ROLES } from "../../app/auth/permissions.js";
 import { showToast } from "../../shared/ui/toast.js";
+import { debounce } from "../../shared/utils/debounce.js";
 
 function escapeHtml(str) {
   return String(str ?? "")
@@ -178,9 +179,8 @@ export function initClientsPage(session = null) {
     btnNewClientEl.classList.add('loading');
     location.href = buildFormUrl({ mode: "new" });
   });
-  searchEl.addEventListener("input", renderList);
+  searchEl.addEventListener("input", debounce(renderList, 180));
   showInactiveEl.addEventListener("change", renderList);
 
   loadRows();
 }
-

@@ -1,6 +1,7 @@
 import { getVariantsForAdmin } from "./variants-service.js";
 import { getStockByVariant, INVENTORY_CHANGED_EVENT } from "../inventory/stock-service.js";
 import { getImageUrl } from "../../shared/utils/image.js";
+import { debounce } from "../../shared/utils/debounce.js";
 
 const VARIANTS_SCROLL_POSITION_KEY = "variants_scroll_position";
 
@@ -198,7 +199,7 @@ export function initVariantsPage() {
     saveVariantsScrollPosition();
   });
 
-  searchEl.addEventListener("input", renderList);
+  searchEl.addEventListener("input", debounce(renderList, 180));
   showInactiveEl.addEventListener("change", renderList);
   window.addEventListener(INVENTORY_CHANGED_EVENT, () => {
     loadRows();

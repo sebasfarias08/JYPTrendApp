@@ -1,6 +1,7 @@
 import { getProductsForAdmin } from "./product-service.js";
 import { getStockByVariant, INVENTORY_CHANGED_EVENT } from "../inventory/stock-service.js";
 import { getImageUrl } from "../../shared/utils/image.js";
+import { debounce } from "../../shared/utils/debounce.js";
 
 const CATALOG_SCROLL_POSITION_KEY = "catalog_scroll_position";
 
@@ -227,7 +228,7 @@ export function initProductsPage() {
     if (!link) return;
     saveCatalogScrollPosition();
   });
-  searchEl.addEventListener("input", renderList);
+  searchEl.addEventListener("input", debounce(renderList, 180));
   showInactiveEl.addEventListener("change", renderList);
   window.addEventListener(INVENTORY_CHANGED_EVENT, () => {
     loadRows();

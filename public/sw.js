@@ -1,5 +1,5 @@
 /* public/sw.js */
-const APP_VERSION = "v1.8.10";
+const APP_VERSION = "v1.8.11";
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 
@@ -71,6 +71,7 @@ const PRECACHE_URLS = [
   "/js/shared/ui/address-autocomplete.js",
   "/js/shared/ui/toast.js",
   "/js/shared/utils/argentina-phone.js",
+  "/js/shared/utils/debounce.js",
   "/js/shared/utils/image.js",
   "/js/shared/utils/order-ref.js",
   "/js/shared/utils/order-status.js",

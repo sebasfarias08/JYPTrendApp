@@ -1,4 +1,5 @@
 import { getInventoryMovements } from "./inventory-movement-service.js";
+import { debounce } from "../../shared/utils/debounce.js";
 
 function escapeHtml(str) {
   return String(str ?? "")
@@ -107,7 +108,7 @@ export function initInventoryMovementsPage() {
   btnNewEl.addEventListener("click", () => {
     location.href = buildFormUrl({ mode: "new" });
   });
-  searchEl.addEventListener("input", renderList);
+  searchEl.addEventListener("input", debounce(renderList, 180));
   movementTypeEl.addEventListener("change", renderList);
 
   loadRows();

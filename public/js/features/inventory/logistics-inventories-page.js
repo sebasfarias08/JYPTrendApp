@@ -3,6 +3,7 @@ import {
   getLogisticsInventories,
   LOGISTICS_ENTITY_TYPES
 } from "./logistics-inventory-service.js";
+import { debounce } from "../../shared/utils/debounce.js";
 
 function escapeHtml(str) {
   return String(str ?? "")
@@ -94,7 +95,7 @@ export function initLogisticsInventoriesPage() {
     });
   });
 
-  searchEl.addEventListener("input", renderList);
+  searchEl.addEventListener("input", debounce(renderList, 180));
   showInactiveEl.addEventListener("change", renderList);
   typeFilterEl.addEventListener("change", renderList);
 
