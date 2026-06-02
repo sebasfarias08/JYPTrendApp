@@ -191,6 +191,45 @@ async function loadCurrentIdentity() {
   };
 }
 
+async function prefetchMenuPages(role) {
+  if (!navigator.serviceWorker?.controller) return;
+  
+  const urlsToPrefetch = [
+    "/pages/home.html",
+    "/index.html",
+    "/pages/pedidos.html",
+    "/pages/clientes.html",
+    "/pages/checkout.html"
+  ];
+  
+  if (role === ROLES.ADMIN || role === "admin") {
+    urlsToPrefetch.push(
+      "/pages/productos.html",
+      "/pages/variantes.html",
+      "/pages/finance.html",
+      "/pages/inventarios-logisticos.html",
+      "/pages/movimientos-inventario.html",
+      "/pages/pedidos-reporte.html"
+    );
+  }
+  
+  // Delay prefetch to avoid interfering with initial page load
+  setTimeout(() => {
+    const channel = new MessageChannel();
+    navigator.serviceWorker.controller.postMessage(
+      { type: "PREFETCH_URLS", urls: urlsToPrefetch },
+      [channel.port2]
+    );
+    
+    // Optionally log when prefetch completes
+    channel.port1.onmessage = (event) => {
+      if (event.data?.type === "PREFETCH_DONE") {
+        console.debug("[Prefetch] Pages cached in background", event.data.results);
+      }
+    };
+  }, 3500);
+}
+
 function resolveActiveTab() {
   const path = location.pathname;
   const tab = new URLSearchParams(location.search).get("tab");
@@ -379,6 +418,7 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
           if (el.tagName === "A") el.href = "/index.html?tab=perfumes";
         });
       }
+      prefetchMenuPages(role);
     })
     .catch((error) => {
       console.error("App shell identity error:", error);
@@ -388,6 +428,7 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
       if (btnAdd) {
         btnAdd.classList.toggle("hidden", true);
       }
+      prefetchMenuPages(ROLES.VIEWER);
     });
 
   if (btnAdd) {

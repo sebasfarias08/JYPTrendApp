@@ -5,11 +5,11 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 ## Resumen ejecutivo
 
 - Estado actual: funcional para operacion diaria (catalogo, carrito, Reserva, pedidos, clientes, productos, variantes, inventario, logistica, finanzas, reportes y PWA basica).
-- Version de app en repo: `v1.8.12` (`public/version.json`, fecha `2026-06-02`).
+- Version de app en repo: `v1.8.13` (`public/version.json`, fecha `2026-06-02`).
 - Arquitectura: HTML multipagina + JavaScript ES Modules + Tailwind CSS compilado + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Fuente de verdad backend: `docs/supabase-architecture-final.md`.
-- Ultima actualizacion: responsive mobile-first en `pedido-detalle`, `cliente-form`, `movimientos-inventario` y formularios asociados.
+- Ultima actualizacion: navegacion optimizada con transiciones visuales y prefetch de páginas en background.
 
 ## Stack y arquitectura
 
@@ -197,6 +197,27 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
   - ninguna logica de negocio ni interacciones backend fueron modificadas.
   - modulos JavaScript permanecen funcionalmente identicos.
   - integracion con servicios Supabase sin cambios.
+
+## Cambios en v1.8.13 (2026-06-02): Navegacion optimizada y prefetch en background
+
+- **Transiciones visuales de navegacion:**
+  - `public/css/theme.css`: agregadas transiciones suaves con overlay de carga y spinner durante navegacion.
+  - `public/js/app/shell/app-shell.js`: intercepcion de clicks en menu para mostrar overlay antes de navegar; fade-out/fade-in controlado.
+  - Los usuarios ven una transicion fluida (fade + loader) en lugar de "blanco abrupto" al cambiar de pagina.
+
+- **Prefetch inteligente en background:**
+  - `public/sw.js`: nuevo mensaje handler `PREFETCH_URLS` que cachea paginas en `CACHE_RUNTIME` de forma silenciosa.
+  - `public/js/app/shell/app-shell.js`: funcion `prefetchMenuPages(role)` que inicia prefetch de paginas segun el rol del usuario.
+  - Prefetch se inicia 3.5 segundos despues de cargar la pagina, sin interferir con carga inicial.
+  - Pages prefetcheadas:
+    - Todos: `home.html`, `index.html`, `pedidos.html`, `clientes.html`, `checkout.html`.
+    - Admin: ademas `productos.html`, `variantes.html`, `finance.html`, `inventarios-logisticos.html`, `movimientos-inventario.html`, `pedidos-reporte.html`.
+  - Resultado: navegacion instantanea (sin esperas) cuando el usuario hace click en el menu despues de los primeros segundos.
+
+- **Preservacion:**
+  - Service Worker precache intacto; prefetch usa cache separado.
+  - No hay cambios en logica de negocio ni backend.
+  - Compatible con todos los navegadores con Service Worker support.
 
 ## Riesgos / deuda tecnica
 

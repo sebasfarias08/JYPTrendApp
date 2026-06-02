@@ -1,5 +1,5 @@
 /* public/sw.js */
-const APP_VERSION = "v1.8.12";
+const APP_VERSION = "v1.8.13";
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 
@@ -188,6 +188,34 @@ self.addEventListener("message", (event) => {
   }
   if (event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
+    return;
+  }
+  if (event.data?.type === "PREFETCH_URLS") {
+    const urls = event.data.urls || [];
+    (async () => {
+      const cache = await caches.open(CACHE_RUNTIME);
+      const results = [];
+      for (const url of urls) {
+        try {
+          const cached = await cache.match(url);
+          if (cached) {
+            results.push({ url, status: "cached" });
+            continue;
+          }
+          const res = await fetch(url, { cache: "no-store" });
+          if (res.ok) {
+            await cache.put(url, res.clone());
+            results.push({ url, status: "fetched" });
+          } else {
+            results.push({ url, status: "failed", code: res.status });
+          }
+        } catch (e) {
+          results.push({ url, status: "error", error: String(e) });
+        }
+      }
+      event.ports?.[0]?.postMessage({ type: "PREFETCH_DONE", results });
+    })();
+    return;
   }
 });
 
