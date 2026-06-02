@@ -370,4 +370,158 @@ body {
 
 .overlay-backdrop {
   background: rgba(17, 24, 39, 0.28);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+}
+
+#appShellMenuOverlay {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+#appShellMenuOverlay:not(.hidden) {
+  opacity: 1;
+  visibility: visible;
+}
+
+#appShellSidebar {
+  display: none;
+}
+
+#appShellSidebar .menu-item:hover,
+#appShellSidebar .menu-item:focus-visible {
+  background: var(--surface-2);
+}
+
+#appShellSidebar .menu-item {
+  transition: background-color 0.15s ease;
+}
+
+.responsive-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.responsive-table-wrapper table {
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.responsive-table-wrapper th,
+.responsive-table-wrapper td {
+  padding: 0.9rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.responsive-table-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.responsive-table-card .field {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+}
+
+.responsive-table-card .field strong {
+  color: var(--text-2);
+}
+
+@media (max-width: 767px) {
+  .btn,
+  .icon-btn,
+  .input {
+    min-height: 44px;
+  }
+
+  .btn.w-full {
+    width: 100%;
+  }
+
+  .card,
+  .home-panel,
+  .home-stat-card,
+  .home-quick {
+    border-radius: 1rem;
+  }
+
+  .home-panel {
+    padding: 1rem;
+  }
+
+  .grid-cols-2,
+  .grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .home-quick {
+    min-height: 72px;
+  }
+
+  .home-stat-card {
+    padding: 1rem;
+  }
+
+  main {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  #appShellTop {
+    position: sticky;
+  }
+}
+
+@media (min-width: 768px) {
+  .modal-card,
+  .card {
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  #appShellSidebar {
+    display: flex;
+  }
+
+  #btnShellMenu {
+    display: none;
+  }
+
+  body.app-shell-layout main {
+    margin-left: 18rem;
+  }
+
+  body.app-shell-layout #appShellTop {
+    margin-left: 18rem;
+  }
+
+  body.app-shell-layout #appShellBottom {
+    display: none;
+  }
+
+  #appShellSidebar {
+    width: 18rem;
+    min-width: 18rem;
+    max-width: 18rem;
+    box-shadow: 2px 0 16px rgba(15, 23, 42, 0.08);
+  }
+
+  #appShellSidebarList {
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
+  }
+
+  .home-shell main {
+    padding-right: 2rem;
+  }
 }

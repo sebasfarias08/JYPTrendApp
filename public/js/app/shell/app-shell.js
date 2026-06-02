@@ -70,6 +70,93 @@ function renderIcon(name, sizeClass = "w-5 h-5") {
   return `<span class="flex items-center justify-center"><svg viewBox="0 0 24 24" class="${sizeClass} stroke-[1.8]" fill="none" stroke="currentColor" aria-hidden="true">${iconSvg(name)}</svg></span>`;
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function buildMenuList(container, role, onSelect = () => {}) {
+  const menuItems = getMenuItemsByRole(role);
+  menuItems.forEach((item) => {
+    if (item.label === "Clientes" || item.label === "About") {
+      const divider = document.createElement("div");
+      divider.className = "my-2 border-t divider";
+      container.appendChild(divider);
+    }
+
+    const btn = document.createElement(item.href ? "a" : "button");
+    btn.className = "menu-item w-full text-left px-2.5 py-2 rounded-lg hover-surface-2 flex items-center gap-3 text-sm text-slate-700";
+    btn.innerHTML = `
+      <span class="w-5 h-5 inline-flex items-center justify-center text-subtle">
+        <svg viewBox="0 0 24 24" class="w-5 h-5 stroke-[1.8]" fill="none" stroke="currentColor" aria-hidden="true">${iconSvg(item.icon)}</svg>
+      </span>
+      <span>${escapeHtml(item.label)}</span>
+    `;
+
+    if (item.href) {
+      btn.setAttribute("href", item.href);
+    } else {
+      btn.setAttribute("type", "button");
+      btn.addEventListener("click", async () => {
+        if (item.action === "logout") {
+          try {
+            await signOut();
+          } catch (e) {
+            console.error("Logout error:", e);
+          } finally {
+            location.href = "/pages/login.html";
+          }
+          return;
+        }
+        alert(`"${item.label}" estara disponible pronto.`);
+        onSelect();
+      });
+    }
+
+    if (item.href) {
+      btn.addEventListener("click", () => onSelect());
+    }
+    container.appendChild(btn);
+  });
+}
+
+function createDesktopSidebar({ userEmail, role }) {
+  let sidebar = document.getElementById("appShellSidebar");
+  if (sidebar) return sidebar;
+
+  sidebar = document.createElement("aside");
+  sidebar.id = "appShellSidebar";
+  sidebar.className = "hidden fixed inset-y-0 left-0 z-40 w-72 max-w-[84vw] bg-surface border-r divider flex flex-col";
+  sidebar.innerHTML = `
+    <div class="px-4 py-4 border-b divider">
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-2xl bg-primary-soft text-primary font-bold inline-flex items-center justify-center">J</div>
+          <div>
+            <div class="font-semibold text-slate-900">JyP Trend App</div>
+            <div class="text-xs text-slate-500">Gestion comercial</div>
+          </div>
+        </div>
+        <div class="text-xs uppercase tracking-[0.08em] text-slate-400">Cuenta</div>
+        <div class="text-sm font-medium text-slate-800 truncate">${escapeHtml(userEmail)}</div>
+      </div>
+    </div>
+    <nav id="appShellSidebarList" class="flex-1 overflow-y-auto px-3 py-3 space-y-1"></nav>
+    <div class="px-4 py-3 border-t divider text-xs text-slate-500">
+      Navegacion rapida para escritorio.
+    </div>
+  `;
+
+  document.body.appendChild(sidebar);
+  const list = sidebar.querySelector("#appShellSidebarList");
+  buildMenuList(list, role);
+  return sidebar;
+}
+
 async function loadCurrentIdentity() {
   const [user, profile] = await Promise.all([
     getCurrentUser(),
@@ -114,6 +201,7 @@ function ensureShellContainers() {
 
 function renderShell({ title }) {
   const { top, bottom } = ensureShellContainers();
+  document.body.classList.add("app-shell-layout");
 
   top.className = "sticky top-0 z-30 border-b divider bg-surface backdrop-blur";
   top.innerHTML = `
@@ -211,45 +299,7 @@ function createMenuDrawer({ userEmail, role }) {
   document.body.appendChild(overlay);
 
   const list = panel.querySelector("#appShellMenuList");
-  const menuItems = getMenuItemsByRole(role);
-
-  menuItems.forEach((item) => {
-    if (item.label === "Clientes" || item.label === "About") {
-      const divider = document.createElement("div");
-      divider.className = "my-2 border-t divider";
-      list.appendChild(divider);
-    }
-
-    const btn = document.createElement(item.href ? "a" : "button");
-    btn.className = "w-full text-left px-2.5 py-2 rounded-lg hover-surface-2 flex items-center gap-3";
-    btn.innerHTML = `
-      <span class="w-5 h-5 inline-flex items-center justify-center text-subtle">
-        <svg viewBox="0 0 24 24" class="w-5 h-5 stroke-[1.8]" fill="none" stroke="currentColor" aria-hidden="true">${iconSvg(item.icon)}</svg>
-      </span>
-      <span class="text-[15px]">${item.label}</span>
-    `;
-
-    if (item.href) {
-      btn.setAttribute("href", item.href);
-    } else {
-      btn.setAttribute("type", "button");
-      btn.addEventListener("click", async () => {
-        if (item.action === "logout") {
-          try {
-            await signOut();
-          } catch (e) {
-            console.error("Logout error:", e);
-          } finally {
-            location.href = "/pages/login.html";
-          }
-          return;
-        }
-        alert(`"${item.label}" estara disponible pronto.`);
-      });
-    }
-
-    list.appendChild(btn);
-  });
+  buildMenuList(list, role, () => overlay.classList.add("hidden"));
 
   panel.querySelector("#appShellMenuClose")?.addEventListener("click", () => {
     overlay.classList.add("hidden");
@@ -299,6 +349,7 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
     .then(({ email, role }) => {
       document.body.dataset.role = role;
       menuOverlay = createMenuDrawer({ userEmail: email, role });
+      createDesktopSidebar({ userEmail: email, role });
       if (btnAdd) {
         btnAdd.classList.toggle("hidden", !canCreateOrders(role));
       }
@@ -311,6 +362,7 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
     .catch((error) => {
       console.error("App shell identity error:", error);
       menuOverlay = createMenuDrawer({ userEmail: "usuario@jypventas", role: ROLES.VIEWER });
+      createDesktopSidebar({ userEmail: "usuario@jypventas", role: ROLES.VIEWER });
       document.body.dataset.role = ROLES.VIEWER;
       if (btnAdd) {
         btnAdd.classList.toggle("hidden", true);

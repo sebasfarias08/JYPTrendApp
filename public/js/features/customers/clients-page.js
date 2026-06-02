@@ -42,7 +42,7 @@ export function initClientsPage(session = null) {
   const countEl = document.getElementById("clientsCount");
   const searchEl = document.getElementById("q");
   const showInactiveEl = document.getElementById("showInactive");
-  const btnNewClientEl = document.getElementById("btnNewClient");
+  const btnNewClientEls = document.querySelectorAll(".btn-new-client");
 
   const params = new URLSearchParams(location.search);
   const mode = params.get("mode");
@@ -168,16 +168,18 @@ export function initClientsPage(session = null) {
     }
   }
 
-  btnNewClientEl.classList.toggle("hidden", !canManage);
-  btnNewClientEl.addEventListener("click", () => {
-    if (!canManage) {
-      showToast("No tenes permisos para crear clientes.", { type: "warning", duration: 2400 });
-      return;
-    }
-    if (btnNewClientEl.disabled) return; // Prevenir doble-clic
-    btnNewClientEl.disabled = true;
-    btnNewClientEl.classList.add('loading');
-    location.href = buildFormUrl({ mode: "new" });
+  btnNewClientEls.forEach((btnNewClientEl) => {
+    btnNewClientEl.classList.toggle("hidden", !canManage);
+    btnNewClientEl.addEventListener("click", () => {
+      if (!canManage) {
+        showToast("No tenes permisos para crear clientes.", { type: "warning", duration: 2400 });
+        return;
+      }
+      if (btnNewClientEl.disabled) return; // Prevenir doble-clic
+      btnNewClientEl.disabled = true;
+      btnNewClientEl.classList.add('loading');
+      location.href = buildFormUrl({ mode: "new" });
+    });
   });
   searchEl.addEventListener("input", debounce(renderList, 180));
   showInactiveEl.addEventListener("change", renderList);

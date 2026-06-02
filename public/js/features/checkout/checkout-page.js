@@ -61,9 +61,9 @@ function render() {
     const itemKey = resolveCartItemKey(it);
 
     return `
-      <div class="card p-3 flex gap-3">
+      <div class="card p-3 flex flex-col gap-3 md:flex-row">
         <img src="${img}" alt="${escapeHtml(it.name)}"
-          class="w-16 h-16 object-contain rounded-xl bg-surface-2 border divider" />
+          class="w-full max-w-[160px] h-40 md:h-32 object-contain rounded-xl bg-surface-2 border divider" />
 
         <div class="flex-1 min-w-0">
           <!-- Nombre -->
@@ -72,7 +72,7 @@ function render() {
           </div>
 
           <!-- Fila operativa -->
-          <div class="mt-2 flex items-end gap-3 flex-wrap">
+          <div class="mt-2 grid gap-3 sm:grid-cols-[minmax(150px,1fr)_minmax(120px,auto)] items-end">
             
             <!-- Precio -->
             <div class="min-w-0">
@@ -86,15 +86,15 @@ function render() {
                 step="1"
                 inputmode="numeric"
                 value="${Math.trunc(Number(it.price) || 0)}"
-                class="input w-24 px-2 py-2 text-sm" />
+                class="input w-full sm:w-24 px-2 py-2 text-sm" />
             </div>
 
             <!-- Cantidad -->
             <div class="shrink-0">
               <label class="text-xs text-muted block mb-1">Cant.</label>
-              <div class="flex items-center gap-1.5">
+              <div class="flex flex-wrap items-center gap-1.5">
                 <button data-dec="${itemKey}"
-                  class="btn btn-secondary px-2 py-2">-</button>
+                  class="btn btn-secondary px-3 py-2">-</button>
 
                 <input
                   data-qty="${itemKey}"
@@ -103,21 +103,20 @@ function render() {
                   min="1"
                   step="1"
                   inputmode="numeric"
-                  class="input w-12 text-center px-1 py-2" />
+                  class="input w-full sm:w-12 text-center px-1 py-2" />
 
                 <button data-inc="${itemKey}"
-                  class="btn btn-secondary px-2 py-2">+</button>
+                  class="btn btn-secondary px-3 py-2">+</button>
               </div>
             </div>
 
             <!-- Subtotal -->
-            <div class="ml-auto text-right shrink-0">
+            <div class="text-right">
               <div class="text-xs text-muted mb-1">Subtotal</div>
               <div class="font-semibold whitespace-nowrap">
                 $ ${formatArs(Number(it.price) * Number(it.qty))}
               </div>
             </div>
-
           </div>
         </div>
       </div>

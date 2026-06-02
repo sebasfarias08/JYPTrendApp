@@ -5,10 +5,11 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 ## Resumen ejecutivo
 
 - Estado actual: funcional para operacion diaria (catalogo, carrito, Reserva, pedidos, clientes, productos, variantes, inventario, logistica, finanzas, reportes y PWA basica).
-- Version de app en repo: `v1.8.11` (`public/version.json`, fecha `2026-05-30`).
+- Version de app en repo: `v1.8.12` (`public/version.json`, fecha `2026-06-02`).
 - Arquitectura: HTML multipagina + JavaScript ES Modules + Tailwind CSS compilado + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Fuente de verdad backend: `docs/supabase-architecture-final.md`.
+- Ultima actualizacion: responsive mobile-first en `pedido-detalle`, `cliente-form`, `movimientos-inventario` y formularios asociados.
 
 ## Stack y arquitectura
 
@@ -184,6 +185,18 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
   - la resolucion previa de sales context en frontend fue reemplazada por una sola RPC a Supabase para evitar queries redundantes antes de leer el catalogo.
   - las imagenes del cold load mobile ahora descargan variantes mas chicas en cards y priorizan solo la primera imagen visible.
   - el helper de imagenes conserva compatibilidad con proyectos sin transformaciones de Storage mediante fallback al asset publico.
+
+## Cambios en v1.8.12 (2026-06-02): Mobile-first responsive refinement
+
+- **Paginas de detalle y formularios:**
+  - `public/pages/pedido-detalle.html`: contenedor adaptativo `max-w-5xl mx-auto w-full` para mejor visualizacion de detalles de pedido en desktop.
+  - `public/pages/cliente-form.html`: wrapper `max-w-2xl mx-auto w-full` para formularios no demasiado anchos; botones de accion apilados en mobile (`flex-col gap-2 sm:flex-row`).
+  - `public/pages/movimientos-inventario.html`: grid responsive para lista de movimientos; busqueda y boton "Nuevo" en fila adaptativa.
+  - `public/pages/movimientos-inventario-form.html`: formulario limitado a `max-w-3xl`; campos agrupados en `sm:grid-cols-2` para mejor uso de espacio desktop; botones mobile-first.
+- **Preservacion:**
+  - ninguna logica de negocio ni interacciones backend fueron modificadas.
+  - modulos JavaScript permanecen funcionalmente identicos.
+  - integracion con servicios Supabase sin cambios.
 
 ## Riesgos / deuda tecnica
 
