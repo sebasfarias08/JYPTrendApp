@@ -33,6 +33,23 @@ const MENU_ITEMS = [
   { label: "Salir", href: null, icon: "logout", action: "logout" }
 ];
 
+function showNavigationTransition(callback) {
+  let overlay = document.getElementById("appShellNavigatingOverlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "appShellNavigatingOverlay";
+    overlay.innerHTML = '<div class="loader"></div>';
+    document.body.appendChild(overlay);
+  }
+  
+  document.body.classList.add("app-shell-navigating");
+  overlay.classList.add("active");
+  
+  setTimeout(() => {
+    callback();
+  }, 300);
+}
+
 function getMenuItemsByRole(role) {
   const normalizedRole = normalizeRole(role);
   return MENU_ITEMS.filter((item) => {
@@ -99,6 +116,13 @@ function buildMenuList(container, role, onSelect = () => {}) {
 
     if (item.href) {
       btn.setAttribute("href", item.href);
+      btn.addEventListener("click", (event) => {
+        event.preventDefault();
+        onSelect();
+        showNavigationTransition(() => {
+          location.href = item.href;
+        });
+      });
     } else {
       btn.setAttribute("type", "button");
       btn.addEventListener("click", async () => {
@@ -117,9 +141,6 @@ function buildMenuList(container, role, onSelect = () => {}) {
       });
     }
 
-    if (item.href) {
-      btn.addEventListener("click", () => onSelect());
-    }
     container.appendChild(btn);
   });
 }
@@ -420,4 +441,11 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
   window.addEventListener("cart:changed", refreshCartCount);
   window.addEventListener("storage", refreshCartCount);
   refreshCartCount();
+
+  // Clean up navigation transition state when page loads
+  window.addEventListener("load", () => {
+    document.body.classList.remove("app-shell-navigating");
+    const overlay = document.getElementById("appShellNavigatingOverlay");
+    if (overlay) overlay.classList.remove("active");
+  }, { once: true });
 }
