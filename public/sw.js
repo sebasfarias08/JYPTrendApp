@@ -1,5 +1,5 @@
 /* public/sw.js */
-const APP_VERSION = "v1.8.14";
+const APP_VERSION = "v1.8.15";
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 
@@ -127,8 +127,13 @@ async function cacheFirst(req, cacheName = CACHE_STATIC) {
 async function networkFirst(req) {
   const cache = await caches.open(CACHE_RUNTIME);
   try {
-    const fresh = await fetch(req, { cache: "no-store" });
-    if (fresh.ok) await cache.put(req, fresh.clone());
+    const fresh = await fetch(req, { 
+      cache: "no-store",
+      redirect: "follow"
+    });
+    if (fresh.ok && !fresh.redirected) {
+      await cache.put(req, fresh.clone());
+    }
     return fresh;
   } catch {
     const cached = await cache.match(req);
@@ -143,10 +148,21 @@ async function htmlCacheFirst(req) {
   if (cached) return cached;
   
   try {
-    const fresh = await fetch(req, { cache: "no-store" });
-    if (fresh.ok) await cache.put(req, fresh.clone());
+    const fresh = await fetch(req, { 
+      cache: "no-store",
+      redirect: "follow"
+    });
+    // Only cache successful responses that are not redirected
+    if (fresh.ok && !fresh.redirected) {
+      await cache.put(req, fresh.clone());
+    }
     return fresh;
-  } catch {
+  } catch (err) {
+    // If redirect caused the issue, return fresh response anyway (don't throw)
+    // since the fetch succeeded, just the caching failed
+    if (err.name === "TypeError" && err.message.includes("redirect")) {
+      return await fetch(req, { redirect: "follow" });
+    }
     throw new Error("Network error and HTML not in cache.");
   }
 }
