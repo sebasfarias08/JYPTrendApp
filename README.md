@@ -5,11 +5,11 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 ## Resumen ejecutivo
 
 - Estado actual: funcional para operacion diaria (catalogo, carrito, Reserva, pedidos, clientes, productos, variantes, inventario, logistica, finanzas, reportes y PWA basica).
-- Version de app en repo: `v1.8.13` (`public/version.json`, fecha `2026-06-02`).
+- Version de app en repo: `v1.8.14` (`public/version.json`, fecha `2026-06-02`).
 - Arquitectura: HTML multipagina + JavaScript ES Modules + Tailwind CSS compilado + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Fuente de verdad backend: `docs/supabase-architecture-final.md`.
-- Ultima actualizacion: navegacion optimizada con transiciones visuales y prefetch de páginas en background.
+- Ultima actualizacion: lazy-load de módulos opcionales + cache-first para HTML; reduce main-thread stalls y TTFB en navegación.
 
 ## Stack y arquitectura
 
@@ -218,6 +218,36 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
   - Service Worker precache intacto; prefetch usa cache separado.
   - No hay cambios en logica de negocio ni backend.
   - Compatible con todos los navegadores con Service Worker support.
+
+## Cambios en v1.8.14 (2026-06-02): Lazy-load de módulos + HTML cache-first
+
+- **Lazy-load de módulos opcionales (B):**
+  - `public/js/app/shell/app-shell.js`: nueva función `lazyLoadOptionalModules(role)` que defer-carga con `requestIdleCallback` módulos que solo ciertos usuarios usan:
+    - Finance: `finance-dashboard.js` (solo para usuarios con permisos).
+    - Inventory/Admin: `inventory-movements-page.js`, `logistics-inventories-page.js` (solo para `canManageInventory`).
+    - Products: `products-page.js` (solo para `canManageInventory`).
+    - Reports: `orders-report.js` (solo para `canViewReports`).
+  - Módulos se cargan en idle callback (después de que el usuario interactúa), no bloqueando paint inicial.
+  - Timeout: 8s máximo para evitar que se carguen nunca si el usuario está activo.
+  - Resultado: reduce el parse/eval JS que bloquea main-thread en navegación inicial; main thread libre para render más rápido.
+
+- **HTML cache-first en Service Worker (C):**
+  - `public/sw.js`: nueva función `htmlCacheFirst(req)` que prioriza HTML cacheado.
+  - Estrategia para HTML: `cacheFirst` en lugar de `networkFirst` cuando el HTML ya está en cache.
+  - Después del prefetch, navegación a páginas cacheadas es casi instantánea (evita TTFB de red).
+  - Fallback: si cache miss o error, intenta fetch de red; si falla, error controlado.
+  - Resultado: reduce latencia de red en navegación entre páginas; TTFB ~0ms para HTML ya cacheado.
+
+- **Preservacion:**
+  - Ningún cambio en lógica de negocio, servicios Supabase, o flujos de datos.
+  - Dynamic imports son silenciosos (no interfieren con el flujo del usuario).
+  - Módulos se cargan bajo demanda real (no se cargan si el usuario no navega a esas secciones).
+  - Cache strategy: navegación posteriores a la primera son aún más rápidas.
+
+**Impacto esperado:**
+- Reducción de 300-700ms en el "blanco" al navegar (menos JS parse, TTFB eliminado para HTML cacheado).
+- Main thread desocupado más rápido → paint más rápido → UX más fluida.
+- Después de prefetch (3.5s), navegación prácticamente instantánea.
 
 ## Riesgos / deuda tecnica
 

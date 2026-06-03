@@ -1,5 +1,5 @@
 /* public/sw.js */
-const APP_VERSION = "v1.8.13";
+const APP_VERSION = "v1.8.14";
 const CACHE_STATIC = `static-${APP_VERSION}`;
 const CACHE_RUNTIME = `runtime-${APP_VERSION}`;
 
@@ -137,6 +137,20 @@ async function networkFirst(req) {
   }
 }
 
+async function htmlCacheFirst(req) {
+  const cache = await caches.open(CACHE_RUNTIME);
+  const cached = await cache.match(req);
+  if (cached) return cached;
+  
+  try {
+    const fresh = await fetch(req, { cache: "no-store" });
+    if (fresh.ok) await cache.put(req, fresh.clone());
+    return fresh;
+  } catch {
+    throw new Error("Network error and HTML not in cache.");
+  }
+}
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
@@ -159,7 +173,7 @@ self.addEventListener("fetch", (event) => {
   const accept = req.headers.get("accept") || "";
 
   if (accept.includes("text/html")) {
-    event.respondWith(networkFirst(req));
+    event.respondWith(htmlCacheFirst(req));
     return;
   }
 

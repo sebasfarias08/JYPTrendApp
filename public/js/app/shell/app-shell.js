@@ -230,6 +230,67 @@ async function prefetchMenuPages(role) {
   }, 3500);
 }
 
+// Lazy-load optional modules to reduce initial JS parse/eval time.
+// These are deferred until requestIdleCallback or after page load to unblock main thread.
+function lazyLoadOptionalModules(role) {
+  const normalizedRole = normalizeRole(role);
+  
+  // Finance modules: only load if user has permission
+  if (canViewFinance(normalizedRole)) {
+    requestIdleCallback(
+      () => {
+        import("/js/features/finance/finance-dashboard.js").catch((e) =>
+          console.debug("[Lazy] Finance dashboard deferred load skipped", e)
+        );
+      },
+      { timeout: 8000 }
+    );
+  }
+  
+  // Inventory/Admin modules: only load if user can manage inventory
+  if (canManageInventory(normalizedRole)) {
+    requestIdleCallback(
+      () => {
+        Promise.all([
+          import("/js/features/inventory/inventory-movements-page.js").catch((e) =>
+            console.debug("[Lazy] Inventory movements deferred load skipped", e)
+          ),
+          import("/js/features/inventory/logistics-inventories-page.js").catch((e) =>
+            console.debug("[Lazy] Logistics inventories deferred load skipped", e)
+          )
+        ]);
+      },
+      { timeout: 8000 }
+    );
+  }
+  
+  // Product/Variant modules: only load if user can manage inventory
+  if (canManageInventory(normalizedRole)) {
+    requestIdleCallback(
+      () => {
+        Promise.all([
+          import("/js/features/product/products-page.js").catch((e) =>
+            console.debug("[Lazy] Products page deferred load skipped", e)
+          )
+        ]);
+      },
+      { timeout: 8000 }
+    );
+  }
+  
+  // Report modules: only load if user can view reports
+  if (canViewReports(normalizedRole)) {
+    requestIdleCallback(
+      () => {
+        import("/js/features/orders/orders-report.js").catch((e) =>
+          console.debug("[Lazy] Orders report deferred load skipped", e)
+        );
+      },
+      { timeout: 8000 }
+    );
+  }
+}
+
 function resolveActiveTab() {
   const path = location.pathname;
   const tab = new URLSearchParams(location.search).get("tab");
@@ -419,6 +480,7 @@ export function initAppShell({ title = "JyP Ventas", onRefresh = null } = {}) {
         });
       }
       prefetchMenuPages(role);
+      lazyLoadOptionalModules(role);
     })
     .catch((error) => {
       console.error("App shell identity error:", error);
