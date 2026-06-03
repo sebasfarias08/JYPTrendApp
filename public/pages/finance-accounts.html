@@ -38,7 +38,6 @@
   <script type="module">
     import { requireAuth } from "/js/app/auth/auth.js";
     import { initAppShell } from "/js/app/shell/app-shell.js";
-    import { getAccountBalances } from "/js/features/finance/accounts-service.js";
     import { showToast } from "/js/shared/ui/toast.js";
 
     const session = await requireAuth();
@@ -69,7 +68,8 @@
 
     async function loadAccounts() {
       accountsList.innerHTML = "<p class='py-4 text-sm text-slate-500'>Cargando cuentas...</p>";
-      const accounts = await getAccountBalances();
+      const mod = await import('/js/features/finance/accounts-service.js');
+      const accounts = await mod.getAccountBalances();
       if (!accounts.length) {
         accountsList.innerHTML = "<p class='py-4 text-sm text-slate-500'>No se encuentran cuentas registradas.</p>";
         return;

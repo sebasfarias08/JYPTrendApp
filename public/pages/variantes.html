@@ -54,7 +54,6 @@
   <script type="module">
     import { requireRole } from "/js/app/auth/auth.js";
     import { initAppShell } from "/js/app/shell/app-shell.js";
-    import { initVariantsPage } from "/js/features/product/variants-page.js";
 
     const session = await requireRole(["admin"]);
     if (!session) throw new Error("Redirect login");
@@ -64,7 +63,10 @@
       onRefresh: async () => location.reload()
     });
 
-    initVariantsPage();
+    (async () => {
+      const mod = await import('/js/features/product/variants-page.js');
+      mod.initVariantsPage?.();
+    })();
   </script>
 </body>
 </html>

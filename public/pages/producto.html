@@ -124,7 +124,6 @@
   <script type="module">
     import { requireAuth } from "/js/app/auth/auth.js";
     import { registerServiceWorker, applyUpdate } from "/js/app/core/sw-register.js";
-    import { initProductPage } from "/js/features/product/product-page.js";
     import { initAppShell } from "/js/app/shell/app-shell.js";
 
     const session = await requireAuth();
@@ -132,10 +131,6 @@
 
     let pendingReg = null;
 
-    initAppShell({
-      title: "Producto",
-      onRefresh: async () => location.reload()
-    });
 
     registerServiceWorker({
       onUpdate: (reg) => {
@@ -146,7 +141,16 @@
 
     document.getElementById("btnUpdate").addEventListener("click", () => applyUpdate(pendingReg), { once: true });
 
-    initProductPage(session.profile?.role);
+    initAppShell({
+      title: "Producto",
+      onRefresh: async () => location.reload()
+    });
+
+    // Load product page logic dynamically
+    (async () => {
+      const mod = await import('/js/features/product/product-page.js');
+      mod.initProductPage?.(session.profile?.role);
+    })();
   </script>
 </body>
 </html>

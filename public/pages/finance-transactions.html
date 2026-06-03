@@ -38,7 +38,6 @@
   <script type="module">
     import { requireAuth } from "/js/app/auth/auth.js";
     import { initAppShell } from "/js/app/shell/app-shell.js";
-    import { getFinancialMovements } from "/js/features/finance/transactions-service.js";
     import { showToast } from "/js/shared/ui/toast.js";
 
     const session = await requireAuth();
@@ -76,7 +75,8 @@
 
     async function loadTransactions() {
       transactionsList.innerHTML = "<p class='py-4 text-sm text-slate-500'>Cargando transacciones...</p>";
-      const movements = await getFinancialMovements(100);
+      const mod = await import('/js/features/finance/transactions-service.js');
+      const movements = await mod.getFinancialMovements(100);
       if (!movements.length) {
         transactionsList.innerHTML = "<p class='py-4 text-sm text-slate-500'>No hay transacciones disponibles.</p>";
         return;

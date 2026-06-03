@@ -68,7 +68,6 @@
   <script type="module">
     import { requireRole } from "/js/app/auth/auth.js";
     import { initAppShell } from "/js/app/shell/app-shell.js";
-    import { initProductFormPage } from "/js/features/product/product-form-page.js";
 
     const session = await requireRole(["admin"]);
     if (!session) throw new Error("Redirect login");
@@ -78,7 +77,10 @@
       onRefresh: async () => location.reload()
     });
 
-    initProductFormPage();
+    (async () => {
+      const mod = await import('/js/features/product/product-form-page.js');
+      mod.initProductFormPage?.();
+    })();
   </script>
 </body>
 </html>

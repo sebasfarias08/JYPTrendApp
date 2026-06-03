@@ -152,11 +152,6 @@
   <script type="module">
     import { requireAuth } from "/js/app/auth/auth.js";
     import { initAppShell } from "/js/app/shell/app-shell.js";
-    import { getAccountOptions } from "/js/features/finance/accounts-service.js";
-    import { createExpense } from "/js/features/finance/expenses-service.js";
-    import { createTransfer } from "/js/features/finance/transfers-service.js";
-    import { createCustomerPayment } from "/js/features/finance/payments-service.js";
-    import { createSupplierPayment } from "/js/features/finance/suppliers-payments-service.js";
     import { showToast } from "/js/shared/ui/toast.js";
 
     const session = await requireAuth();
@@ -177,7 +172,8 @@
     }
 
     async function loadAccounts() {
-      const accounts = await getAccountOptions();
+      const mod = await import('/js/features/finance/accounts-service.js');
+      const accounts = await mod.getAccountOptions();
       if (!accounts.length) {
         accountSelectors.forEach((select) => {
           if (select) select.innerHTML = '<option value="">No hay cuentas</option>';
@@ -219,7 +215,8 @@
 
     document.getElementById("expenseForm")?.addEventListener("submit", async (event) => {
       await handleSubmit(event, async () => {
-        return createExpense({
+        const svc = await import('/js/features/finance/expenses-service.js');
+        return svc.createExpense({
           category: document.getElementById("expenseCategory").value,
           description: document.getElementById("expenseDescription").value,
           amount: document.getElementById("expenseAmount").value,
@@ -231,7 +228,8 @@
 
     document.getElementById("transferForm")?.addEventListener("submit", async (event) => {
       await handleSubmit(event, async () => {
-        return createTransfer({
+        const svc = await import('/js/features/finance/transfers-service.js');
+        return svc.createTransfer({
           from_account_id: document.getElementById("transferFromAccount").value,
           to_account_id: document.getElementById("transferToAccount").value,
           amount: document.getElementById("transferAmount").value,
@@ -242,7 +240,8 @@
 
     document.getElementById("customerPaymentForm")?.addEventListener("submit", async (event) => {
       await handleSubmit(event, async () => {
-        return createCustomerPayment({
+        const svc = await import('/js/features/finance/payments-service.js');
+        return svc.createCustomerPayment({
           order_id: document.getElementById("customerPaymentOrderId").value,
           amount: document.getElementById("customerPaymentAmount").value,
           account_id: document.getElementById("customerPaymentAccount").value,
@@ -253,7 +252,8 @@
 
     document.getElementById("supplierPaymentForm")?.addEventListener("submit", async (event) => {
       await handleSubmit(event, async () => {
-        return createSupplierPayment({
+        const svc = await import('/js/features/finance/suppliers-payments-service.js');
+        return svc.createSupplierPayment({
           purchase_order_id: document.getElementById("supplierPaymentOrderId").value,
           amount: document.getElementById("supplierPaymentAmount").value,
           account_id: document.getElementById("supplierPaymentAccount").value,
