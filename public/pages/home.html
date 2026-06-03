@@ -194,10 +194,10 @@
   <script type="module">
     import { requireAuth } from "/js/app/auth/auth.js";
     import { initAppShell } from "/js/app/shell/app-shell.js";
-    import * as orderStatusModule from "/js/shared/utils/order-status.js";
     import { showToast } from "/js/shared/ui/toast.js";
-    const normalizeStatus = orderStatusModule.normalizeStatus ?? ((status) => String(status ?? "").trim());
-    const statusLabel = orderStatusModule.statusLabel ?? ((status) => String(status ?? ""));
+
+    let normalizeStatus = (status) => String(status ?? "").trim();
+    let statusLabel = (status) => String(status ?? "");
 
     const session = await requireAuth();
     if (!session) throw new Error("Redirect login");
@@ -311,8 +311,13 @@
     async function loadDashboard() {
       showToast("Actualizando home...", { type: "info", duration: 1000 });
 
-      const mod = await import('/js/features/orders/orders-service.js');
-      const getMyOpenOrders = mod.getMyOpenOrders;
+      const [{ getMyOpenOrders }, orderStatusModule] = await Promise.all([
+        import('/js/features/orders/orders-service.js'),
+        import('/js/shared/utils/order-status.js')
+      ]);
+
+      normalizeStatus = orderStatusModule.normalizeStatus ?? ((status) => String(status ?? "").trim());
+      statusLabel = orderStatusModule.statusLabel ?? ((status) => String(status ?? ""));
 
       const orders = await getMyOpenOrders({
         limit: 200,
@@ -324,7 +329,17 @@
       renderRecentOrders(orders);
     }
 
-    await loadDashboard();
+    if ('requestAnimationFrame' in window) {
+      requestAnimationFrame(() => {
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(() => loadDashboard().catch(console.error), { timeout: 2000 });
+        } else {
+          setTimeout(() => loadDashboard().catch(console.error), 300);
+        }
+      });
+    } else {
+      loadDashboard().catch(console.error);
+    }
   </script>
 </body>
 </html>
