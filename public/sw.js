@@ -189,7 +189,7 @@ self.addEventListener("fetch", (event) => {
   const accept = req.headers.get("accept") || "";
 
   if (accept.includes("text/html")) {
-    event.respondWith(htmlCacheFirst(req));
+    event.respondWith(networkFirst(req));
     return;
   }
 

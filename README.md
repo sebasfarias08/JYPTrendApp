@@ -9,7 +9,7 @@ App web de ventas para JyP orientada a uso mobile. Es un frontend estatico en `p
 - Arquitectura: HTML multipagina + JavaScript ES Modules + Tailwind CSS compilado + Supabase JS CDN.
 - Hosting esperado: Cloudflare Pages.
 - Fuente de verdad backend: `docs/supabase-architecture-final.md`.
-- Ultima actualizacion: lazy-load de módulos opcionales + cache-first para HTML; reduce main-thread stalls y TTFB en navegación.
+- Ultima actualizacion: lazy-load de módulos opcionales + corrección de redirect handling en Service Worker; main-thread optimizado, navegación sin errores.
 
 ## Stack y arquitectura
 
@@ -249,7 +249,26 @@ o equivalente (`python -m http.server`, etc.) apuntando a `public/`.
 - Main thread desocupado más rápido → paint más rápido → UX más fluida.
 - Después de prefetch (3.5s), navegación prácticamente instantánea.
 
+## Cambios en v1.8.15 (2026-06-02): Fix redirect handling en SW
+
+- **Problema encontrado:**
+  - Cloudflare/servidor redirige requests (`/pages/pedidos.html` → URL final).
+  - Cache API rechaza almacenar respuestas redirected bajo cualquier circunstancia.
+  - Estrategia C (cache-first para HTML) causaba errores: "a redirected response was used for a request whose redirect mode is not 'follow'".
+
+- **Solución implementada:**
+  - HTML ahora usa `networkFirst()` en lugar de `htmlCacheFirst()`.
+  - `networkFirst()` maneja redirects correctamente: fetch con `redirect: "follow"`, y solo cachea si no fue redirected.
+  - Resultado: requests a HTML se resuelven sin errores; prefetch de assets (JS/CSS/images) sigue funcionando.
+
+- **Impacto:**
+  - Eliminados errores de "redirected response" en Service Worker.
+  - Navegación entre páginas funciona normalmente (network + cache para misses).
+  - Prefetch aún acelera assets (JS, CSS, images) automáticamente.
+  - Trade-off: HTML TTFB no es instant como en v1.8.14, pero es compatible con servidores que redirigen.
+
 ## Riesgos / deuda tecnica
+
 
 1. Ya no quedan wrappers legacy de runtime en el repo; el riesgo residual pasa a ser evitar su reintroduccion.
 2. Configuracion de Supabase aun expuesta en frontend (anon key/public URL).
