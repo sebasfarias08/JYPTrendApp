@@ -131,6 +131,21 @@ async function networkFirst(req) {
       cache: "no-store",
       redirect: "follow"
     });
+    // If the response was redirected, avoid returning the redirected Response
+    // object directly (some navigation requests reject redirected responses).
+    if (fresh.redirected) {
+      // Do not cache redirected responses. Create a new Response from the body
+      // so the client receives a non-redirected Response object.
+      const blob = await fresh.blob();
+      const headers = {};
+      fresh.headers.forEach((v, k) => (headers[k] = v));
+      return new Response(blob, {
+        status: fresh.status,
+        statusText: fresh.statusText,
+        headers
+      });
+    }
+
     if (fresh.ok && !fresh.redirected) {
       await cache.put(req, fresh.clone());
     }
@@ -153,6 +168,17 @@ async function htmlCacheFirst(req) {
       redirect: "follow"
     });
     // Only cache successful responses that are not redirected
+    if (fresh.redirected) {
+      const blob = await fresh.blob();
+      const headers = {};
+      fresh.headers.forEach((v, k) => (headers[k] = v));
+      return new Response(blob, {
+        status: fresh.status,
+        statusText: fresh.statusText,
+        headers
+      });
+    }
+
     if (fresh.ok && !fresh.redirected) {
       await cache.put(req, fresh.clone());
     }
@@ -232,10 +258,13 @@ self.addEventListener("message", (event) => {
             results.push({ url, status: "cached" });
             continue;
           }
-          const res = await fetch(url, { cache: "no-store" });
-          if (res.ok) {
+          const res = await fetch(url, { cache: "no-store", redirect: "follow" });
+          if (res.ok && !res.redirected) {
             await cache.put(url, res.clone());
             results.push({ url, status: "fetched" });
+          } else if (res.ok && res.redirected) {
+            // Do not cache redirected result; mark as redirected.
+            results.push({ url, status: "redirected", finalUrl: res.url });
           } else {
             results.push({ url, status: "failed", code: res.status });
           }
