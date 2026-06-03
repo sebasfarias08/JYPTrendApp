@@ -78,8 +78,8 @@ const PRECACHE_URLS = [
   "/js/shared/utils/runtime-config.js",
   "/js/shared/utils/share.js",
   "/js/shared/utils/storage-service.js",
-  "/assets/icons/icon-192.png",
-  "/assets/icons/icon-512.png"
+  "/assets/icons/icon-192.png?v=2",
+  "/assets/icons/icon-512.png?v=2"
 ];
 
 async function precacheStaticAssets() {
